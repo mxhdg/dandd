@@ -60,25 +60,22 @@
 - **Dual Wielder:** Use two weapons effectively  
 
 ## **Animal Companion: Fire-Breathing Rabbit**
-- **Name:** (Up to you! Maybe something with a pirate or elven theme.)  
+- **Name:** (Up to you! Maybe something whimsical like *Blaze*, *Cinder*, or *Flicker*)  
 - **Type:** Magical Beast (*Tiny Beast*)  
+- **Personality:** Mischievous but fiercely loyal, always keeping Elowen on her toes with its fiery antics.  
 - **Abilities:**  
-  - **Fire Breath:** Once per long rest, deals 2d6 fire damage in a 10-ft cone  
-  - **Burrow Speed:** Can tunnel underground to reposition  
-  - **Evasive Agility:** High Dexterity, allowing it to avoid attacks  
-- **Hit Points:** ~12 HP at Level 3 (adjustable based on DM ruling)  
-- **Armor Class:** 13 (Dexterity-based, since it's quick)  
+  - **Fire Breath:** Once per long rest, deals 2d6 fire damage in a 10-ft cone.  
+  - **Burrow Speed:** Can tunnel underground to reposition.  
+  - **Evasive Agility:** High Dexterity, allowing it to avoid attacks.  
+- **Hit Points:** ~12 HP at Level 3 (adjustable based on DM ruling).  
+- **Armor Class:** 13 (Dexterity-based, since it's quick).  
 - **Attacks:**  
-  - **Fiery Bite:** Deals **1d6 piercing + 1d6 fire damage**  
-  - **Flame Dash:** Can use a bonus action to move extra 10 feet  
+  - **Fiery Bite:** Deals **1d6 piercing + 1d6 fire damage**.  
+  - **Flame Dash:** Can use a bonus action to move extra 10 feet.  
 
 ### **Lore & Story Integration**
-Elowen’s **fire-breathing rabbit** companion could be:
-- A **rare magical creature** found during her adventures.
-- A **gift from an ancient druid** who saw her as a bridge between land and sea.
-- A **mischievous but loyal friend** with unpredictable fiery tendencies.
-- A **cursed creature** needing Elowen’s guidance to control its powers.
+Elowen’s companion, a mischievous fire-breathing rabbit, was no ordinary find. Perhaps it hopped into her life during a storm, seeking refuge and adopting her as its guardian—or maybe it’s the result of a wild magical experiment gone rogue. Either way, while its fiery tendencies keep things unpredictable (like singed clothing), its loyalty is unwavering. Together, they are an unstoppable—and unconventional—pair.
 
 ---
 
-This sheet is fully updated! Let me know if you'd like to tweak anything.  
+Feel free to let me know if you want to fine-tune anything further!  
