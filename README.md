@@ -1,81 +1,108 @@
 # **Elowen Turnerleaf**
-*A warrior forged from land and sea, walking between two worlds.*
+*A fiercely independent warrior forged from land and sea, who struggles to work in a team.*
 
-## **Basic Information**
+## **Character Information**
 - **Name:** Elowen Turnerleaf  
+- **Class & Level:** Fighter (2) / Ranger (1)  
+- **Background:** Outlander  
 - **Race:** Half-Elf  
-- **Class:** Fighter (2) / Ranger (1)  
-- **Background:** Outlander (or Sailor, depending on campaign preference)  
 - **Alignment:** Neutral Good  
-- **Experience Points:** 900 (Level 3)  
-- **Languages:** Common, Elvish  
+- **Experience Points:** 900  
 
-## **Ability Scores (Point Buy)**
-| Ability     | Score | Modifier |
-|------------|------|----------|
-| Strength   | 16   | +3       |
-| Dexterity  | 14   | +2       |
-| Constitution| 14   | +2       |
-| Intelligence| 8    | -1       |
-| Wisdom     | 12   | +1       |
-| Charisma   | 12   | +1       |
+## **Ability Scores**
+| **Ability**  | **Score** | **Modifier** |
+|--------------|-----------|--------------|
+| Strength      | 12        | +1           |
+| Dexterity     | 16        | +3           |
+| Constitution  | 14        | +2           |
+| Intelligence  | 8         | -1           |
+| Wisdom        | 14        | +2           |
+| Charisma      | 12        | +1           |
 
-- **Proficiency Bonus:** +2  
-- **Hit Points:** *Based on Fighter (d10) & Ranger (d10)*  
-- **Armor Class:** *Depends on chosen armor (Chainmail ~16 AC, Scale Mail ~14 AC + Dex)*  
+## **Proficiency Bonus**
+- **+2**
 
-## **Proficiencies**
-- **Armor:** All armor, shields  
-- **Weapons:** Martial & simple weapons  
-- **Saving Throws:** Strength, Constitution  
-- **Skills:**  
-  - Athletics (*Fighter*)  
-  - Survival (*Ranger*)  
-  - Perception (*Ranger*)  
-  - Animal Handling (*Background*)  
-  - Acrobatics (*Background*)  
+## **Saving Throws**
+- **Strength:** +3  
+- **Dexterity:** +5  
+- **Constitution:** +4  
+- **Intelligence:** -1  
+- **Wisdom:** +4  
+- **Charisma:** +3  
 
-## **Combat Abilities**
-### *Fighter Features (Level 2)*
-- **Fighting Style:** Defense (+1 AC in armor) OR Archery (+2 bonus to ranged attacks)  
-- **Second Wind:** Once per short rest, regain **1d10 + Fighter level** HP  
-- **Action Surge:** Once per short rest, take an additional action  
+## **Skills**
+| **Skill**             | **Modifier** | **Proficient** |
+|-----------------------|--------------|----------------|
+| Athletics (Str)       | +3           | Yes            |
+| Acrobatics (Dex)      | +5           | Yes            |
+| Survival (Wis)        | +4           | Yes            |
+| Perception (Wis)      | +4           | Yes            |
+| Animal Handling (Wis) | +4           | Yes            |
 
-### *Ranger Features (Level 1)*
-- **Favored Enemy:** Choose *Beasts* or *Humanoids (Pirates, Bandits, etc.)*  
-- **Natural Explorer:** Choose *Coast* or *Forest* (ignores rough terrain, better tracking)  
+## **Combat**
+### **Weapons**
+#### **Melee Weapon: Longsword**
+- **Attack Bonus:** +3  
+- **Damage:** 1d8 + 1 slashing  
+
+#### **Ranged Weapon: Longbow**
+- **Attack Bonus:** +5  
+- **Damage:** 1d8 + 3 piercing  
+
+## **Hit Points**
+- **Hit Point Maximum:** 28  
+
+## **Armor Class (AC)**
+- **AC:** 16  
+
+## **Features & Traits**
+### **Fighter Features**
+- **Fighting Style:** Archery (+2 bonus to ranged attacks).  
+- **Second Wind:** Recover 1d10 + Fighter level hit points once per short rest.  
+- **Action Surge:** Once per short rest, take an additional action.  
+
+### **Ranger Features**
+- **Favored Enemy:** Beasts.  
+- **Natural Explorer:** Forest terrain.  
+
+### **Background: Outlander**
+- **Tool Proficiency:** One musical instrument.  
+- **Feature (Wanderer):**  
+  - Excellent memory for maps and geography.  
+  - Can find food and water for up to five people in the wild and recall terrain layouts.  
 
 ## **Equipment**
-- **Weapons:**  
-  - Longsword (*Primary Melee*)  
-  - Longbow (*Primary Ranged*)  
-- **Armor:** Chainmail or Scale Mail  
-- **Adventuring Gear:**  
-  - Explorer’s Pack (Ranger essentials)  
-  - Navigator’s Tools (If leaning toward pirate heritage)  
-- **Gold:** *Based on background choice*  
+| **Item**             | **Details**               |
+|----------------------|---------------------------|
+| Longsword            | Melee weapon.             |
+| Longbow (20 arrows)  | Ranged weapon.            |
+| Scale Mail           | Armor.                    |
+| Explorer’s Pack      | Wilderness survival gear. |
+| Musical Instrument   | Chosen via Outlander.     |
 
-## **Feats (Optional)**
-- **Sentinel:** Protect allies, prevent enemy disengagement  
-- **Dual Wielder:** Use two weapons effectively  
-
-## **Animal Companion: Fire-Breathing Rabbit**
-- **Name:** (Up to you! Maybe something whimsical like *Blaze*, *Cinder*, or *Flicker*)  
-- **Type:** Magical Beast (*Tiny Beast*)  
-- **Personality:** Mischievous but fiercely loyal, always keeping Elowen on her toes with its fiery antics.  
+## **Animal Companion**
+### **Fire-Breathing Rabbit**
+- **Name:** Blaze (example)  
+- **Type:** Magical Beast (*Tiny Beast*).  
+- **Personality:** Mischievous but fiercely loyal, with fiery tendencies.  
 - **Abilities:**  
   - **Fire Breath:** Once per long rest, deals 2d6 fire damage in a 10-ft cone.  
+  - **Fiery Bite:** Deals 1d6 piercing + 1d6 fire damage.  
   - **Burrow Speed:** Can tunnel underground to reposition.  
-  - **Evasive Agility:** High Dexterity, allowing it to avoid attacks.  
-- **Hit Points:** ~12 HP at Level 3 (adjustable based on DM ruling).  
-- **Armor Class:** 13 (Dexterity-based, since it's quick).  
-- **Attacks:**  
-  - **Fiery Bite:** Deals **1d6 piercing + 1d6 fire damage**.  
-  - **Flame Dash:** Can use a bonus action to move extra 10 feet.  
+- **Hit Points:** ~12 HP.  
+- **Armor Class:** 13.  
 
-### **Lore & Story Integration**
-Elowen’s companion, a mischievous fire-breathing rabbit, was no ordinary find. Perhaps it hopped into her life during a storm, seeking refuge and adopting her as its guardian—or maybe it’s the result of a wild magical experiment gone rogue. Either way, while its fiery tendencies keep things unpredictable (like singed clothing), its loyalty is unwavering. Together, they are an unstoppable—and unconventional—pair.
+## **Roleplaying Details**
+### **Personality Traits**
+- Fiercely independent and resourceful, preferring to solve problems alone.  
+- Struggles with teamwork and often acts impulsively.  
 
----
+### **Ideal**
+- Freedom: Values independence and the freedom to follow her own path.  
 
-Feel free to let me know if you want to fine-tune anything further!  
+### **Bond**
+- Loyal to her rabbit companion and a small circle of trusted allies, even if she struggles to show it.  
+
+### **Flaw**
+- Difficulty relying on others, leading to friction and impulsive actions.
+ 
