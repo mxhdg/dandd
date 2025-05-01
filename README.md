@@ -90,7 +90,6 @@
 ### **Languages**
 - Common  
 - Elvish  
-- Optional: Sylvan or Dwarvish (if DM allows extra languages)
 
 ### **Weapon Proficiencies**
 - Simple weapons  
@@ -137,7 +136,7 @@
 ---
 
 ## **Animal Companion**
-### **Fire-Breathing Rabbit (Name TBD)**
+### **Fire-Breathing Rabbit Doug**
 - **Personality:** Mischievous but fiercely loyal.  
 - **Abilities:**  
   - **Fire Breath:** Once per long rest, deals 2d6 fire damage in a 10-ft cone.  
@@ -160,4 +159,4 @@ Elowen Turnerleaf grew up as a bridge between two worlds—her elven mother’s 
 
 At 34, Elowen is at the beginning of her journey, blending the teachings of her parents into a path all her own. Her practical gear reflects her days spent under open skies, while the shine of newness in her armor hints at an adventurer still finding her footing. Her wooden elven flute, intricately carved with leaf motifs, is a sentimental relic of her roots, though rarely played.  
 
-In her fire-breathing rabbit companion, she finds a reflection of her own fiery determination—an unpredictable but fiercely loyal bond that grounds her in the chaotic wilderness she calls home.
+In her fire-breathing rabbit companion, Doug, she finds a reflection of her own fiery determination—an unpredictable but fiercely loyal bond that grounds her in the chaotic wilderness she calls home.
