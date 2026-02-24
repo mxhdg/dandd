@@ -1,0 +1,334 @@
+---
+name: Elowen Turnerleaf
+race: Half-Elf
+alignment: Neutral Good
+background: Outlander
+experience_points: null
+
+# Class Information
+classes:
+  - name: Fighter
+    level: 3
+    subclass: Battle Master
+  - name: Ranger
+    level: 1
+    subclass: null
+
+total_level: 4
+proficiency_bonus: 2
+
+# Ability Scores
+ability_scores:
+  strength:
+    score: 12
+    modifier: 1
+  dexterity:
+    score: 16
+    modifier: 3
+  constitution:
+    score: 14
+    modifier: 2
+  intelligence:
+    score: 8
+    modifier: -1
+  wisdom:
+    score: 14
+    modifier: 2
+  charisma:
+    score: 12
+    modifier: 1
+
+# Saving Throws
+saving_throws:
+  strength:
+    proficient: true
+    bonus: 3
+  dexterity:
+    proficient: false
+    bonus: 3
+  constitution:
+    proficient: true
+    bonus: 4
+  intelligence:
+    proficient: false
+    bonus: -1
+  wisdom:
+    proficient: false
+    bonus: 2
+  charisma:
+    proficient: false
+    bonus: 1
+
+# Skills
+skills:
+  acrobatics:
+    proficient: true
+    bonus: 5
+    ability: dexterity
+  animal_handling:
+    proficient: true
+    bonus: 4
+    ability: wisdom
+  arcana:
+    proficient: false
+    bonus: -1
+    ability: intelligence
+  athletics:
+    proficient: true
+    bonus: 3
+    ability: strength
+  deception:
+    proficient: false
+    bonus: 1
+    ability: charisma
+  history:
+    proficient: false
+    bonus: -1
+    ability: intelligence
+  insight:
+    proficient: true
+    bonus: 4
+    ability: wisdom
+  intimidation:
+    proficient: false
+    bonus: 1
+    ability: charisma
+  investigation:
+    proficient: false
+    bonus: -1
+    ability: intelligence
+  medicine:
+    proficient: false
+    bonus: 2
+    ability: wisdom
+  nature:
+    proficient: false
+    bonus: 2
+    ability: wisdom
+  perception:
+    proficient: true
+    bonus: 4
+    ability: wisdom
+  performance:
+    proficient: false
+    bonus: 1
+    ability: charisma
+  persuasion:
+    proficient: false
+    bonus: 1
+    ability: charisma
+  religion:
+    proficient: false
+    bonus: -1
+    ability: intelligence
+  sleight_of_hand:
+    proficient: false
+    bonus: 3
+    ability: dexterity
+  stealth:
+    proficient: true
+    bonus: 5
+    ability: dexterity
+  survival:
+    proficient: true
+    bonus: 4
+    ability: wisdom
+
+passive_perception: 14
+
+# Proficiencies & Languages
+languages:
+  - Common
+  - Elvish
+  - "One additional from Outlander background"
+
+armor_proficiencies:
+  - All armor
+  - Shields
+
+weapon_proficiencies:
+  - Simple weapons
+  - Martial weapons
+
+tool_proficiencies:
+  - Musical Instrument (Elven Flute)
+  - Navigator's Tools
+
+# Combat Stats
+combat:
+  armor_class: 16
+  initiative: 3
+  speed: 30
+  hit_point_maximum: 38
+  current_hit_points: null
+  temporary_hit_points: null
+  
+  hit_dice:
+    total: "4d10"
+    breakdown: "3d10 (Fighter) + 1d10 (Ranger)"
+    used: 0
+  
+  death_saves:
+    successes: 0
+    failures: 0
+
+# Weapons
+weapons:
+  - name: Longbow
+    attack_bonus: 5
+    damage: 1d8+3
+    damage_type: piercing
+    range: "150/600 ft"
+    notes: "Includes +2 from Archery Fighting Style"
+  - name: Longsword
+    attack_bonus: 3
+    damage: 1d8+1
+    damage_type: slashing
+    range: Melee
+    notes: "One-handed"
+  - name: Longsword (Two-Handed)
+    attack_bonus: 3
+    damage: 1d10+1
+    damage_type: slashing
+    range: Melee
+    notes: "Versatile property"
+
+# Features & Traits
+features:
+  # Racial Traits
+  racial_traits:
+    - name: Darkvision
+      description: "60 ft darkvision"
+    - name: Fey Ancestry
+      description: "Advantage on saves vs. being charmed; magic can't put you to sleep"
+    - name: Skill Versatility
+      description: "Proficiency in two additional skills (Animal Handling, Perception)"
+  
+  # Fighter Features
+  fighter_features:
+    - name: Fighting Style - Archery
+      description: "+2 bonus to attack rolls with ranged weapons"
+    - name: Second Wind
+      description: "Bonus action to regain 1d10 + 3 hit points"
+      uses: 1
+      recovery: short rest
+    - name: Action Surge
+      description: "Take one additional action on your turn"
+      uses: 1
+      recovery: short rest
+  
+  # Battle Master Features
+  battle_master:
+    superiority_dice:
+      total: 4
+      die_type: d8
+      recovery: short rest
+    maneuver_save_dc: 12
+    maneuvers:
+      - name: Parry
+        description: "When damaged by a melee attack, use your reaction to reduce damage by 1d8 + 3"
+      - name: Riposte
+        description: "When a creature misses you with a melee attack, use your reaction to make one melee weapon attack against it. Add superiority die to damage"
+      - name: Trip Attack
+        description: "When you hit with a weapon attack, add superiority die to damage and target must succeed on Str save or be knocked prone"
+  
+  # Ranger Features
+  ranger_features:
+    - name: Favored Enemy - Beasts
+      description: "Advantage on Wisdom (Survival) checks to track beasts and Intelligence checks to recall information about them"
+    - name: Natural Explorer - Forest
+      benefits:
+        - "Difficult terrain doesn't slow your group's travel"
+        - "Your group can't become lost except by magical means"
+        - "Remain alert to danger even when foraging, tracking, or navigating"
+        - "Move stealthily at normal pace when alone"
+        - "Find twice as much food when foraging"
+        - "When tracking, learn exact number, sizes, and how long ago creatures passed"
+  
+  # Background Feature
+  background_feature:
+    name: Wanderer
+    description: "You have an excellent memory for maps and geography, and you can always find food and fresh water for yourself and up to five others each day, provided the land offers berries, small game, water, etc."
+
+# Equipment
+equipment:
+  carried:
+    - Longbow with 20 arrows
+    - Longsword
+    - Scale Mail
+    - Explorer's Pack
+    - Navigator's Tools
+    - Elven Flute
+    - Staff
+    - Hunting trap
+    - Trophy from an animal
+    - Traveler's clothes
+    - Belt pouch
+  
+  currency:
+    copper: null
+    silver: null
+    electrum: null
+    gold: 10
+    platinum: null
+
+# Personality
+personality:
+  traits: "I am fiercely independent and resourceful, accustomed to relying on myself alone."
+  ideals: "Freedom. I value autonomy and the ability to chart my own course. (Neutral Good)"
+  bonds: "Doug, my fire-breathing rabbit companion, is my most trusted ally. I would do anything to protect him."
+  flaws: "I have difficulty trusting others or working in a group. I prefer to handle things myself."
+
+# Companion
+companion:
+  name: Doug
+  type: Fire-Breathing Rabbit
+  homebrew: true
+  note: "DM-approved homebrew content"
+  
+  stats:
+    armor_class: 13
+    hit_points: 12
+    speed:
+      ground: 30
+      burrow: 10
+  
+  abilities:
+    - name: Fire Breath
+      uses: 1
+      recovery: long rest
+      description: "Exhales fire in a 10-ft cone. Each creature in that area must make a DC 11 Dexterity saving throw, taking 2d6 fire damage on a failed save, or half as much on a successful one."
+    - name: Fiery Bite
+      attack_bonus: 4
+      reach: 5
+      damage: "1d6 piercing + 1d6 fire"
+      description: "Melee Weapon Attack"
+  
+  personality: "Mischievous and fiercely loyal to Elowen"
+
+# Appearance & Backstory
+appearance:
+  age: 34
+  height: null
+  weight: null
+  eyes: null
+  skin: null
+  hair: "Chestnut, sun-lightened"
+  
+description: "Elowen is a 34-year-old half-elf with chestnut hair sun-lightened from years outdoors. She carries herself with the quiet confidence of someone who has survived alone in the wild. Her gear is practical, worn, and well-maintained. A carved wooden elven flute hangs from her pack — a sentimental relic of her mother's people."
+
+# Advancement & Notes
+advancement:
+  next_level_options:
+    - option: Fighter 4
+      benefit: "Ability Score Improvement (Dex +2 to 18) or Feat"
+    - option: Ranger 2
+      benefit: "Spellcasting, Fighting Style (Hunter's Mark, Goodberry, Absorb Elements)"
+  
+  recommended_feats:
+    - name: Sharpshooter
+      reason: "Significantly increases archery damage output"
+    - name: Tough
+      reason: "+2 HP per level for improved durability"
+    - name: Resilient (Wisdom)
+      reason: "Proficiency in Wisdom saves, enhances mental defenses"
