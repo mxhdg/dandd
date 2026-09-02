@@ -2,6 +2,7 @@
 
 **Class & Level:** Fighter 3 / Ranger 1
 **Background:** Outlander
+**Player Name:** ___________
 **Race:** Half-Elf
 **Alignment:** Neutral Good
 **Experience Points:** ___________
@@ -23,6 +24,8 @@
 │    (-1)     │    (+2)     │    (+1)     │
 └─────────────┴─────────────┴─────────────┘
 ```
+
+**Inspiration:** ☐
 
 **Proficiency Bonus:** +2
 
@@ -79,7 +82,7 @@
 **Initiative:** +3
 **Speed:** 30 ft
 
-**Hit Point Maximum:** 38
+**Hit Point Maximum:** 36
 **Current Hit Points:** _____
 
 **Temporary Hit Points:** _____
@@ -89,13 +92,52 @@
 
 **Death Saves**
 Successes: ☐☐☐
+Failures: ☐☐☐
+
+---
+
+## Attacks & Spellcasting
+
 | Name | Atk Bonus | Damage/Type | Range |
 |------|-----------|-------------|-------|
-| Longbow | +5 | 1d8+3 piercing | 150/600 ft |
+| Longbow | +7 | 1d8+3 piercing | 150/600 ft |
 | Longsword | +3 | 1d8+1 slashing | Melee |
 | Longsword (2H) | +3 | 1d10+1 slashing | Melee |
 
 **Notes:** Longbow includes +2 from Archery Fighting Style
+
+---
+
+## Equipment
+
+**Carried:**
+- Longbow with 20 arrows
+- Longsword
+- Scale Mail
+- Explorer's Pack
+- Navigator's Tools
+- Elven Flute
+- Staff
+- Hunting trap
+- Trophy from an animal
+- Traveler's clothes
+- Belt pouch
+
+**Currency:**
+- **CP:** _____ **SP:** _____ **EP:** _____
+- **GP:** 10 **PP:** _____
+
+---
+
+## Personality Traits
+
+**Personality Traits:** I am fiercely independent and resourceful, accustomed to relying on myself alone.
+
+**Ideals:** Freedom. I value autonomy and the ability to chart my own course. (Neutral Good)
+
+**Bonds:** Doug, my fire-breathing rabbit companion, is my most trusted ally. I would do anything to protect him.
+
+**Flaws:** I have difficulty trusting others or working in a group. I prefer to handle things myself.
 
 ---
 
@@ -106,6 +148,11 @@ Successes: ☐☐☐
 **Darkvision:** 60 ft
 **Fey Ancestry:** Advantage on saves vs. being charmed; magic can't put you to sleep
 **Skill Versatility:** Proficiency in two additional skills (Animal Handling, Perception)
+
+### Background Feature: Outlander
+
+**Wanderer**
+You have an excellent memory for maps and geography, and you can always find food and fresh water for yourself and up to five others each day, provided the land offers berries, small game, water, etc.
 
 ### Fighter Features
 
@@ -143,58 +190,19 @@ Advantage on Wisdom (Survival) checks to track beasts and Intelligence checks to
 
 ---
 
-## Background: Outlander
+## Character Appearance & Backstory
 
-**Feature — Wanderer**
-You have an excellent memory for maps and geography, and you can always find food and fresh water for yourself and up to five others each day, provided the land offers berries, small game, water, etc.
+**Age:** 34 years
+**Height:** _____ **Weight:** _____
+**Eyes:** _____ **Skin:** _____ **Hair:** Chestnut, sun-lightened
 
-**Proficiencies:**
-- Musical Instrument (Elven Flute)
-- One language of your choice
-
-**Equipment:**
-- Staff
-- Hunting trap
-- Trophy from an animal
-- Traveler's clothes
-- Belt pouch (10 gp)
+Elowen is a 34-year-old half-elf with chestnut hair sun-lightened from years outdoors. She carries herself with the quiet confidence of someone who has survived alone in the wild. Her gear is practical, worn, and well-maintained. A carved wooden elven flute hangs from her pack — a sentimental relic of her mother's people.
 
 ---
 
-## Equipment
+## Allies & Organizations
 
-**Carried:**
-- Longbow with 20 arrows
-- Longsword
-- Scale Mail
-- Explorer's Pack
-- Navigator's Tools
-- Elven Flute
-- Staff
-- Hunting trap
-- Trophy from an animal
-- Traveler's clothes
-- Belt pouch
-
-**Currency:**
-- **CP:** _____ **SP:** _____ **EP:** _____
-- **GP:** 10 **PP:** _____
-
----
-
-## Personality Traits
-
-**Personality Traits:** I am fiercely independent and resourceful, accustomed to relying on myself alone.
-
-**Ideals:** Freedom. I value autonomy and the ability to chart my own course. (Neutral Good)
-
-**Bonds:** Doug, my fire-breathing rabbit companion, is my most trusted ally. I would do anything to protect him.
-
-**Flaws:** I have difficulty trusting others or working in a group. I prefer to handle things myself.
-
----
-
-## Companion — Doug (Fire-Breathing Rabbit)
+**Doug (Fire-Breathing Rabbit)** — Elowen's animal companion.
 
 **⚠️ Homebrew/DM-Approved Content**
 
@@ -209,16 +217,6 @@ You have an excellent memory for maps and geography, and you can always find foo
 **Personality:** Mischievous and fiercely loyal to Elowen.
 
 *Note: Fire-breathing rabbit companions are not part of official 5e rules. This requires DM approval.*
-
----
-
-## Appearance & Backstory
-
-**Age:** 34 years
-**Height:** _____ **Weight:** _____
-**Eyes:** _____ **Skin:** _____ **Hair:** Chestnut, sun-lightened
-
-Elowen is a 34-year-old half-elf with chestnut hair sun-lightened from years outdoors. She carries herself with the quiet confidence of someone who has survived alone in the wild. Her gear is practical, worn, and well-maintained. A carved wooden elven flute hangs from her pack — a sentimental relic of her mother's people.
 
 ---
 
