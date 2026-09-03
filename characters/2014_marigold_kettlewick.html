@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Marigold Kettlewick — Character Sheet</title>
+<style>
+  :root {
+    --red: #7a1414;
+    --parchment: #f5ecd8;
+    --paper: #fffdf6;
+    --ink: #1c1a16;
+    --rule: #999;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: #ccc;
+    font-family: Georgia, "Times New Roman", serif;
+    color: var(--ink);
+    margin: 0;
+  }
+  .sheet-page {
+    background: var(--parchment);
+    width: 8.5in;
+    min-height: 11in;
+    margin: 24px auto;
+    padding: 0.4in;
+    box-shadow: 0 0 14px rgba(0,0,0,.35);
+    page-break-after: always;
+  }
+  @media print {
+    body { background: #fff; }
+    .sheet-page { box-shadow: none; margin: 0; }
+  }
+  h1.charname {
+    text-align: center;
+    font-size: 26px;
+    letter-spacing: 2px;
+    margin: 0 0 10px 0;
+    border: 2px solid var(--ink);
+    background: var(--paper);
+    padding: 8px;
+  }
+  .header-fields {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .field {
+    border-bottom: 1.5px solid var(--ink);
+    background: var(--paper);
+    padding: 4px 6px 2px 6px;
+  }
+  .field .label {
+    display: block;
+    font-size: 8px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: #555;
+  }
+  .field .value {
+    font-size: 13px;
+    font-weight: bold;
+    min-height: 16px;
+  }
+  .section-title {
+    background: var(--red);
+    color: var(--parchment);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    font-weight: bold;
+    padding: 3px 8px;
+    margin: 0;
+  }
+  .box {
+    border: 1.5px solid var(--ink);
+    background: var(--paper);
+    padding: 8px;
+    margin-bottom: 10px;
+  }
+  .boxed-section { border: 1.5px solid var(--ink); margin-bottom: 10px; }
+  .boxed-section .box { border: none; margin: 0; }
+
+  .columns-3 {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr 1.25fr;
+    gap: 10px;
+    align-items: start;
+  }
+  .col { display: flex; flex-direction: column; gap: 10px; }
+
+  .ability-row { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+  .ability-box {
+    border: 2px solid var(--ink);
+    border-radius: 10px;
+    text-align: center;
+    padding: 6px 4px 8px;
+    background: var(--paper);
+    width: 100%;
+  }
+  .ability-box .ab-name { font-size: 9px; font-weight: bold; letter-spacing: .5px; text-transform: uppercase; }
+  .ability-circle {
+    width: 48px; height: 48px;
+    border: 2px solid var(--ink);
+    border-radius: 50%;
+    margin: 4px auto 2px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; font-weight: bold;
+    background: #fff;
+  }
+  .ability-score { font-size: 10px; }
+
+  .inspo-prof { display: flex; gap: 10px; }
+  .inspo-prof .field { flex: 1; text-align: center; }
+
+  .save-row, .skill-row {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; padding: 2px 0;
+    border-bottom: 1px dotted var(--rule);
+  }
+  .save-row.prof, .skill-row.prof { font-weight: bold; }
+  .chk {
+    width: 11px; height: 11px; flex: 0 0 auto;
+    border: 1.3px solid var(--ink);
+    display: inline-block;
+  }
+  .chk.filled { background: var(--ink); }
+  .mod-box {
+    width: 28px; text-align: center; font-weight: bold;
+    border: 1px solid var(--ink); background: #fff; font-size: 11px;
+    flex: 0 0 auto;
+  }
+  .skill-name { flex: 1; }
+  .skill-ability { font-size: 9px; color: #555; }
+
+  .passive-box { text-align: center; font-size: 11px; margin-top: 4px; }
+
+  table.attack-table { width: 100%; border-collapse: collapse; font-size: 10.5px; }
+  table.attack-table th, table.attack-table td {
+    border: 1px solid var(--ink); padding: 2px 5px; text-align: left;
+  }
+  table.attack-table th { background: #eadfc4; }
+
+  .combat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; text-align: center; }
+  .combat-grid .field .value { font-size: 18px; }
+
+  .death-saves { display: flex; gap: 14px; font-size: 11px; margin-top: 4px; }
+  .death-saves .chk { margin-right: 2px; }
+
+  ul.plain { margin: 4px 0 4px 16px; padding: 0; font-size: 11px; }
+  .feat-block { font-size: 11px; margin-bottom: 6px; }
+  .feat-block .feat-name { font-weight: bold; }
+
+  .personality-box .field .value { font-size: 11px; font-weight: normal; }
+
+  .small-note { font-size: 9.5px; color: #555; font-style: italic; }
+
+  .page2-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .page2-full { grid-column: 1 / -1; }
+
+  .appearance-fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
+
+  .spell-header-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+  .slots-row { display: flex; gap: 16px; font-size: 12px; margin: 6px 0; }
+  .slot-pips .pip { display: inline-block; width: 9px; height: 9px; border-radius: 50%; border: 1.2px solid var(--ink); margin-right: 2px; }
+  .slot-pips .pip.filled { background: var(--ink); }
+  .spell-list-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+</style>
+</head>
+<body>
+
+<!-- ================= PAGE 1 ================= -->
+<div class="sheet-page">
+  <h1 class="charname">Marigold Kettlewick</h1>
+
+  <div class="header-fields">
+    <div class="field"><span class="label">Class &amp; Level</span><span class="value">Artificer 5 (Artillerist)</span></div>
+    <div class="field"><span class="label">Background</span><span class="value">Guild Artisan (Alchemists' Guild)</span></div>
+    <div class="field"><span class="label">Player Name</span><span class="value">&nbsp;</span></div>
+    <div class="field"><span class="label">Race</span><span class="value">Halfling (Stout)</span></div>
+    <div class="field"><span class="label">Alignment</span><span class="value">Neutral Good</span></div>
+    <div class="field"><span class="label">Experience Points</span><span class="value">&nbsp;</span></div>
+  </div>
+
+  <div class="columns-3">
+
+    <!-- COLUMN 1: Abilities, Saves, Skills -->
+    <div class="col">
+      <div class="ability-row">
+        <div class="ability-box">
+          <div class="ab-name">Strength</div>
+          <div class="ability-circle">1</div>
+          <div class="ability-score">-5</div>
+        </div>
+        <div class="ability-box">
+          <div class="ab-name">Dexterity</div>
+          <div class="ability-circle">18</div>
+          <div class="ability-score">+4</div>
+        </div>
+        <div class="ability-box">
+          <div class="ab-name">Constitution</div>
+          <div class="ability-circle">20</div>
+          <div class="ability-score">+5</div>
+        </div>
+        <div class="ability-box">
+          <div class="ab-name">Intelligence</div>
+          <div class="ability-circle">20</div>
+          <div class="ability-score">+5</div>
+        </div>
+        <div class="ability-box">
+          <div class="ab-name">Wisdom</div>
+          <div class="ability-circle">13</div>
+          <div class="ability-score">+1</div>
+        </div>
+        <div class="ability-box">
+          <div class="ab-name">Charisma</div>
+          <div class="ability-circle">11</div>
+          <div class="ability-score">+0</div>
+        </div>
+      </div>
+
+      <div class="inspo-prof">
+        <div class="field"><span class="label">Inspiration</span><span class="value"><span class="chk"></span></span></div>
+        <div class="field"><span class="label">Proficiency Bonus</span><span class="value">+3</span></div>
+      </div>
+
+      <div class="boxed-section">
+        <div class="section-title">Saving Throws</div>
+        <div class="box">
+          <div class="save-row"><span class="chk"></span><span class="mod-box">-5</span><span class="skill-name">Strength</span></div>
+          <div class="save-row"><span class="chk"></span><span class="mod-box">+4</span><span class="skill-name">Dexterity</span></div>
+          <div class="save-row prof"><span class="chk filled"></span><span class="mod-box">+8</span><span class="skill-name">Constitution</span></div>
+          <div class="save-row prof"><span class="chk filled"></span><span class="mod-box">+8</span><span class="skill-name">Intelligence</span></div>
+          <div class="save-row"><span class="chk"></span><span class="mod-box">+1</span><span class="skill-name">Wisdom</span></div>
+          <div class="save-row"><span class="chk"></span><span class="mod-box">+0</span><span class="skill-name">Charisma</span></div>
+        </div>
+      </div>
+
+      <div class="boxed-section">
+        <div class="section-title">Skills</div>
+        <div class="box">
+          <div class="skill-row"><span class="chk"></span><span class="mod-box">+4</span><span class="skill-name">Acrobatics <span class="skill-ability">(Dex)</span></span></div>
+          <div class="skill-row"><span class="chk"></span><span class="mod-box">+1</span><span class="skill-name">Animal Handling <span class="skill-ability">(Wis)</span></span></div>
+          <div class="skill-row"><span class="chk"></span><span class="mod-box">+5</span><span class="skill-name">Arcana <span class="skill-ability">(Int)</span></span></div>
+          <div class="skill-row"><span class="chk"></span><span class="mod-box">-5</span><span class="skill-name">Athletics <span class="skill-ability">(Str)</span></span></div>
+          <div class="skill-row"><span class="chk"></span><span class="mod-box">+0</span><span class="skill-name">Deception <span class="skill-ability">(Cha)</span></span></div>
+          <div class="skill-row"><span class="chk"></span><span class="mod-box">+5</span><span class="skill-name">History <span class="skill-ability">(Int)</span></span></div>
+          <div class="skill-row prof"><span class="chk filled"></span><span class="mod-box">+4</span><span class="skill-name">Insight <span class="skill-ability">(Wis)</span></span></div>
+          <div class="skill-row"><span class="chk"></span><span class="mod-box">+0</span><span class="skill-name">Intimidation <span class="skill-ability">(Cha)</span></span></div>
+          <div class="skill-row prof"><span class="chk filled"></span><span class="mod-box">+8</span><span class="skill-name">Investigation <span class="skill-ability">(Int)</span></span></div>
+          <div class="skill-row"><span class="chk"></span><span class="mod-box">+1</span><span class="skill-name">Medicine <span class="skill-ability">(Wis)</span></span></div>
+          <div class="skill-row"><span class="chk"></span><span class="mod-box">+5</span><span class="skill-name">Nature <span class="skill-ability">(Int)</span></span></div>
+          <div class="skill-row prof"><span class="chk filled"></span><span class="mod-box">+4</span><span class="skill-name">Perception <span class="skill-ability">(Wis)</span></span></div>
+          <div class="skill-row"><span class="chk"></span><span class="mod-box">+0</span><span class="skill-name">Performance <span class="skill-ability">(Cha)</span></span></div>
+          <div class="skill-row prof"><span class="chk filled"></span><span class="mod-box">+3</span><span class="skill-name">Persuasion <span class="skill-ability">(Cha)</span></span></div>
+          <div class="skill-row"><span class="chk"></span><span class="mod-box">+5</span><span class="skill-name">Religion <span class="skill-ability">(Int)</span></span></div>
+          <div class="skill-row"><span class="chk"></span><span class="mod-box">+4</span><span class="skill-name">Sleight of Hand <span class="skill-ability">(Dex)</span></span></div>
+          <div class="skill-row"><span class="chk"></span><span class="mod-box">+4</span><span class="skill-name">Stealth <span class="skill-ability">(Dex)</span></span></div>
+          <div class="skill-row"><span class="chk"></span><span class="mod-box">+1</span><span class="skill-name">Survival <span class="skill-ability">(Wis)</span></span></div>
+        </div>
+      </div>
+
+      <div class="boxed-section">
+        <div class="section-title">Passive Wisdom (Perception)</div>
+        <div class="box passive-box"><strong style="font-size:16px;">14</strong></div>
+      </div>
+
+      <div class="boxed-section">
+        <div class="section-title">Other Proficiencies &amp; Languages</div>
+        <div class="box" style="font-size:11px;">
+          <strong>Languages:</strong> Common, Halfling<br>
+          <strong>Armor:</strong> Light armor, medium armor, shields<br>
+          <strong>Weapons:</strong> Simple weapons<br>
+          <strong>Tools:</strong> Alchemist's Supplies, Woodcarver's Tools, Tinker's Tools, Thieves' Tools
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUMN 2: Combat -->
+    <div class="col">
+      <div class="combat-grid">
+        <div class="field"><span class="label">Armor Class</span><span class="value">17</span></div>
+        <div class="field"><span class="label">Initiative</span><span class="value">+4</span></div>
+        <div class="field"><span class="label">Speed</span><span class="value">25 ft</span></div>
+      </div>
+
+      <div class="boxed-section">
+        <div class="section-title">Hit Points</div>
+        <div class="box">
+          <div class="field"><span class="label">Hit Point Maximum</span><span class="value">53</span></div>
+          <div class="field" style="margin-top:6px;"><span class="label">Current Hit Points</span><span class="value">&nbsp;</span></div>
+          <div class="field" style="margin-top:6px;"><span class="label">Temporary Hit Points</span><span class="value">&nbsp;</span></div>
+        </div>
+      </div>
+
+      <div class="boxed-section">
+        <div class="section-title">Hit Dice / Death Saves</div>
+        <div class="box">
+          <div style="font-size:11px;"><strong>Hit Dice:</strong> 5d8 &nbsp; <strong>Used:</strong> ☐☐☐☐☐</div>
+          <div class="death-saves">
+            <span><strong>Successes</strong> <span class="chk"></span><span class="chk"></span><span class="chk"></span></span>
+            <span><strong>Failures</strong> <span class="chk"></span><span class="chk"></span><span class="chk"></span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="boxed-section">
+        <div class="section-title">Attacks &amp; Spellcasting</div>
+        <div class="box">
+          <table class="attack-table">
+            <tr><th>Name</th><th>Atk Bonus</th><th>Damage/Type</th><th>Range</th></tr>
+            <tr><td>Light Crossbow</td><td>+7</td><td>1d8+4 piercing</td><td>80/320 ft</td></tr>
+            <tr><td>Dagger</td><td>+7</td><td>1d4+4 piercing</td><td>Melee/thrown 20/60 ft</td></tr>
+          </table>
+          <p class="small-note">Studded Leather (light armor). Speed 25 ft (halfling base) — slower than most races at the table.</p>
+        </div>
+      </div>
+
+      <div class="boxed-section">
+        <div class="section-title">Equipment</div>
+        <div class="box" style="font-size:10.5px;">
+          <ul class="plain">
+            <li>Studded Leather Armor</li>
+            <li>Light Crossbow with 20 bolts</li>
+            <li>Two daggers</li>
+            <li>Alchemist's Supplies, Woodcarver's Tools, Tinker's Tools, Thieves' Tools</li>
+            <li>Battered tin coffee mug (Enhanced Arcane Focus / Eldritch Cannon — see Treasure)</li>
+            <li>Traveling coffee kit; satchel of Kettlewick's roast blend</li>
+            <li>Dog-eared family ledger</li>
+            <li>Letter of introduction (Alchemists' Guild); traveler's clothes; belt pouch</li>
+            <li>Keepsake: a cracked mortar and pestle</li>
+          </ul>
+          <div style="margin-top:6px;"><strong>CP</strong> ___ &nbsp; <strong>SP</strong> ___ &nbsp; <strong>EP</strong> ___ &nbsp; <strong>GP</strong> 22 &nbsp; <strong>PP</strong> ___</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUMN 3: Personality + Features -->
+    <div class="col">
+      <div class="boxed-section personality-box">
+        <div class="section-title">Personality Traits</div>
+        <div class="box">
+          <div class="field"><span class="value">I can't leave anything broken alone; I have to know how it works and how to fix it. I keep a mental ledger of every debt owed to me and every debt I owe. I am, before anything else, badly addicted to coffee.</span></div>
+        </div>
+      </div>
+      <div class="boxed-section personality-box">
+        <div class="section-title">Ideals</div>
+        <div class="box"><div class="value">Debts. What's owed must be repaid: to people, not empires. (Neutral)</div></div>
+      </div>
+      <div class="boxed-section personality-box">
+        <div class="section-title">Bonds</div>
+        <div class="box"><div class="value">My family, who left Shelldrake before I was born and are still paying off a debt to a council member neither of us has ever met face to face.</div></div>
+      </div>
+      <div class="boxed-section personality-box">
+        <div class="section-title">Flaws</div>
+        <div class="box"><div class="value">I don't trust institutions, including the Society that sent me here. I'll bend or break their rules the moment they get in the way of actually helping my family's name. Also: I get genuinely unpleasant without coffee, and I will absolutely delay a mission to go find some.</div></div>
+      </div>
+
+      <div class="boxed-section">
+        <div class="section-title">Features &amp; Traits</div>
+        <div class="box" style="max-height: none;">
+          <div class="feat-block"><span class="feat-name">Lucky (Halfling).</span> Reroll a 1 on attack/check/save, must use new roll.</div>
+          <div class="feat-block"><span class="feat-name">Brave.</span> Advantage on saves vs. frightened.</div>
+          <div class="feat-block"><span class="feat-name">Halfling Nimbleness.</span> Move through larger creatures' spaces.</div>
+          <div class="feat-block"><span class="feat-name">Stout Resilience.</span> Advantage on poison saves, resist poison damage.</div>
+          <div class="feat-block"><span class="feat-name">Guild Membership.</span> Guild connections for food/lodging; guild backs her in minor legal disputes.</div>
+          <div class="feat-block"><span class="feat-name">Magical Tinkering.</span> Imbue up to 5 Tiny objects with a minor magical property.</div>
+          <div class="feat-block"><span class="feat-name">Infuse Item.</span> 4 infusions known, 2 items infused at once (Enhanced Arcane Focus on her mug; Enhanced Defense on her armor).</div>
+          <div class="feat-block"><span class="feat-name">The Right Tool for the Job.</span> 1 hr with Tinker's Tools to create a set of artisan's tools.</div>
+          <div class="feat-block"><span class="feat-name">Eldritch Cannon.</span> Action to deploy her mug as a Tiny cannon (HP 25, AC 18): Flamethrower / Force Ballista / Protector mode.</div>
+          <div class="feat-block"><span class="feat-name">Arcane Firearm.</span> +1d8 to one damage roll of a spell cast through her infused focus.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= PAGE 2 ================= -->
+<div class="sheet-page">
+  <h1 class="charname" style="font-size:20px;">Marigold Kettlewick</h1>
+
+  <div class="appearance-fields">
+    <div class="field"><span class="label">Age</span><span class="value">27</span></div>
+    <div class="field"><span class="label">Height</span><span class="value">3 ft 2 in</span></div>
+    <div class="field"><span class="label">Weight</span><span class="value">40 lbs</span></div>
+    <div class="field"><span class="label">Eyes</span><span class="value">Warm brown</span></div>
+    <div class="field"><span class="label">Skin</span><span class="value">Sun-browned tan</span></div>
+    <div class="field"><span class="label">Hair</span><span class="value">Dark, curly, perpetually escaping its tie</span></div>
+  </div>
+
+  <div class="boxed-section">
+    <div class="section-title">Character Backstory</div>
+    <div class="box" style="font-size:11px; line-height:1.5;">
+      Marigold is a Small halfling with sun-browned skin and dark curly hair that never quite stays put. She grew up
+      far from Shelldrake, in the town her parents resettled in after leaving it behind, but she was still raised
+      inside the Kettlewick family trade: alchemists and coffee roasters who once ran a shop in Shelldrake for
+      generations, before a brutal loan from a member of the empire's ruling council drove them out. Marigold
+      apprenticed in the family's new shop, learning alchemy at her parents' elbows, before leaving home years ago to
+      make her own way and train as an artificer. Shelldrake itself, though, is a place she knows only from her
+      parents' stories: the shop that used to be theirs, the debt that's still theirs, a council member's name spoken
+      like a family legend rather than a memory. She runs on more coffee than is medically advisable, which is at
+      least easy to come by, given the family trade. When the Areiais Embetterment Society came recruiting agents for
+      the Shelldrake assignment, she volunteered before they'd finished the pitch: a chance to finally see the place
+      her family came from, and to open the first true Kettlewick's location back in the town that started it all,
+      soon to be flooded with laborers who'll want their morning fix.
+    </div>
+  </div>
+
+  <div class="boxed-section">
+    <div class="section-title">Allies &amp; Organizations</div>
+    <div class="box" style="font-size:11px; line-height:1.5;">
+      <strong>Alchemists' Guild</strong> — her Guild Artisan background affiliation; guild backs her in minor legal disputes.<br><br>
+      <strong>Areiais Embetterment Society</strong> — recruited her for the Shelldrake assignment. She doesn't fully trust it, but volunteered before they'd finished the pitch.<br><br>
+      <strong>Kettlewick's &amp; the family debt</strong> — the Kettlewicks once ran a café-chain shop in Shelldrake, financed by a brutal loan from a member of the ruling council. Her parents left Shelldrake before she was born rather than keep fighting the debt; she's returning to a town she's never actually lived in, hoping to finally clear it.
+    </div>
+  </div>
+
+  <div class="boxed-section">
+    <div class="section-title">Treasure — Marigold's Mug</div>
+    <div class="box" style="font-size:11px; line-height:1.5;">
+      A battered tin coffee mug with two states. <strong>Everyday:</strong> Enhanced Arcane Focus infusion, +1 to spell
+      attack rolls while held (already included in Spell Attack Bonus). <strong>Deployed:</strong> set down and
+      tapped, it unfolds into her Eldritch Cannon turret. Also channels her Arcane Firearm bonus damage. Enchanted by
+      her parents as a parting gift when she left home; she's since layered on the cannon/firearm properties herself.
+    </div>
+  </div>
+
+  <div class="boxed-section">
+    <div class="section-title">Additional Features &amp; Traits</div>
+    <div class="box" style="min-height: 60px; font-size:11px;">&nbsp;</div>
+  </div>
+</div>
+
+<!-- ================= PAGE 3 ================= -->
+<div class="sheet-page">
+  <h1 class="charname" style="font-size:20px;">Marigold Kettlewick — Spellcasting</h1>
+
+  <div class="spell-header-grid">
+    <div class="field"><span class="label">Spellcasting Class</span><span class="value">Artificer</span></div>
+    <div class="field"><span class="label">Spellcasting Ability</span><span class="value">Intelligence</span></div>
+    <div class="field"><span class="label">Spell Save DC</span><span class="value">16</span></div>
+    <div class="field"><span class="label">Spell Attack Bonus</span><span class="value">+9</span></div>
+  </div>
+  <p class="small-note">Spell Attack Bonus is base +8, +1 from the Enhanced Arcane Focus infusion on her mug — drops to +8 if the mug is lost or destroyed. Spellcasting focus: Alchemist's Supplies, or the mug when held.</p>
+
+  <div class="boxed-section">
+    <div class="section-title">Cantrips Known</div>
+    <div class="box" style="font-size:11px;">Mending &nbsp;·&nbsp; Guidance &nbsp;·&nbsp; Acid Splash</div>
+  </div>
+
+  <div class="boxed-section">
+    <div class="section-title">Spell Slots</div>
+    <div class="box">
+      <div class="slots-row"><strong>1st</strong> <span class="slot-pips"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></span> (4)</div>
+      <div class="slots-row"><strong>2nd</strong> <span class="slot-pips"><span class="pip"></span><span class="pip"></span></span> (2)</div>
+    </div>
+  </div>
+
+  <div class="boxed-section">
+    <div class="section-title">Spells Prepared (7)</div>
+    <div class="box">
+      <div class="spell-list-cols" style="font-size:11px;">
+        <ul class="plain">
+          <li>Cure Wounds</li>
+          <li>Identify</li>
+          <li>Purify Food and Drink</li>
+          <li>Absorb Elements</li>
+        </ul>
+        <ul class="plain">
+          <li>Darkvision</li>
+          <li>Detect Magic</li>
+          <li>Enhance Ability <span class="small-note">(a fresh cup, slammed)</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="boxed-section">
+    <div class="section-title">Always Prepared (Artillerist — don't count against total)</div>
+    <div class="box" style="font-size:11px;">
+      Shield, Thunderwave <span class="small-note">(3rd level)</span> &nbsp;·&nbsp; Scorching Ray, Web <span class="small-note">(5th level)</span>
+    </div>
+  </div>
+
+  <div class="boxed-section">
+    <div class="section-title">Eldritch Cannon Modes</div>
+    <div class="box" style="font-size:11px; line-height:1.5;">
+      <strong>Flamethrower</strong> — 15-ft cone, Dex save, 2d8 fire (half on success).<br>
+      <strong>Force Ballista</strong> — ranged spell attack, 120 ft, 2d8 force + 5-ft push.<br>
+      <strong>Protector</strong> — allies within 10 ft gain 1d8 + Int mod temp HP at the start of her turn.
+      <div class="small-note" style="margin-top:4px;">Cannon: HP 25, AC 18.</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
