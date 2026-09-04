@@ -186,12 +186,24 @@ input[type="checkbox"] { width: 14px; height: 14px; vertical-align: middle; }
   box-shadow: 0 2px 6px rgba(0,0,0,.4);
   text-decoration: none; display: inline-block;
 }
-@media print { .save-btn, .back-link { display: none; } }
+.about-box {
+  position: fixed; bottom: 12px; right: 12px; z-index: 1000;
+  background: var(--paper); color: var(--ink); border: 2px solid var(--ink);
+  font-family: Georgia, "Times New Roman", serif; font-size: 12px;
+  border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,.4);
+  padding: 4px 10px;
+}
+.about-box summary { cursor: pointer; font-weight: bold; list-style: none; }
+.about-box summary::-webkit-details-marker { display: none; }
+.about-box p { margin: 6px 0 0; font-weight: normal; }
+
+@media print { .save-btn, .back-link, .about-box { display: none; } }
 
 @media (max-width: 700px) {
   .save-btn, .back-link { top: 6px; font-size: 11px; padding: 6px 10px; }
   .save-btn { right: 6px; }
   .back-link { left: 6px; }
+  .about-box { bottom: 6px; right: 6px; font-size: 11px; padding: 4px 8px; }
   body { -webkit-text-size-adjust: 100%; }
   .sheet-page { margin: 8px auto; padding: 16px; min-height: 0; box-shadow: none; }
   h1.charname { font-size: 19px; letter-spacing: 1px; }

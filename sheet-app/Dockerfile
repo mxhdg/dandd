@@ -17,6 +17,13 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Declared after the pip install layer so a version bump doesn't bust the
+# dependency-install cache; CI passes the real values as build-args.
+ARG APP_VERSION=dev
+ARG APP_COMMIT_SHA=unknown
+ENV APP_VERSION=${APP_VERSION} \
+    APP_COMMIT_SHA=${APP_COMMIT_SHA}
+
 COPY app.py .
 COPY gunicorn.conf.py .
 COPY templates/ templates/

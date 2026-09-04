@@ -8,6 +8,10 @@
 </head>
 <body>
 <a class="back-link" href="{{ url_for('index') }}">&laquo; Characters</a>
+<details class="about-box">
+  <summary>About</summary>
+  <p>{% if app_version == 'dev' %}dev build{% else %}{{ app_version }} ({{ app_commit_sha }}){% endif %}</p>
+</details>
 <form method="POST" action="{{ url_for('update_character', character_id=c.id) }}">
 <button type="submit" class="save-btn">Save Changes</button>
 
