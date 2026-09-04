@@ -24,6 +24,14 @@ def valid_character_id(character_id):
     return bool(CHARACTER_ID_RE.fullmatch(character_id))
 
 
+@app.context_processor
+def inject_app_version():
+    return {
+        "app_version": os.environ.get("APP_VERSION", "dev"),
+        "app_commit_sha": os.environ.get("APP_COMMIT_SHA", "unknown"),
+    }
+
+
 @app.after_request
 def set_security_headers(response):
     response.headers["X-Content-Type-Options"] = "nosniff"
