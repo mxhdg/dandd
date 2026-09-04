@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marigold Kettlewick: How to Play</title>
+<style>
+  :root {
+    --red: #7a1414;
+    --parchment: #f5ecd8;
+    --paper: #fffdf6;
+    --ink: #1c1a16;
+    --rule: #999;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: #ccc;
+    font-family: Georgia, "Times New Roman", serif;
+    color: var(--ink);
+    margin: 0;
+  }
+  .sheet-page {
+    background: var(--parchment);
+    width: 100%;
+    max-width: 8.5in;
+    margin: 24px auto;
+    padding: 0.4in;
+    box-shadow: 0 0 14px rgba(0,0,0,.35);
+  }
+  @media print {
+    body { background: #fff; }
+    .sheet-page { box-shadow: none; margin: 0; }
+  }
+  @media (max-width: 700px) {
+    .sheet-page { margin: 8px auto; padding: 16px; }
+  }
+  h1.charname {
+    text-align: center;
+    font-size: 24px;
+    letter-spacing: 1px;
+    margin: 0 0 4px 0;
+    border: 2px solid var(--ink);
+    background: var(--paper);
+    padding: 8px;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 12px;
+    color: #555;
+    font-style: italic;
+    margin-bottom: 16px;
+  }
+  .section-title {
+    background: var(--red);
+    color: var(--parchment);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    font-weight: bold;
+    padding: 5px 10px;
+    margin: 0;
+  }
+  .boxed-section { border: 1.5px solid var(--ink); margin-bottom: 14px; }
+  .box { background: var(--paper); padding: 10px 14px; font-size: 13px; line-height: 1.55; }
+  .box p { margin: 0 0 8px 0; }
+  .box p:last-child { margin-bottom: 0; }
+  .box ul { margin: 0 0 8px 18px; padding: 0; }
+  .box ul:last-child { margin-bottom: 0; }
+  .box li { margin-bottom: 4px; }
+  .quickref {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .quickref .field {
+    border: 1.5px solid var(--ink);
+    background: var(--paper);
+    text-align: center;
+    padding: 6px 4px;
+  }
+  .quickref .label { display: block; font-size: 8.5px; text-transform: uppercase; color: #555; letter-spacing: .5px; }
+  .quickref .value { font-size: 16px; font-weight: bold; }
+  @media (max-width: 700px) { .quickref { grid-template-columns: repeat(3, 1fr); } }
+  .mode-name { font-weight: bold; color: var(--red); }
+</style>
+</head>
+<body>
+
+<div class="sheet-page">
+  <h1 class="charname">Marigold Kettlewick</h1>
+  <div class="subtitle">How to play her: quick reference for the table</div>
+
+  <div class="quickref">
+    <div class="field"><span class="label">AC</span><span class="value">17</span></div>
+    <div class="field"><span class="label">HP</span><span class="value">53</span></div>
+    <div class="field"><span class="label">Speed</span><span class="value">25 ft</span></div>
+    <div class="field"><span class="label">Spell DC</span><span class="value">16</span></div>
+    <div class="field"><span class="label">Spell Atk</span><span class="value">+9</span></div>
+  </div>
+
+  <div class="boxed-section">
+    <div class="section-title">The Basic Idea</div>
+    <div class="box">
+      <p>Marigold is a ranged support/blaster. She parks her Eldritch Cannon (the mug) near the fight and lets it do a lot of the damage or healing for her, while she hangs back plinking with the crossbow or a spell. She is <strong>not</strong> a melee character: Strength -5 means she loses any grapple, shove, or strength-check contest badly, and 25 ft speed means she can't easily disengage once something gets next to her. Keep her at range, behind the tankier party members, and let the cannon take hits instead of her.</p>
+    </div>
+  </div>
+
+  <div class="boxed-section">
+    <div class="section-title">A Typical Turn</div>
+    <div class="box">
+      <ul>
+        <li><strong>No cannon out yet?</strong> Action: set the mug down and deploy it as the Eldritch Cannon, choosing a mode (see below). This is her whole action, so do it before the fight if possible.</li>
+        <li><strong>Cannon already out?</strong> Action is free for an attack (Light Crossbow, +7, 1d8+4) or a spell. Bonus action: fire the cannon's mode ability, or move the cannon up to 15 ft.</li>
+        <li><strong>Reaction available:</strong> Shield (always prepared, no slot cost) when hit to spike AC by +5, or Absorb Elements when hit by elemental damage to halve it and store a bit for her next weapon hit.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="boxed-section">
+    <div class="section-title">Cannon Modes: Pick One When You Deploy</div>
+    <div class="box">
+      <ul>
+        <li><span class="mode-name">Flamethrower</span>: 15-ft cone, everyone in it makes a Dex save, 2d8 fire (half on a success). Use this against clustered enemies.</li>
+        <li><span class="mode-name">Force Ballista</span>: ranged spell attack, 120 ft, 2d8 force plus a 5-ft shove on a hit. Use this for a single dangerous target, or to shove something off a ledge/away from an ally.</li>
+        <li><span class="mode-name">Protector</span>: everyone within 10 ft of the cannon (including Marigold) gets 1d8 + Int mod temp HP at the start of her turn. Use this when the party is taking steady damage and needs to stay topped up.</li>
+      </ul>
+      <p>The cannon has its own HP (25) and AC (18) and acts independently once deployed; it doesn't need Marigold's attention every turn beyond the bonus-action fire command. If it drops to 0 HP, the mug is destroyed until she can deploy a new one (it isn't gone forever, but she can't redeploy the same turn it's destroyed).</p>
+    </div>
+  </div>
+
+  <div class="boxed-section">
+    <div class="section-title">Spells Worth Remembering</div>
+    <div class="box">
+      <ul>
+        <li><strong>Cure Wounds</strong>: her main heal, 1st level.</li>
+        <li><strong>Shield</strong> / <strong>Thunderwave</strong> (always prepared, 3rd level unlocked): Shield as a reaction to avoid a hit; Thunderwave to push enemies off her and create room to retreat.</li>
+        <li><strong>Scorching Ray</strong> / <strong>Web</strong> (always prepared, 5th level unlocked): Scorching Ray for burst single-target damage (3 rays, 2d6 fire each); Web to lock down a chokepoint or an approaching melee threat.</li>
+        <li><strong>Detect Magic</strong> / <strong>Identify</strong>: her go-to utility for "what does this thing do," fits her can't-leave-it-alone streak.</li>
+        <li><strong>Absorb Elements</strong>: reaction, halves incoming acid/cold/fire/lightning/thunder damage and adds it to her next weapon hit.</li>
+        <li><strong>Darkvision</strong>: cast this before going somewhere dark. Halflings don't have innate darkvision, so this is the fix, not optional flavor.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="boxed-section">
+    <div class="section-title">Staying Alive</div>
+    <div class="box">
+      <ul>
+        <li>53 HP and AC 17 are solid for her level, she's not fragile, but she also can't take a sustained beating in melee. If something closes to melee range, use Thunderwave, Web, or just move away (25 ft speed allows it if nothing's adjacent yet).</li>
+        <li><strong>Lucky</strong> (halfling racial): once per roll, if she rolls a 1 on an attack, ability check, or save, she can reroll it and must use the new result. Don't forget this, it comes up more than expected.</li>
+        <li><strong>Brave</strong>: advantage on saves against being frightened, so she's a reasonable one to hold the line against fear effects.</li>
+        <li>If she loses the mug (Enhanced Arcane Focus infusion), her Spell Attack Bonus drops from +9 to +8. Not a crisis, but worth remembering why the number changed if it ever does.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="boxed-section">
+    <div class="section-title">Out of Combat</div>
+    <div class="box">
+      <ul>
+        <li>Lean on <strong>Investigation</strong> (+8) and <strong>Insight</strong>/<strong>Perception</strong> (+4 each) for puzzles, lies, and noticing things. She's built to be the party's "let me take a closer look at that."</li>
+        <li><strong>Persuasion</strong> (+3) works fine for guild/merchant interactions; she's not the face of the party but can hold her own there.</li>
+        <li>Tool proficiencies (Alchemist's, Woodcarver's, Tinker's, Thieves') mean she's the default pick any time a scene calls for tinkering, lockpicking, or brewing something up.</li>
+        <li>She runs on coffee and will genuinely delay things to go find some (see Flaws). This is a roleplay hook, not just flavor text, use it when the scene calls for a reason she's cranky or distracted.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

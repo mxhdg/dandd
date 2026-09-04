@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ c.name }}: Character Sheet</title>
+<style>
+  :root {
+    --red: #7a1414;
+    --parchment: #f5ecd8;
+    --paper: #fffdf6;
+    --ink: #1c1a16;
+    --rule: #999;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: #ccc;
+    font-family: Georgia, "Times New Roman", serif;
+    color: var(--ink);
+    margin: 0;
+  }
+  .sheet-page {
+    background: var(--parchment);
+    width: 100%;
+    max-width: 8.5in;
+    min-height: 11in;
+    margin: 24px auto;
+    padding: 0.4in;
+    box-shadow: 0 0 14px rgba(0,0,0,.35);
+    page-break-after: always;
+  }
+  .table-wrap { overflow-x: auto; }
+  @media print {
+    body { background: #fff; }
+    .sheet-page { box-shadow: none; margin: 0; }
+  }
+  h1.charname {
+    text-align: center;
+    font-size: 26px;
+    letter-spacing: 2px;
+    margin: 0 0 10px 0;
+    border: 2px solid var(--ink);
+    background: var(--paper);
+    padding: 8px;
+  }
+  .header-fields {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .field {
+    border-bottom: 1.5px solid var(--ink);
+    background: var(--paper);
+    padding: 4px 6px 2px 6px;
+  }
+  .field .label {
+    display: block;
+    font-size: 8px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: #555;
+  }
+  .field .value {
+    font-size: 13px;
+    font-weight: bold;
+    min-height: 16px;
+  }
+  .section-title {
+    background: var(--red);
+    color: var(--parchment);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    font-weight: bold;
+    padding: 3px 8px;
+    margin: 0;
+  }
+  .box {
+    border: 1.5px solid var(--ink);
+    background: var(--paper);
+    padding: 8px;
+    margin-bottom: 10px;
+  }
+  .boxed-section { border: 1.5px solid var(--ink); margin-bottom: 10px; }
+  .boxed-section .box { border: none; margin: 0; }
+
+  .columns-3 {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr 1.25fr;
+    gap: 10px;
+    align-items: start;
+  }
+  .col { display: flex; flex-direction: column; gap: 10px; }
+
+  .ability-row { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+  .ability-box {
+    border: 2px solid var(--ink);
+    border-radius: 10px;
+    text-align: center;
+    padding: 6px 4px 8px;
+    background: var(--paper);
+    width: 100%;
+  }
+  .ability-box .ab-name { font-size: 9px; font-weight: bold; letter-spacing: .5px; text-transform: uppercase; }
+  .ability-circle {
+    width: 48px; height: 48px;
+    border: 2px solid var(--ink);
+    border-radius: 50%;
+    margin: 4px auto 2px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; font-weight: bold;
+    background: #fff;
+  }
+  .ability-score { font-size: 10px; }
+
+  .inspo-prof { display: flex; gap: 10px; }
+  .inspo-prof .field { flex: 1; text-align: center; }
+
+  .save-row, .skill-row {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; padding: 2px 0;
+    border-bottom: 1px dotted var(--rule);
+  }
+  .save-row.prof, .skill-row.prof { font-weight: bold; }
+  .chk {
+    width: 11px; height: 11px; flex: 0 0 auto;
+    border: 1.3px solid var(--ink);
+    display: inline-block;
+  }
+  .chk.filled { background: var(--ink); }
+  .mod-box {
+    width: 28px; text-align: center; font-weight: bold;
+    border: 1px solid var(--ink); background: #fff; font-size: 11px;
+    flex: 0 0 auto;
+  }
+  .skill-name { flex: 1; }
+  .skill-ability { font-size: 9px; color: #555; }
+
+  .passive-box { text-align: center; font-size: 11px; margin-top: 4px; }
+
+  table.attack-table { width: 100%; border-collapse: collapse; font-size: 10.5px; }
+  table.attack-table th, table.attack-table td {
+    border: 1px solid var(--ink); padding: 2px 5px; text-align: left;
+  }
+  table.attack-table th { background: #eadfc4; }
+
+  .combat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; text-align: center; }
+  .combat-grid .field .value { font-size: 18px; }
+
+  .death-saves { display: flex; gap: 14px; font-size: 11px; margin-top: 4px; }
+  .death-saves .chk { margin-right: 2px; }
+
+  ul.plain { margin: 4px 0 4px 16px; padding: 0; font-size: 11px; }
+  .feat-block { font-size: 11px; margin-bottom: 6px; }
+  .feat-block .feat-name { font-weight: bold; }
+
+  .personality-box .field .value { font-size: 11px; font-weight: normal; }
+
+  .small-note { font-size: 9.5px; color: #555; font-style: italic; }
+
+  .page2-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .page2-full { grid-column: 1 / -1; }
+
+  .appearance-fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
+
+  .spell-header-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+  .slots-row { display: flex; gap: 16px; font-size: 12px; margin: 6px 0; }
+  .slot-pips .pip { display: inline-block; width: 9px; height: 9px; border-radius: 50%; border: 1.2px solid var(--ink); margin-right: 2px; }
+  .slot-pips .pip.filled { background: var(--ink); }
+  .spell-list-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .sheet-input {
+    width: 100%; font: inherit; font-weight: bold; color: var(--ink);
+    border: none; background: transparent; padding: 0;
+  }
+  .sheet-input:focus { outline: 1.5px dashed var(--red); }
+  input[type="number"].narrow { width: 44px; flex: 0 0 auto; }
+  input[type="checkbox"] { width: 14px; height: 14px; vertical-align: middle; }
+
+  .save-btn {
+    position: fixed; top: 12px; right: 12px; z-index: 1000;
+    background: var(--red); color: var(--parchment); border: 2px solid var(--ink);
+    font-family: Georgia, "Times New Roman", serif; font-weight: bold; font-size: 13px;
+    padding: 8px 16px; border-radius: 6px; cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,.4);
+  }
+  .back-link {
+    position: fixed; top: 12px; left: 12px; z-index: 1000;
+    background: var(--paper); color: var(--ink); border: 2px solid var(--ink);
+    font-family: Georgia, "Times New Roman", serif; font-weight: bold; font-size: 13px;
+    padding: 8px 16px; border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.4);
+    text-decoration: none; display: inline-block;
+  }
+  @media print { .save-btn, .back-link { display: none; } }
+
+  @media (max-width: 700px) {
+    .save-btn, .back-link { top: 6px; font-size: 11px; padding: 6px 10px; }
+    .save-btn { right: 6px; }
+    .back-link { left: 6px; }
+    body { -webkit-text-size-adjust: 100%; }
+    .sheet-page { margin: 8px auto; padding: 16px; min-height: 0; box-shadow: none; }
+    h1.charname { font-size: 19px; letter-spacing: 1px; }
+    .header-fields { grid-template-columns: repeat(2, 1fr); }
+    .columns-3 { grid-template-columns: 1fr; }
+    .appearance-fields { grid-template-columns: repeat(2, 1fr); }
+    .spell-header-grid { grid-template-columns: repeat(2, 1fr); }
+    .spell-list-cols { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<a class="back-link" href="{{ url_for('index') }}">&laquo; Characters</a>
+<form method="POST" action="{{ url_for('update_character', character_id=c.id) }}">
+<button type="submit" class="save-btn">Save Changes</button>
+
+<!-- ================= PAGE 1 ================= -->
+<div class="sheet-page">
+  <h1 class="charname">{{ c.name }}</h1>
+
+  <div class="header-fields">
+    <div class="field"><span class="label">Class &amp; Level</span><span class="value">{{ c.class_level }}</span></div>
+    <div class="field"><span class="label">Background</span><span class="value">{{ c.background }}</span></div>
+    <div class="field"><span class="label">Player Name</span><span class="value">{{ c.player_name or '&nbsp;'|safe }}</span></div>
+    <div class="field"><span class="label">Race</span><span class="value">{{ c.race }}</span></div>
+    <div class="field"><span class="label">Alignment</span><span class="value">{{ c.alignment }}</span></div>
+    <div class="field"><span class="label">Experience Points</span><span class="value"><input type="text" class="sheet-input" name="xp" value="{{ c.xp }}"></span></div>
+  </div>
+
+  <div class="columns-3">
+
+    <!-- COLUMN 1: Abilities, Saves, Skills -->
+    <div class="col">
+      <div class="ability-row">
+        {% for a in c.abilities %}
+        <div class="ability-box">
+          <div class="ab-name">{{ a.name }}</div>
+          <div class="ability-circle">{{ a.score }}</div>
+          <div class="ability-score">{{ a.mod }}</div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="inspo-prof">
+        <div class="field"><span class="label">Inspiration</span><span class="value"><input type="checkbox" name="inspiration" {% if c.inspiration %}checked{% endif %}></span></div>
+        <div class="field"><span class="label">Proficiency Bonus</span><span class="value">{{ c.proficiency_bonus }}</span></div>
+      </div>
+
+      <div class="boxed-section">
+        <div class="section-title">Saving Throws</div>
+        <div class="box">
+          {% for s in c.saves %}
+          <div class="save-row {{ 'prof' if s.prof else '' }}"><span class="chk {{ 'filled' if s.prof else '' }}"></span><span class="mod-box">{{ s.mod }}</span><span class="skill-name">{{ s.name }}</span></div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="boxed-section">
+        <div class="section-title">Skills</div>
+        <div class="box">
+          {% for sk in c.skills %}
+          <div class="skill-row {{ 'prof' if sk.prof else '' }}"><span class="chk {{ 'filled' if sk.prof else '' }}"></span><span class="mod-box">{{ sk.mod }}</span><span class="skill-name">{{ sk.name }} <span class="skill-ability">({{ sk.ability }})</span></span></div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="boxed-section">
+        <div class="section-title">Passive Wisdom (Perception)</div>
+        <div class="box passive-box"><strong style="font-size:16px;">{{ c.passive_perception }}</strong></div>
+      </div>
+
+      <div class="boxed-section">
+        <div class="section-title">Other Proficiencies &amp; Languages</div>
+        <div class="box" style="font-size:11px;">
+          <strong>Languages:</strong> {{ c.other_proficiencies.languages }}<br>
+          <strong>Armor:</strong> {{ c.other_proficiencies.armor }}<br>
+          <strong>Weapons:</strong> {{ c.other_proficiencies.weapons }}<br>
+          <strong>Tools:</strong> {{ c.other_proficiencies.tools }}
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUMN 2: Combat -->
+    <div class="col">
+      <div class="combat-grid">
+        <div class="field"><span class="label">Armor Class</span><span class="value">{{ c.combat.ac }}</span></div>
+        <div class="field"><span class="label">Initiative</span><span class="value">{{ c.combat.initiative }}</span></div>
+        <div class="field"><span class="label">Speed</span><span class="value">{{ c.combat.speed }}</span></div>
+      </div>
+
+      <div class="boxed-section">
+        <div class="section-title">Hit Points</div>
+        <div class="box">
+          <div class="field"><span class="label">Hit Point Maximum</span><span class="value">{{ c.hp.max }}</span></div>
+          <div class="field" style="margin-top:6px;"><span class="label">Current Hit Points</span><span class="value"><input type="number" class="sheet-input" name="hp_current" value="{{ c.hp.current }}"></span></div>
+          <div class="field" style="margin-top:6px;"><span class="label">Temporary Hit Points</span><span class="value"><input type="number" class="sheet-input" name="hp_temp" value="{{ c.hp.temp }}"></span></div>
+        </div>
+      </div>
+
+      <div class="boxed-section">
+        <div class="section-title">Hit Dice / Death Saves</div>
+        <div class="box">
+          <div style="font-size:11px;"><strong>Hit Dice:</strong> {{ c.hit_dice.total }} &nbsp; <strong>Used:</strong> <input type="number" min="0" class="narrow" name="hit_dice_used" value="{{ c.hit_dice.used }}"></div>
+          <div class="death-saves">
+            <span><strong>Successes</strong> {% for i in range(3) %}<input type="checkbox" name="death_success_{{ i }}" {% if i < c.death_saves.successes %}checked{% endif %}>{% endfor %}</span>
+            <span><strong>Failures</strong> {% for i in range(3) %}<input type="checkbox" name="death_failure_{{ i }}" {% if i < c.death_saves.failures %}checked{% endif %}>{% endfor %}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="boxed-section">
+        <div class="section-title">Attacks &amp; Spellcasting</div>
+        <div class="box">
+          <div class="table-wrap">
+            <table class="attack-table">
+              <tr><th>Name</th><th>Atk Bonus</th><th>Damage/Type</th><th>Range</th></tr>
+              {% for atk in c.attacks %}
+              <tr><td>{{ atk.name }}</td><td>{{ atk.bonus }}</td><td>{{ atk.damage }}</td><td>{{ atk.range }}</td></tr>
+              {% endfor %}
+            </table>
+          </div>
+          <p class="small-note">{{ c.attack_note }}</p>
+        </div>
+      </div>
+
+      <div class="boxed-section">
+        <div class="section-title">Equipment</div>
+        <div class="box" style="font-size:10.5px;">
+          <ul class="plain">
+            {% for item in c.equipment %}
+            <li>{{ item }}</li>
+            {% endfor %}
+          </ul>
+          <div style="margin-top:6px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <span style="white-space:nowrap;"><strong>CP</strong> <input type="number" class="narrow" name="currency_cp" value="{{ c.currency.cp }}"></span>
+            <span style="white-space:nowrap;"><strong>SP</strong> <input type="number" class="narrow" name="currency_sp" value="{{ c.currency.sp }}"></span>
+            <span style="white-space:nowrap;"><strong>EP</strong> <input type="number" class="narrow" name="currency_ep" value="{{ c.currency.ep }}"></span>
+            <span style="white-space:nowrap;"><strong>GP</strong> <input type="number" class="narrow" name="currency_gp" value="{{ c.currency.gp }}"></span>
+            <span style="white-space:nowrap;"><strong>PP</strong> <input type="number" class="narrow" name="currency_pp" value="{{ c.currency.pp }}"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUMN 3: Personality + Features -->
+    <div class="col">
+      <div class="boxed-section personality-box">
+        <div class="section-title">Personality Traits</div>
+        <div class="box">
+          <div class="field"><span class="value">{{ c.personality.traits }}</span></div>
+        </div>
+      </div>
+      <div class="boxed-section personality-box">
+        <div class="section-title">Ideals</div>
+        <div class="box"><div class="value">{{ c.personality.ideals }}</div></div>
+      </div>
+      <div class="boxed-section personality-box">
+        <div class="section-title">Bonds</div>
+        <div class="box"><div class="value">{{ c.personality.bonds }}</div></div>
+      </div>
+      <div class="boxed-section personality-box">
+        <div class="section-title">Flaws</div>
+        <div class="box"><div class="value">{{ c.personality.flaws }}</div></div>
+      </div>
+
+      <div class="boxed-section">
+        <div class="section-title">Features &amp; Traits</div>
+        <div class="box" style="max-height: none;">
+          {% for f in c.features %}
+          <div class="feat-block"><span class="feat-name">{{ f.name }}</span> {{ f.text }}</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= PAGE 2 ================= -->
+<div class="sheet-page">
+  <h1 class="charname" style="font-size:20px;">{{ c.name }}</h1>
+
+  <div class="appearance-fields">
+    <div class="field"><span class="label">Age</span><span class="value">{{ c.appearance.age }}</span></div>
+    <div class="field"><span class="label">Height</span><span class="value">{{ c.appearance.height }}</span></div>
+    <div class="field"><span class="label">Weight</span><span class="value">{{ c.appearance.weight }}</span></div>
+    <div class="field"><span class="label">Eyes</span><span class="value">{{ c.appearance.eyes }}</span></div>
+    <div class="field"><span class="label">Skin</span><span class="value">{{ c.appearance.skin }}</span></div>
+    <div class="field"><span class="label">Hair</span><span class="value">{{ c.appearance.hair }}</span></div>
+  </div>
+
+  <div class="boxed-section">
+    <div class="section-title">Character Backstory</div>
+    <div class="box" style="font-size:11px; line-height:1.5;">
+      {{ c.backstory }}
+    </div>
+  </div>
+
+  <div class="boxed-section">
+    <div class="section-title">Allies &amp; Organizations</div>
+    <div class="box" style="font-size:11px; line-height:1.5;">
+      {% for ally in c.allies %}
+      <strong>{{ ally.name }}</strong>: {{ ally.text }}{% if not loop.last %}<br><br>{% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="boxed-section">
+    <div class="section-title">Treasure: {{ c.treasure.title }}</div>
+    <div class="box" style="font-size:11px; line-height:1.5;">
+      {{ c.treasure.text }}
+    </div>
+  </div>
+
+  <div class="boxed-section">
+    <div class="section-title">Additional Features &amp; Traits</div>
+    <div class="box" style="min-height: 60px; font-size:11px;">{{ c.additional_features or '&nbsp;'|safe }}</div>
+  </div>
+</div>
+
+<!-- ================= PAGE 3 ================= -->
+{% if c.spellcasting %}
+<div class="sheet-page">
+  <h1 class="charname" style="font-size:20px;">{{ c.name }}: Spellcasting</h1>
+
+  <div class="spell-header-grid">
+    <div class="field"><span class="label">Spellcasting Class</span><span class="value">{{ c.spellcasting.class }}</span></div>
+    <div class="field"><span class="label">Spellcasting Ability</span><span class="value">{{ c.spellcasting.ability }}</span></div>
+    <div class="field"><span class="label">Spell Save DC</span><span class="value">{{ c.spellcasting.save_dc }}</span></div>
+    <div class="field"><span class="label">Spell Attack Bonus</span><span class="value">{{ c.spellcasting.attack_bonus }}</span></div>
+  </div>
+  <p class="small-note">{{ c.spellcasting.note }}</p>
+
+  <div class="boxed-section">
+    <div class="section-title">Cantrips Known</div>
+    <div class="box" style="font-size:11px;">{{ c.spellcasting.cantrips | join(' &nbsp;·&nbsp; ') }}</div>
+  </div>
+
+  <div class="boxed-section">
+    <div class="section-title">Spell Slots</div>
+    <div class="box">
+      {% for slot in c.spellcasting.slots %}
+      <div class="slots-row"><strong>{{ slot.level }}</strong> <span class="slot-pips">{% for _ in range(slot.total) %}<span class="pip"></span>{% endfor %}</span> ({{ slot.total }}) &nbsp; Used: <input type="number" min="0" max="{{ slot.total }}" class="narrow" name="slot_used_{{ slot.level }}" value="{{ slot.used }}"></div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="boxed-section">
+    <div class="section-title">Spells Prepared ({{ c.spellcasting.prepared | length }})</div>
+    <div class="box">
+      <div class="spell-list-cols" style="font-size:11px;">
+        <ul class="plain">
+          {% for spell in c.spellcasting.prepared %}
+          <li>{{ spell }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="boxed-section">
+    <div class="section-title">Always Prepared ({{ c.spellcasting.class }} subclass, does not count against total)</div>
+    <div class="box" style="font-size:11px;">
+      {% for grp in c.spellcasting.always_prepared %}{{ grp.spells }} <span class="small-note">{{ grp.note }}</span>{% if not loop.last %} &nbsp;&middot;&nbsp; {% endif %}{% endfor %}
+    </div>
+  </div>
+
+  {% if c.spellcasting.cannon_modes %}
+  <div class="boxed-section">
+    <div class="section-title">Eldritch Cannon Modes</div>
+    <div class="box" style="font-size:11px; line-height:1.5;">
+      {% for mode in c.spellcasting.cannon_modes %}<strong>{{ mode.name }}</strong>: {{ mode.text }}{% if not loop.last %}<br>{% endif %}{% endfor %}
+      <div class="small-note" style="margin-top:4px;">{{ c.spellcasting.cannon_stats }}</div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+</form>
+</body>
+</html>
