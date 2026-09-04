@@ -1,0 +1,265 @@
+id: 2014_marigold_kettlewick
+name: Marigold Kettlewick
+class_level: Artificer 5 (Artillerist)
+background: Guild Artisan (Alchemists' Guild)
+player_name: ""
+race: Halfling (Stout)
+alignment: Neutral Good
+xp: ""
+
+abilities:
+  - name: Strength
+    score: 1
+    mod: "-5"
+  - name: Dexterity
+    score: 18
+    mod: "+4"
+  - name: Constitution
+    score: 20
+    mod: "+5"
+  - name: Intelligence
+    score: 20
+    mod: "+5"
+  - name: Wisdom
+    score: 13
+    mod: "+1"
+  - name: Charisma
+    score: 11
+    mod: "+0"
+
+inspiration: false
+proficiency_bonus: "+3"
+
+saves:
+  - name: Strength
+    mod: "-5"
+    prof: false
+  - name: Dexterity
+    mod: "+4"
+    prof: false
+  - name: Constitution
+    mod: "+8"
+    prof: true
+  - name: Intelligence
+    mod: "+8"
+    prof: true
+  - name: Wisdom
+    mod: "+1"
+    prof: false
+  - name: Charisma
+    mod: "+0"
+    prof: false
+
+skills:
+  - name: Acrobatics
+    ability: Dex
+    mod: "+4"
+    prof: false
+  - name: Animal Handling
+    ability: Wis
+    mod: "+1"
+    prof: false
+  - name: Arcana
+    ability: Int
+    mod: "+5"
+    prof: false
+  - name: Athletics
+    ability: Str
+    mod: "-5"
+    prof: false
+  - name: Deception
+    ability: Cha
+    mod: "+0"
+    prof: false
+  - name: History
+    ability: Int
+    mod: "+5"
+    prof: false
+  - name: Insight
+    ability: Wis
+    mod: "+4"
+    prof: true
+  - name: Intimidation
+    ability: Cha
+    mod: "+0"
+    prof: false
+  - name: Investigation
+    ability: Int
+    mod: "+8"
+    prof: true
+  - name: Medicine
+    ability: Wis
+    mod: "+1"
+    prof: false
+  - name: Nature
+    ability: Int
+    mod: "+5"
+    prof: false
+  - name: Perception
+    ability: Wis
+    mod: "+4"
+    prof: true
+  - name: Performance
+    ability: Cha
+    mod: "+0"
+    prof: false
+  - name: Persuasion
+    ability: Cha
+    mod: "+3"
+    prof: true
+  - name: Religion
+    ability: Int
+    mod: "+5"
+    prof: false
+  - name: Sleight of Hand
+    ability: Dex
+    mod: "+4"
+    prof: false
+  - name: Stealth
+    ability: Dex
+    mod: "+4"
+    prof: false
+  - name: Survival
+    ability: Wis
+    mod: "+1"
+    prof: false
+
+passive_perception: 14
+
+other_proficiencies:
+  languages: Common, Halfling
+  armor: Light armor, medium armor, shields
+  weapons: Simple weapons
+  tools: Alchemist's Supplies, Woodcarver's Tools, Tinker's Tools, Thieves' Tools
+
+combat:
+  ac: 17
+  initiative: "+4"
+  speed: 25 ft
+
+hp:
+  max: 53
+  current: ""
+  temp: ""
+
+hit_dice:
+  total: 5d8
+
+attacks:
+  - name: Light Crossbow
+    bonus: "+7"
+    damage: 1d8+4 piercing
+    range: 80/320 ft
+  - name: Dagger
+    bonus: "+7"
+    damage: 1d4+4 piercing
+    range: Melee/thrown 20/60 ft
+
+attack_note: "Studded Leather (light armor). Speed 25 ft (halfling base), slower than most races at the table."
+
+equipment:
+  - Studded Leather Armor
+  - Light Crossbow with 20 bolts
+  - Two daggers
+  - Alchemist's Supplies, Woodcarver's Tools, Tinker's Tools, Thieves' Tools
+  - Battered tin coffee mug (Enhanced Arcane Focus / Eldritch Cannon, see Treasure)
+  - Traveling coffee kit; satchel of Kettlewick's roast blend
+  - Dog-eared family ledger
+  - Letter of introduction (Alchemists' Guild); traveler's clothes; belt pouch
+  - "Keepsake: a cracked mortar and pestle"
+
+currency:
+  cp: ""
+  sp: ""
+  ep: ""
+  gp: 22
+  pp: ""
+
+personality:
+  traits: "I can't leave anything broken alone; I have to know how it works and how to fix it. I keep a mental ledger of every debt owed to me and every debt I owe. I am, before anything else, badly addicted to coffee."
+  ideals: "Debts. What's owed must be repaid: to people, not empires. (Neutral)"
+  bonds: "My family, who left Shelldrake before I was born and are still paying off a debt to a council member neither of us has ever met face to face."
+  flaws: "I don't trust institutions, including the Society that sent me here. I'll bend or break their rules the moment they get in the way of actually helping my family's name. Also: I get genuinely unpleasant without coffee, and I will absolutely delay a mission to go find some."
+
+features:
+  - name: "Lucky (Halfling)."
+    text: "Reroll a 1 on attack/check/save, must use new roll."
+  - name: "Brave."
+    text: "Advantage on saves vs. frightened."
+  - name: "Halfling Nimbleness."
+    text: "Move through larger creatures' spaces."
+  - name: "Stout Resilience."
+    text: "Advantage on poison saves, resist poison damage."
+  - name: "Guild Membership."
+    text: "Guild connections for food/lodging; guild backs her in minor legal disputes."
+  - name: "Magical Tinkering."
+    text: "Imbue up to 5 Tiny objects with a minor magical property."
+  - name: "Infuse Item."
+    text: "4 infusions known, 2 items infused at once (Enhanced Arcane Focus on her mug; Enhanced Defense on her armor)."
+  - name: "The Right Tool for the Job."
+    text: "1 hr with Tinker's Tools to create a set of artisan's tools."
+  - name: "Eldritch Cannon."
+    text: "Action to deploy her mug as a Tiny cannon (HP 25, AC 18): Flamethrower / Force Ballista / Protector mode."
+  - name: "Arcane Firearm."
+    text: "+1d8 to one damage roll of a spell cast through her infused focus."
+
+appearance:
+  age: 27
+  height: 3 ft 2 in
+  weight: 40 lbs
+  eyes: Warm brown
+  skin: Sun-browned tan
+  hair: Dark, curly, perpetually escaping its tie
+
+backstory: "Marigold is a Small halfling with sun-browned skin and dark curly hair that never quite stays put. She grew up far from Shelldrake, in the town her parents resettled in after leaving it behind, but she was still raised inside the Kettlewick family trade: alchemists and coffee roasters who once ran a shop in Shelldrake for generations, before a brutal loan from a member of the empire's ruling council drove them out. Marigold apprenticed in the family's new shop, learning alchemy at her parents' elbows, before leaving home years ago to make her own way and train as an artificer. Shelldrake itself, though, is a place she knows only from her parents' stories: the shop that used to be theirs, the debt that's still theirs, a council member's name spoken like a family legend rather than a memory. She runs on more coffee than is medically advisable, which is at least easy to come by, given the family trade. When the Areiais Embetterment Society came recruiting agents for the Shelldrake assignment, she volunteered before they'd finished the pitch: a chance to finally see the place her family came from, and to open the first true Kettlewick's location back in the town that started it all, soon to be flooded with laborers who'll want their morning fix."
+
+allies:
+  - name: Alchemists' Guild
+    text: "her Guild Artisan background affiliation; guild backs her in minor legal disputes."
+  - name: Areiais Embetterment Society
+    text: "recruited her for the Shelldrake assignment. She doesn't fully trust it, but volunteered before they'd finished the pitch."
+  - name: Kettlewick's & the family debt
+    text: "the Kettlewicks once ran a cafe-chain shop in Shelldrake, financed by a brutal loan from a member of the ruling council. Her parents left Shelldrake before Marigold was born rather than keep fighting the debt; she's returning to a town she's never actually lived in, hoping to finally clear it."
+
+treasure:
+  title: Marigold's Mug
+  text: "A battered tin coffee mug with two states. Everyday: Enhanced Arcane Focus infusion, +1 to spell attack rolls while held (already included in Spell Attack Bonus). Deployed: set down and tapped, it unfolds into her Eldritch Cannon turret. Also channels her Arcane Firearm bonus damage. Enchanted by her parents as a parting gift when she left home; she's since layered on the cannon/firearm properties herself."
+
+additional_features: ""
+
+spellcasting:
+  class: Artificer
+  ability: Intelligence
+  save_dc: 16
+  attack_bonus: "+9"
+  note: "Spell Attack Bonus is base +8, +1 from the Enhanced Arcane Focus infusion on her mug (drops to +8 if the mug is lost or destroyed). Spellcasting focus: Alchemist's Supplies, or the mug when held."
+  cantrips:
+    - Mending
+    - Guidance
+    - Acid Splash
+  slots:
+    - level: "1st"
+      total: 4
+    - level: "2nd"
+      total: 2
+  prepared:
+    - Cure Wounds
+    - Identify
+    - Purify Food and Drink
+    - Absorb Elements
+    - Darkvision
+    - Detect Magic
+    - Enhance Ability (a fresh cup, slammed)
+  always_prepared:
+    - spells: Shield, Thunderwave
+      note: "(3rd level)"
+    - spells: Scorching Ray, Web
+      note: "(5th level)"
+  cannon_modes:
+    - name: Flamethrower
+      text: "15-ft cone, Dex save, 2d8 fire (half on success)."
+    - name: Force Ballista
+      text: "ranged spell attack, 120 ft, 2d8 force + 5-ft push."
+    - name: Protector
+      text: "allies within 10 ft gain 1d8 + Int mod temp HP at the start of her turn."
+  cannon_stats: "Cannon: HP 25, AC 18."
