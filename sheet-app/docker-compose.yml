@@ -1,5 +1,6 @@
 services:
   sheet-app:
+    image: ghcr.io/mxhdg/dandd/sheet-app:${SHEET_APP_TAG:-latest}
     build:
       context: .
       args:
