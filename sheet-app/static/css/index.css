@@ -1,0 +1,9 @@
+body { font-family: Georgia, "Times New Roman", serif; background: #ccc; margin: 0; padding: 40px; box-sizing: border-box; }
+@media (max-width: 600px) {
+  body { padding: 16px; }
+}
+.list-box { background: #f5ecd8; max-width: 500px; margin: 0 auto; padding: 24px; border: 2px solid #1c1a16; }
+h1 { margin-top: 0; }
+ul { padding-left: 20px; }
+a { color: #7a1414; text-decoration: none; font-weight: bold; }
+a:hover { text-decoration: underline; }
