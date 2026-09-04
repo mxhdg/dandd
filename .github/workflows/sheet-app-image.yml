@@ -5,27 +5,41 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Version tag to apply to the image (e.g. v1.2.3). Only needed if running against a branch instead of a version tag; leave blank otherwise."
+        required: false
+        type: string
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/sheet-app
 
+permissions: {}
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: sheet-app-image-${{ github.ref }}
+      cancel-in-progress: false
     permissions:
       contents: read
       packages: write
+      id-token: write # required for cosign keyless signing
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -33,17 +47,44 @@ jobs:
 
       - name: Extract image metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=latest
             type=sha,format=short
+            type=ref,event=tag
+            type=raw,value=${{ inputs.version }},enable=${{ inputs.version != '' }}
 
       - name: Build and push
-        uses: docker/build-push-action@v6
+        id: build
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
           context: sheet-app
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          provenance: true
+          sbom: true
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
+      - name: Sign image (keyless)
+        shell: python3 {0}
+        env:
+          IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          import os
+          import subprocess
+
+          image_ref = f"{os.environ['REGISTRY']}/{os.environ['IMAGE_NAME']}@{os.environ['IMAGE_DIGEST']}"
+          subprocess.run(["cosign", "sign", "--yes", image_ref], check=True)
+
+      - name: Scan image for vulnerabilities
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+          format: table
+          exit-code: "0"
+          severity: "CRITICAL,HIGH"
