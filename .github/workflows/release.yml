@@ -12,50 +12,107 @@ on:
           - major
         default: patch
 
+permissions: {}
+
 jobs:
   tag-and-build:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: release
+      cancel-in-progress: false
     permissions:
       contents: write
       actions: write
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
 
       - name: Compute next version
         id: version
+        shell: python3 {0}
+        env:
+          BUMP: ${{ inputs.bump }}
         run: |
-          latest=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n1)
-          latest="${latest:-v0.0.0}"
-          version="${latest#v}"
-          IFS='.' read -r major minor patch <<< "$version"
+          import os
+          import re
+          import subprocess
 
-          case "${{ inputs.bump }}" in
-            major) major=$((major + 1)); minor=0; patch=0 ;;
-            minor) minor=$((minor + 1)); patch=0 ;;
-            patch) patch=$((patch + 1)) ;;
-          esac
+          bump = os.environ["BUMP"]
 
-          new_tag="v${major}.${minor}.${patch}"
-          echo "Previous tag: $latest"
-          echo "New tag: $new_tag"
-          echo "new_tag=$new_tag" >> "$GITHUB_OUTPUT"
+          result = subprocess.run(
+              ["git", "tag", "--list", "v[0-9]*.[0-9]*.[0-9]*", "--sort=-v:refname"],
+              capture_output=True,
+              text=True,
+              check=True,
+          )
+          tags = [t for t in result.stdout.splitlines() if t]
+          latest = tags[0] if tags else "v0.0.0"
+
+          match = re.fullmatch(r"v(\d+)\.(\d+)\.(\d+)", latest)
+          if not match:
+              raise SystemExit(f"Could not parse version from tag: {latest}")
+          major, minor, patch = (int(part) for part in match.groups())
+
+          if bump == "major":
+              major, minor, patch = major + 1, 0, 0
+          elif bump == "minor":
+              minor, patch = minor + 1, 0
+          elif bump == "patch":
+              patch += 1
+          else:
+              raise SystemExit(f"Unrecognized bump type: {bump}")
+
+          new_tag = f"v{major}.{minor}.{patch}"
+          print(f"Previous tag: {latest}")
+          print(f"New tag: {new_tag}")
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+              fh.write(f"new_tag={new_tag}\n")
 
       - name: Create and push tag
+        shell: python3 {0}
+        env:
+          NEW_TAG: ${{ steps.version.outputs.new_tag }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag "${{ steps.version.outputs.new_tag }}"
-          git push origin "${{ steps.version.outputs.new_tag }}"
+          import os
+          import subprocess
+
+          new_tag = os.environ["NEW_TAG"]
+
+          subprocess.run(["git", "config", "user.name", "github-actions[bot]"], check=True)
+          subprocess.run(
+              ["git", "config", "user.email", "github-actions[bot]@users.noreply.github.com"],
+              check=True,
+          )
+          subprocess.run(["git", "tag", new_tag], check=True)
+          subprocess.run(["git", "push", "origin", new_tag], check=True)
 
       - name: Trigger image build for new tag
+        shell: python3 {0}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEW_TAG: ${{ steps.version.outputs.new_tag }}
         run: |
-          gh workflow run sheet-app-image.yml --ref "${{ steps.version.outputs.new_tag }}"
+          import os
+          import subprocess
+
+          new_tag = os.environ["NEW_TAG"]
+          subprocess.run(
+              ["gh", "workflow", "run", "sheet-app-image.yml", "--ref", new_tag],
+              check=True,
+          )
 
       - name: Summary
-        run: echo "Released **${{ steps.version.outputs.new_tag }}** and triggered the image build." >> "$GITHUB_STEP_SUMMARY"
+        shell: python3 {0}
+        env:
+          NEW_TAG: ${{ steps.version.outputs.new_tag }}
+        run: |
+          import os
+
+          new_tag = os.environ["NEW_TAG"]
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as fh:
+              fh.write(f"Released **{new_tag}** and triggered the image build.\n")
