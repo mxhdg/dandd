@@ -6,7 +6,9 @@ import yaml
 from flask import Flask, abort, redirect, render_template, request, url_for
 
 app = Flask(__name__)
-app.config["MAX_CONTENT_LENGTH"] = 16 * 1024  # form posts here are a few dozen small fields
+app.config["MAX_CONTENT_LENGTH"] = (
+    16 * 1024
+)  # form posts here are a few dozen small fields
 
 DATA_DIR = Path(__file__).parent / "data"
 STATE_DIR = Path(__file__).parent / "state"
@@ -38,7 +40,8 @@ def set_security_headers(response):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "no-referrer"
     response.headers["Content-Security-Policy"] = (
-        "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'none'; frame-ancestors 'none'"
+        "default-src 'self'; style-src 'self' 'unsafe-inline'; "
+        "script-src 'none'; frame-ancestors 'none'"
     )
     return response
 
@@ -125,6 +128,42 @@ def character_sheet(character_id):
     return render_template("character_sheet.html", c=data)
 
 
+def parse_int_field(form, key, default):
+    try:
+        return int(form.get(key, "").strip())
+    except ValueError:
+        return default
+
+
+def state_from_form(form, previous, slot_levels):
+    xp_value = form.get("xp")
+    return {
+        "hp_current": parse_int_field(form, "hp_current", previous["hp_current"]),
+        "hp_temp": parse_int_field(form, "hp_temp", previous["hp_temp"]),
+        "hit_dice_used": parse_int_field(
+            form, "hit_dice_used", previous["hit_dice_used"]
+        ),
+        "death_save_successes": sum(
+            1 for i in range(3) if f"death_success_{i}" in form
+        ),
+        "death_save_failures": sum(1 for i in range(3) if f"death_failure_{i}" in form),
+        "inspiration": "inspiration" in form,
+        "xp": xp_value.strip() if xp_value is not None else previous["xp"],
+        "currency": {
+            k: parse_int_field(
+                form, f"currency_{k}", previous["currency"].get(k, 0) or 0
+            )
+            for k in CURRENCY_KEYS
+        },
+        "slot_used": {
+            level: parse_int_field(
+                form, f"slot_used_{level}", previous["slot_used"].get(level, 0)
+            )
+            for level in slot_levels
+        },
+    }
+
+
 @app.route("/characters/<character_id>/update", methods=["POST"])
 def update_character(character_id):
     if not valid_character_id(character_id):
@@ -133,30 +172,10 @@ def update_character(character_id):
     if data is None:
         abort(404)
     previous = load_state(character_id, data)
-    form = request.form
-
-    def as_int(key, default):
-        value = form.get(key, "").strip()
-        try:
-            return int(value)
-        except ValueError:
-            return default
-
-    slot_levels = [slot["level"] for slot in data.get("spellcasting", {}).get("slots", [])]
-
-    xp_value = form.get("xp")
-
-    state = {
-        "hp_current": as_int("hp_current", previous["hp_current"]),
-        "hp_temp": as_int("hp_temp", previous["hp_temp"]),
-        "hit_dice_used": as_int("hit_dice_used", previous["hit_dice_used"]),
-        "death_save_successes": sum(1 for i in range(3) if f"death_success_{i}" in form),
-        "death_save_failures": sum(1 for i in range(3) if f"death_failure_{i}" in form),
-        "inspiration": "inspiration" in form,
-        "xp": xp_value.strip() if xp_value is not None else previous["xp"],
-        "currency": {k: as_int(f"currency_{k}", previous["currency"].get(k, 0) or 0) for k in CURRENCY_KEYS},
-        "slot_used": {level: as_int(f"slot_used_{level}", previous["slot_used"].get(level, 0)) for level in slot_levels},
-    }
+    slot_levels = [
+        slot["level"] for slot in data.get("spellcasting", {}).get("slots", [])
+    ]
+    state = state_from_form(request.form, previous, slot_levels)
     save_state(character_id, state)
     return redirect(url_for("character_sheet", character_id=character_id))
 

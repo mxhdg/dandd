@@ -1,0 +1,175 @@
+id: sample_character
+name: Sample Character
+class_level: Fighter 3
+background: Folk Hero
+player_name: ''
+race: Human
+alignment: Neutral Good
+xp: ''
+inspiration: false
+proficiency_bonus: '+2'
+abilities:
+- name: Strength
+  score: 16
+  mod: '+3'
+- name: Dexterity
+  score: 14
+  mod: '+2'
+- name: Constitution
+  score: 14
+  mod: '+2'
+- name: Intelligence
+  score: 10
+  mod: '+0'
+- name: Wisdom
+  score: 12
+  mod: '+1'
+- name: Charisma
+  score: 10
+  mod: '+0'
+saves:
+- name: Strength
+  mod: '+5'
+  prof: true
+- name: Dexterity
+  mod: '+2'
+  prof: false
+- name: Constitution
+  mod: '+4'
+  prof: true
+- name: Intelligence
+  mod: '+0'
+  prof: false
+- name: Wisdom
+  mod: '+1'
+  prof: false
+- name: Charisma
+  mod: '+0'
+  prof: false
+skills:
+- name: Acrobatics
+  ability: Dex
+  mod: '+2'
+  prof: false
+- name: Animal Handling
+  ability: Wis
+  mod: '+1'
+  prof: false
+- name: Arcana
+  ability: Int
+  mod: '+0'
+  prof: false
+- name: Athletics
+  ability: Str
+  mod: '+5'
+  prof: true
+- name: Deception
+  ability: Cha
+  mod: '+0'
+  prof: false
+- name: History
+  ability: Int
+  mod: '+0'
+  prof: false
+- name: Insight
+  ability: Wis
+  mod: '+1'
+  prof: false
+- name: Intimidation
+  ability: Cha
+  mod: '+0'
+  prof: false
+- name: Investigation
+  ability: Int
+  mod: '+0'
+  prof: false
+- name: Medicine
+  ability: Wis
+  mod: '+1'
+  prof: false
+- name: Nature
+  ability: Int
+  mod: '+0'
+  prof: false
+- name: Perception
+  ability: Wis
+  mod: '+3'
+  prof: true
+- name: Performance
+  ability: Cha
+  mod: '+0'
+  prof: false
+- name: Persuasion
+  ability: Cha
+  mod: '+0'
+  prof: false
+- name: Religion
+  ability: Int
+  mod: '+0'
+  prof: false
+- name: Sleight of Hand
+  ability: Dex
+  mod: '+2'
+  prof: false
+- name: Stealth
+  ability: Dex
+  mod: '+2'
+  prof: false
+- name: Survival
+  ability: Wis
+  mod: '+1'
+  prof: false
+passive_perception: 13
+other_proficiencies:
+  languages: Common
+  armor: Light armor, medium armor, shields
+  weapons: Simple weapons, martial weapons
+  tools: ''
+combat:
+  ac: 16
+  initiative: '+2'
+  speed: 30 ft
+hp:
+  max: 28
+  current: ''
+  temp: ''
+hit_dice:
+  total: 3d10
+attacks:
+- name: Longsword
+  bonus: '+5'
+  damage: 1d8+3 slashing
+  range: Melee
+attack_note: ''
+equipment:
+- Chain shirt
+- Shield
+- Explorer's pack
+currency:
+  cp: ''
+  sp: ''
+  ep: ''
+  gp: '15'
+  pp: ''
+personality:
+  traits: Steady and dependable in a fight.
+  ideals: Protect those who can't protect themselves.
+  bonds: Loyal to the old company they served with.
+  flaws: Slow to trust anyone outside that company.
+features:
+- name: Second Wind
+  text: Bonus action to regain 1d10+3 HP once per short/long rest.
+appearance:
+  age: '29'
+  height: 5 ft 11 in
+  weight: 180 lbs
+  eyes: Brown
+  skin: Tan
+  hair: Black, cropped short
+backstory: A former mercenary turned town guard, kept here as example data for the
+  character sheet app.
+allies: []
+treasure:
+  title: ''
+  text: ''
+additional_features: ''

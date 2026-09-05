@@ -1,0 +1,10 @@
+[project]
+name = "sheet-app"
+version = "1.0.3"
+
+[tool.black]
+line-length = 88
+target-version = ["py312"]
+
+[tool.isort]
+profile = "black"
