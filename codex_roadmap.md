@@ -1,6 +1,6 @@
 # Character Sheet App: Enhancement Ideas
 
-This is a running list of ideas for `sheet-app/`, gathered from an actual-play
+This is a running list of ideas for `codex/`, gathered from an actual-play
 perspective rather than a generic software backlog. It's not a commitment or
 a schedule, just a place to park ideas between sessions and pull from
 opportunistically.
@@ -73,7 +73,7 @@ freely as actual play surfaces new pain points.
 ## Explicitly not planned right now
 
 - **Full user accounts/authentication.** Deferred deliberately (see the
-  security hardening already done in `sheet-app/`); revisit only if this
+  security hardening already done in `codex/`); revisit only if this
   ever needs to run somewhere less trusted than a home network.
 - **Automated dice rolling as a full replacement for physical dice.** Only
   worth building if the table actually wants it; this would change the feel

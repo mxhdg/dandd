@@ -1,12 +1,12 @@
 services:
-  sheet-app:
-    image: ghcr.io/mxhdg/dandd/sheet-app:${SHEET_APP_TAG:-latest}
+  codex:
+    image: ghcr.io/mxhdg/dandd/codex:${CODEX_TAG:-latest}
     restart: unless-stopped
     ports:
       - "8889:5000"
     volumes:
-      - /opt/sheet-app/data:/app/data
-      - /opt/sheet-app/state:/app/state
+      - /opt/codex/data:/app/data
+      - /opt/codex/state:/app/state
     read_only: true
     tmpfs:
       - /tmp

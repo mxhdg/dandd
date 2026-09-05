@@ -24,6 +24,12 @@ body {
 }
 .table-wrap { overflow-x: auto; }
 @media print {
+  :root {
+    --red: #000;
+    --parchment: #fff;
+    --paper: #fff;
+    --rule: #000;
+  }
   body { background: #fff; }
   .sheet-page { box-shadow: none; margin: 0; }
 }
@@ -196,7 +202,11 @@ input[type="checkbox"] { width: 14px; height: 14px; vertical-align: middle; }
 .page-footer .github-link { display: inline-flex; color: var(--ink); }
 .page-footer .github-link svg { display: block; fill: currentColor; }
 
-@media print { .save-btn, .back-link, .page-footer { display: none; } }
+@media print {
+  .save-btn, .back-link, .page-footer { display: none; }
+  .section-title { background: none; color: var(--ink); border: 1.5px solid var(--ink); }
+  table.attack-table th { background: none; }
+}
 
 @media (max-width: 700px) {
   .save-btn, .back-link { top: 6px; font-size: 11px; padding: 6px 10px; }
