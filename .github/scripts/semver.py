@@ -1,4 +1,4 @@
-"""SemVer 2.0.0 parsing and precedence comparison, shared by the sheet-app
+"""SemVer 2.0.0 parsing and precedence comparison, shared by the codex
 version-bump and release workflows (see semver.org for the spec this follows).
 """
 

@@ -22,7 +22,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Determine release tag from sheet-app/pyproject.toml
+      - name: Determine release tag from codex/pyproject.toml
         id: version
         shell: python3 {0}
         run: |
@@ -34,12 +34,12 @@ jobs:
           sys.path.insert(0, ".github/scripts")
           import semver
 
-          with open("sheet-app/pyproject.toml", "rb") as f:
+          with open("codex/pyproject.toml", "rb") as f:
               version = tomllib.load(f)["project"]["version"]
 
           if semver.parse(version) is None:
               raise SystemExit(
-                  "sheet-app/pyproject.toml version is not a valid SemVer 2.0.0 "
+                  "codex/pyproject.toml version is not a valid SemVer 2.0.0 "
                   f"version (MAJOR.MINOR.PATCH[-prerelease][+build]): {version}"
               )
 
@@ -69,7 +69,7 @@ jobs:
 
           if semver.precedence_key(version) < semver.precedence_key(latest):
               raise SystemExit(
-                  f"sheet-app/pyproject.toml version ({version}) is older than "
+                  f"codex/pyproject.toml version ({version}) is older than "
                   f"the latest release (v{latest}) by SemVer precedence. Bump it "
                   "in a PR before releasing."
               )
@@ -109,7 +109,7 @@ jobs:
 
           new_tag = os.environ["NEW_TAG"]
           subprocess.run(
-              ["gh", "workflow", "run", "sheet-app-image.yml", "--ref", new_tag],
+              ["gh", "workflow", "run", "codex-image.yml", "--ref", new_tag],
               check=True,
           )
 
