@@ -1,6 +1,6 @@
 services:
-  sheet-app:
-    container_name: sheet-app-dev
+  codex:
+    container_name: codex-dev
     labels:
       environment: "dev"
     build:

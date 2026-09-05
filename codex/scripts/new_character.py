@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Interactively generate a new sheet-app data/<id>.yaml character file.
+"""Interactively generate a new codex data/<id>.yaml character file.
 
-Run from anywhere with PyYAML installed (the sheet-app venv already has it):
+Run from anywhere with PyYAML installed (the codex venv already has it):
 
     python scripts/new_character.py
 
