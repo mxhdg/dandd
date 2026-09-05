@@ -32,6 +32,9 @@ jobs:
           import sys
           import tomllib
 
+          sys.path.insert(0, ".github/scripts")
+          import semver
+
           base_sha = os.environ["BASE_SHA"]
           head_sha = os.environ["HEAD_SHA"]
 
@@ -62,17 +65,33 @@ jobs:
 
           base_version = version_at(base_sha)
           head_version = version_at(head_sha)
-          base_parts = tuple(int(p) for p in base_version.split("."))
-          head_parts = tuple(int(p) for p in head_version.split("."))
 
           print(f"Base version: {base_version}")
           print(f"Head version: {head_version}")
 
-          if head_parts <= base_parts:
+          if semver.parse(head_version) is None:
+              print(
+                  "::error::sheet-app/pyproject.toml version "
+                  f"{head_version!r} is not a valid SemVer 2.0.0 version "
+                  "(MAJOR.MINOR.PATCH[-prerelease][+build])."
+              )
+              sys.exit(1)
+
+          if head_version == base_version:
               print(
                   "::error::sheet-app code changed but sheet-app/pyproject.toml's "
-                  f"[project] version was not bumped above {base_version}. Bump it "
-                  "(patch/minor/major) as part of this PR."
+                  f"[project] version was not changed from {base_version}. Bump it "
+                  "(patch/minor/major, a new -prerelease, or a new +build suffix) "
+                  "as part of this PR."
+              )
+              sys.exit(1)
+
+          if semver.precedence_key(head_version) < semver.precedence_key(base_version):
+              print(
+                  "::error::sheet-app/pyproject.toml's [project] version was "
+                  f"changed to {head_version}, which is older than the base "
+                  f"branch's {base_version} by SemVer precedence. Bump it "
+                  "forward instead."
               )
               sys.exit(1)
 
