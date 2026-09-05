@@ -40,3 +40,19 @@ python scripts/new_character.py
 ```
 
 Interactively generates a new `data/<id>.yaml` file. Choose `skeleton` mode for just the identity fields plus valid defaults you hand-fill afterward, or `full` mode to also be prompted for ability scores, proficiencies, equipment, backstory, etc., with derived stats (modifiers, proficiency bonus, passive perception) computed for you. Needs PyYAML (`pip install -r requirements.txt`), no other setup required. Either mode's output is a starting point, expect to hand-edit the result the same way existing character sheets are maintained.
+
+### Testing
+
+```bash
+cd sheet-app
+pip install -r requirements-dev.txt
+python -m black --check .   # formatting
+python -m flake8 .          # linting
+python -m pytest            # unit tests (Flask test client, no Docker needed)
+```
+
+The [sheet-app tests](.github/workflows/sheet-app-tests.yml) GitHub Actions workflow runs all of this automatically on every pull request (and push to `main`) that touches `sheet-app/**`, across three jobs:
+
+- **lint** — `black --check` and `flake8` against the whole app.
+- **test** — the `pytest` suite in `sheet-app/tests/`, exercising the Flask routes directly (index listing, character sheet rendering, the character-id allowlist that blocks path traversal, security headers, and that "Save Changes" persists the right fields to `state/<id>.yaml`).
+- **docker-smoke-test** — builds the real `Dockerfile`, runs the resulting image, and curls `/` and a sample character sheet to confirm the container actually serves traffic end to end, the same check used to validate the Python 3.14 upgrade.
