@@ -1,10 +1,14 @@
 [project]
 name = "sheet-app"
-version = "1.0.4-rc1"
+version = "1.0.4-rc2"
 
 [tool.black]
 line-length = 88
-target-version = ["py312"]
+target-version = ["py314"]
 
 [tool.isort]
 profile = "black"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
