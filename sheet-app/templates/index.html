@@ -14,10 +14,7 @@
       <li><a href="/characters/{{ char.id }}">{{ char.name }}</a></li>
       {% endfor %}
     </ul>
-    <details class="about-box">
-      <summary>About</summary>
-      <p>{% if app_version == 'dev' %}dev build{% else %}{{ app_version }} ({{ app_commit_sha }}){% endif %}</p>
-    </details>
+    {% include "_footer.html" %}
   </div>
 </body>
 </html>
