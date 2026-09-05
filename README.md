@@ -32,4 +32,11 @@ docker compose -f docker-compose.prod.yml up -d
 
 Pulls the published image from `ghcr.io/mxhdg/dandd/sheet-app` and uses standard `/opt/sheet-app/...` bind-mount paths. Set `SHEET_APP_TAG` to pin a specific version instead of `latest`.
 
-See `CLAUDE.md` for full implementation detail (data model, CI/release process, security posture).
+### Creating a new character
+
+```bash
+cd sheet-app
+python scripts/new_character.py
+```
+
+Interactively generates a new `data/<id>.yaml` file. Choose `skeleton` mode for just the identity fields plus valid defaults you hand-fill afterward, or `full` mode to also be prompted for ability scores, proficiencies, equipment, backstory, etc., with derived stats (modifiers, proficiency bonus, passive perception) computed for you. Needs PyYAML (`pip install -r requirements.txt`), no other setup required. Either mode's output is a starting point, expect to hand-edit the result the same way existing character sheets are maintained.
