@@ -197,7 +197,9 @@ def _build_spellcasting():
         "attack_bonus": _ask("Spell attack bonus (e.g. +5)", "+0"),
         "note": _ask("Note (optional)"),
         "cantrips": [
-            c.strip() for c in _ask("Cantrips (comma-separated)").split(",") if c.strip()
+            c.strip()
+            for c in _ask("Cantrips (comma-separated)").split(",")
+            if c.strip()
         ],
         "slots": slots,
         "prepared": [
