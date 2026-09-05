@@ -1,6 +1,8 @@
 services:
   sheet-app:
-    image: ghcr.io/mxhdg/dandd/sheet-app:${SHEET_APP_TAG:-latest}
+    container_name: sheet-app-dev
+    labels:
+      environment: "dev"
     build:
       context: .
       args:
