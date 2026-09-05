@@ -1,16 +1,7 @@
 name: Cut a release
 
 on:
-  workflow_dispatch:
-    inputs:
-      bump:
-        description: Version part to bump
-        type: choice
-        options:
-          - patch
-          - minor
-          - major
-        default: patch
+  workflow_dispatch: {}
 
 permissions: {}
 
@@ -31,17 +22,22 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Compute next version
+      - name: Determine release tag from sheet-app/pyproject.toml
         id: version
         shell: python3 {0}
-        env:
-          BUMP: ${{ inputs.bump }}
         run: |
           import os
           import re
           import subprocess
+          import tomllib
 
-          bump = os.environ["BUMP"]
+          with open("sheet-app/pyproject.toml", "rb") as f:
+              version = tomllib.load(f)["project"]["version"]
+
+          if not re.fullmatch(r"\d+\.\d+\.\d+", version):
+              raise SystemExit(
+                  f"sheet-app/pyproject.toml version is not a plain x.y.z semver: {version}"
+              )
 
           result = subprocess.run(
               ["git", "tag", "--list", "v[0-9]*.[0-9]*.[0-9]*", "--sort=-v:refname"],
@@ -51,22 +47,16 @@ jobs:
           )
           tags = [t for t in result.stdout.splitlines() if t]
           latest = tags[0] if tags else "v0.0.0"
+          latest_parts = tuple(int(p) for p in latest.removeprefix("v").split("."))
+          new_parts = tuple(int(p) for p in version.split("."))
 
-          match = re.fullmatch(r"v(\d+)\.(\d+)\.(\d+)", latest)
-          if not match:
-              raise SystemExit(f"Could not parse version from tag: {latest}")
-          major, minor, patch = (int(part) for part in match.groups())
+          if new_parts <= latest_parts:
+              raise SystemExit(
+                  f"sheet-app/pyproject.toml version ({version}) is not greater than "
+                  f"the latest release tag ({latest}). Bump it in a PR before releasing."
+              )
 
-          if bump == "major":
-              major, minor, patch = major + 1, 0, 0
-          elif bump == "minor":
-              minor, patch = minor + 1, 0
-          elif bump == "patch":
-              patch += 1
-          else:
-              raise SystemExit(f"Unrecognized bump type: {bump}")
-
-          new_tag = f"v{major}.{minor}.{patch}"
+          new_tag = f"v{version}"
           print(f"Previous tag: {latest}")
           print(f"New tag: {new_tag}")
 
