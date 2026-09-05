@@ -1,3 +1,7 @@
+[project]
+name = "sheet-app"
+version = "1.0.2"
+
 [tool.black]
 line-length = 88
 target-version = ["py312"]

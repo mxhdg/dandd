@@ -70,15 +70,14 @@ jobs:
           ref_type = os.environ["GITHUB_REF_TYPE"]
           ref_name = os.environ["GITHUB_REF_NAME"]
           input_version = os.environ.get("INPUT_VERSION", "")
+          commit_sha = os.environ["COMMIT_SHA"][:7]
 
           if ref_type == "tag":
               app_version = ref_name
           elif input_version:
               app_version = input_version
           else:
-              app_version = "dev"
-
-          commit_sha = os.environ["COMMIT_SHA"][:7]
+              app_version = f"dev-{commit_sha}"
 
           with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
               fh.write(f"app_version={app_version}\n")
