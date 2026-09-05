@@ -3,3 +3,8 @@ characters/2014_marigold_kettlewick_howto.html
 characters/2014_marigold_kettlewick_howto.css
 sheet-app/static/howto.html
 sheet-app/static/howto.css
+
+# Python (sheet-app/ has its own .gitignore with the full Python rule set;
+# this covers Python elsewhere in the repo, e.g. .github/scripts/)
+__pycache__/
+*.py[cod]
