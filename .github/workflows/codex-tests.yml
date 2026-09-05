@@ -1,15 +1,15 @@
-name: sheet-app tests
+name: codex tests
 
 on:
   pull_request:
     paths:
-      - "sheet-app/**"
-      - "!sheet-app/**/*.md"
+      - "codex/**"
+      - "!codex/**/*.md"
   push:
     branches: [main]
     paths:
-      - "sheet-app/**"
-      - "!sheet-app/**/*.md"
+      - "codex/**"
+      - "!codex/**/*.md"
   workflow_dispatch: {}
 
 permissions: {}
@@ -31,15 +31,15 @@ jobs:
           python-version: "3.14"
 
       - name: Install dev dependencies
-        working-directory: sheet-app
+        working-directory: codex
         run: pip install --no-cache-dir -r requirements-dev.txt
 
       - name: Check formatting (black)
-        working-directory: sheet-app
+        working-directory: codex
         run: python -m black --check .
 
       - name: Lint (flake8)
-        working-directory: sheet-app
+        working-directory: codex
         run: python -m flake8 .
 
   test:
@@ -58,11 +58,11 @@ jobs:
           python-version: "3.14"
 
       - name: Install dev dependencies
-        working-directory: sheet-app
+        working-directory: codex
         run: pip install --no-cache-dir -r requirements-dev.txt
 
       - name: Run pytest
-        working-directory: sheet-app
+        working-directory: codex
         run: python -m pytest
 
   docker-smoke-test:
@@ -81,13 +81,13 @@ jobs:
       - name: Build image (not pushed)
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
-          context: sheet-app
+          context: codex
           push: false
           load: true
-          tags: sheet-app:ci
+          tags: codex:ci
 
       - name: Run container
-        run: docker run -d --name sheet-app-ci -p 8890:5000 sheet-app:ci
+        run: docker run -d --name codex-ci -p 8890:5000 codex:ci
 
       - name: Wait for the app to come up
         run: |
@@ -97,7 +97,7 @@ jobs:
             fi
             sleep 1
           done
-          echo "::error::sheet-app never became ready"
+          echo "::error::codex never became ready"
           exit 1
 
       - name: Smoke test index and a character sheet
@@ -108,8 +108,8 @@ jobs:
 
       - name: Container logs
         if: always()
-        run: docker logs sheet-app-ci
+        run: docker logs codex-ci
 
       - name: Stop container
         if: always()
-        run: docker rm -f sheet-app-ci
+        run: docker rm -f codex-ci
