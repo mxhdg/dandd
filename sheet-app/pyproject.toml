@@ -1,6 +1,6 @@
 [project]
 name = "sheet-app"
-version = "1.0.2"
+version = "1.0.3"
 
 [tool.black]
 line-length = 88
