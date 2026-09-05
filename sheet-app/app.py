@@ -22,7 +22,7 @@ CURRENCY_KEYS = ["cp", "sp", "ep", "gp", "pp"]
 CHARACTER_ID_RE = re.compile(r"^[A-Za-z0-9_-]+$")
 
 
-def valid_character_id(character_id):
+def _valid_character_id(character_id):
     return bool(CHARACTER_ID_RE.fullmatch(character_id))
 
 
@@ -46,7 +46,7 @@ def set_security_headers(response):
     return response
 
 
-def load_character(character_id):
+def _load_character(character_id):
     path = DATA_DIR / f"{character_id}.yaml"
     if not path.is_file():
         return None
@@ -54,15 +54,15 @@ def load_character(character_id):
         return yaml.safe_load(f)
 
 
-def list_characters():
+def _list_characters():
     characters = []
     for path in sorted(DATA_DIR.glob("*.yaml")):
-        data = load_character(path.stem)
+        data = _load_character(path.stem)
         characters.append({"id": path.stem, "name": data["name"]})
     return characters
 
 
-def default_state(char):
+def _default_state(char):
     slots = char.get("spellcasting", {}).get("slots", [])
     return {
         "hp_current": char["hp"]["max"],
@@ -77,8 +77,8 @@ def default_state(char):
     }
 
 
-def load_state(character_id, char):
-    state = default_state(char)
+def _load_state(character_id, char):
+    state = _default_state(char)
     path = STATE_DIR / f"{character_id}.yaml"
     if path.is_file():
         with path.open(encoding="utf-8") as f:
@@ -89,13 +89,13 @@ def load_state(character_id, char):
     return state
 
 
-def save_state(character_id, state):
+def _save_state(character_id, state):
     path = STATE_DIR / f"{character_id}.yaml"
     with path.open("w", encoding="utf-8") as f:
         yaml.safe_dump(state, f, sort_keys=False)
 
 
-def apply_state(char, state):
+def _apply_state(char, state):
     char["hp"]["current"] = state["hp_current"]
     char["hp"]["temp"] = state["hp_temp"]
     char["hit_dice"]["used"] = state["hit_dice_used"]
@@ -113,34 +113,34 @@ def apply_state(char, state):
 
 @app.route("/")
 def index():
-    return render_template("index.html", characters=list_characters())
+    return render_template("index.html", characters=_list_characters())
 
 
 @app.route("/characters/<character_id>")
 def character_sheet(character_id):
-    if not valid_character_id(character_id):
+    if not _valid_character_id(character_id):
         abort(404)
-    data = load_character(character_id)
+    data = _load_character(character_id)
     if data is None:
         abort(404)
-    state = load_state(character_id, data)
-    data = apply_state(data, state)
+    state = _load_state(character_id, data)
+    data = _apply_state(data, state)
     return render_template("character_sheet.html", c=data)
 
 
-def parse_int_field(form, key, default):
+def _parse_int_field(form, key, default):
     try:
         return int(form.get(key, "").strip())
     except ValueError:
         return default
 
 
-def state_from_form(form, previous, slot_levels):
+def _state_from_form(form, previous, slot_levels):
     xp_value = form.get("xp")
     return {
-        "hp_current": parse_int_field(form, "hp_current", previous["hp_current"]),
-        "hp_temp": parse_int_field(form, "hp_temp", previous["hp_temp"]),
-        "hit_dice_used": parse_int_field(
+        "hp_current": _parse_int_field(form, "hp_current", previous["hp_current"]),
+        "hp_temp": _parse_int_field(form, "hp_temp", previous["hp_temp"]),
+        "hit_dice_used": _parse_int_field(
             form, "hit_dice_used", previous["hit_dice_used"]
         ),
         "death_save_successes": sum(
@@ -150,13 +150,13 @@ def state_from_form(form, previous, slot_levels):
         "inspiration": "inspiration" in form,
         "xp": xp_value.strip() if xp_value is not None else previous["xp"],
         "currency": {
-            k: parse_int_field(
+            k: _parse_int_field(
                 form, f"currency_{k}", previous["currency"].get(k, 0) or 0
             )
             for k in CURRENCY_KEYS
         },
         "slot_used": {
-            level: parse_int_field(
+            level: _parse_int_field(
                 form, f"slot_used_{level}", previous["slot_used"].get(level, 0)
             )
             for level in slot_levels
@@ -166,17 +166,17 @@ def state_from_form(form, previous, slot_levels):
 
 @app.route("/characters/<character_id>/update", methods=["POST"])
 def update_character(character_id):
-    if not valid_character_id(character_id):
+    if not _valid_character_id(character_id):
         abort(404)
-    data = load_character(character_id)
+    data = _load_character(character_id)
     if data is None:
         abort(404)
-    previous = load_state(character_id, data)
+    previous = _load_state(character_id, data)
     slot_levels = [
         slot["level"] for slot in data.get("spellcasting", {}).get("slots", [])
     ]
-    state = state_from_form(request.form, previous, slot_levels)
-    save_state(character_id, state)
+    state = _state_from_form(request.form, previous, slot_levels)
+    _save_state(character_id, state)
     return redirect(url_for("character_sheet", character_id=character_id))
 
 
