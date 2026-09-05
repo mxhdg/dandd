@@ -64,43 +64,43 @@ SKILLS = [
 CURRENCY_KEYS = ["cp", "sp", "ep", "gp", "pp"]
 
 
-def slugify(name):
+def _slugify(name):
     slug = re.sub(r"[^A-Za-z0-9]+", "_", name.strip()).strip("_")
     return slug or "character"
 
 
-def ability_mod(score):
+def _ability_mod(score):
     return (score - 10) // 2
 
 
-def fmt_mod(n):
+def _fmt_mod(n):
     return f"+{n}" if n >= 0 else str(n)
 
 
-def proficiency_bonus(level):
+def _proficiency_bonus(level):
     return 2 + (max(level, 1) - 1) // 4
 
 
-def ask(prompt_text, default=""):
+def _ask(prompt_text, default=""):
     suffix = f" [{default}]" if default else ""
     return input(f"{prompt_text}{suffix}: ").strip() or default
 
 
-def ask_int(prompt_text, default=0):
+def _ask_int(prompt_text, default=0):
     try:
-        return int(ask(prompt_text, str(default)))
+        return int(_ask(prompt_text, str(default)))
     except ValueError:
         return default
 
 
-def ask_yn(prompt_text, default=False):
+def _ask_yn(prompt_text, default=False):
     suffix = "Y/n" if default else "y/N"
     value = input(f"{prompt_text} [{suffix}]: ").strip().lower()
     return value.startswith("y") if value else default
 
 
-def ask_names(prompt_text, valid_names):
-    raw = ask(f"{prompt_text} (comma-separated, blank for none)")
+def _ask_names(prompt_text, valid_names):
+    raw = _ask(f"{prompt_text} (comma-separated, blank for none)")
     if not raw:
         return set()
     valid = set(valid_names)
@@ -111,7 +111,7 @@ def ask_names(prompt_text, valid_names):
     return chosen & valid
 
 
-def collect_simple_list(label):
+def _collect_simple_list(label):
     print(f"{label} (blank line to finish):")
     items = []
     while True:
@@ -122,7 +122,7 @@ def collect_simple_list(label):
     return items
 
 
-def collect_named_list(label, fields):
+def _collect_named_list(label, fields):
     print(f"{label} (blank name to finish):")
     items = []
     while True:
@@ -136,7 +136,7 @@ def collect_named_list(label, fields):
     return items
 
 
-def skeleton_abilities_saves_skills():
+def _skeleton_abilities_saves_skills():
     abilities = [{"name": a, "score": 10, "mod": "+0"} for a in ABILITIES]
     saves = [{"name": a, "mod": "+0", "prof": False} for a in ABILITIES]
     skills = [
@@ -146,23 +146,23 @@ def skeleton_abilities_saves_skills():
     return abilities, saves, skills, 2, 10
 
 
-def full_abilities_saves_skills():
+def _full_abilities_saves_skills():
     print("\nAbility scores:")
-    scores = {a: ask_int(f"  {a}", 10) for a in ABILITIES}
-    level = ask_int("Character level (for proficiency bonus)", 1)
-    prof_bonus = proficiency_bonus(level)
-    print(f"  proficiency bonus: {fmt_mod(prof_bonus)}")
-    prof_saves = ask_names("Proficient saving throws", ABILITIES)
-    prof_skills = ask_names("Proficient skills", [s for s, _ in SKILLS])
+    scores = {a: _ask_int(f"  {a}", 10) for a in ABILITIES}
+    level = _ask_int("Character level (for proficiency bonus)", 1)
+    prof_bonus = _proficiency_bonus(level)
+    print(f"  proficiency bonus: {_fmt_mod(prof_bonus)}")
+    prof_saves = _ask_names("Proficient saving throws", ABILITIES)
+    prof_skills = _ask_names("Proficient skills", [s for s, _ in SKILLS])
 
-    mods = {a: ability_mod(scores[a]) for a in ABILITIES}
+    mods = {a: _ability_mod(scores[a]) for a in ABILITIES}
     abilities = [
-        {"name": a, "score": scores[a], "mod": fmt_mod(mods[a])} for a in ABILITIES
+        {"name": a, "score": scores[a], "mod": _fmt_mod(mods[a])} for a in ABILITIES
     ]
     saves = [
         {
             "name": a,
-            "mod": fmt_mod(mods[a] + (prof_bonus if a in prof_saves else 0)),
+            "mod": _fmt_mod(mods[a] + (prof_bonus if a in prof_saves else 0)),
             "prof": a in prof_saves,
         }
         for a in ABILITIES
@@ -171,7 +171,7 @@ def full_abilities_saves_skills():
         {
             "name": s,
             "ability": ABILITY_ABBR[a],
-            "mod": fmt_mod(mods[a] + (prof_bonus if s in prof_skills else 0)),
+            "mod": _fmt_mod(mods[a] + (prof_bonus if s in prof_skills else 0)),
             "prof": s in prof_skills,
         }
         for s, a in SKILLS
@@ -180,8 +180,8 @@ def full_abilities_saves_skills():
     return abilities, saves, skills, prof_bonus, 10 + perception_mod
 
 
-def build_spellcasting():
-    if not ask_yn("Include spellcasting section?", False):
+def _build_spellcasting():
+    if not _ask_yn("Include spellcasting section?", False):
         return None
     print("Spell slots (blank level to finish):")
     slots = []
@@ -189,27 +189,27 @@ def build_spellcasting():
         level = input("  level (e.g. 1st): ").strip()
         if not level:
             break
-        slots.append({"level": level, "total": ask_int("    total slots", 1)})
+        slots.append({"level": level, "total": _ask_int("    total slots", 1)})
     return {
-        "class": ask("Spellcasting class"),
-        "ability": ask("Spellcasting ability (e.g. Intelligence)"),
-        "save_dc": ask_int("Spell save DC", 10),
-        "attack_bonus": ask("Spell attack bonus (e.g. +5)", "+0"),
-        "note": ask("Note (optional)"),
+        "class": _ask("Spellcasting class"),
+        "ability": _ask("Spellcasting ability (e.g. Intelligence)"),
+        "save_dc": _ask_int("Spell save DC", 10),
+        "attack_bonus": _ask("Spell attack bonus (e.g. +5)", "+0"),
+        "note": _ask("Note (optional)"),
         "cantrips": [
-            c.strip() for c in ask("Cantrips (comma-separated)").split(",") if c.strip()
+            c.strip() for c in _ask("Cantrips (comma-separated)").split(",") if c.strip()
         ],
         "slots": slots,
         "prepared": [
             s.strip()
-            for s in ask("Prepared spells (comma-separated)").split(",")
+            for s in _ask("Prepared spells (comma-separated)").split(",")
             if s.strip()
         ],
         "always_prepared": [],
     }
 
 
-def parse_args():
+def _parse_args():
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
@@ -221,32 +221,32 @@ def parse_args():
     return parser.parse_args()
 
 
-def resolve_name(args):
-    name = args.name or ask("Character name")
+def _resolve_name(args):
+    name = args.name or _ask("Character name")
     while not name:
-        name = ask("Character name (required)")
+        name = _ask("Character name (required)")
     return name
 
 
-def resolve_character_id(args, name):
-    default_id = slugify(name)
-    char_id = args.id or ask("Character id (used as filename)", default_id)
+def _resolve_character_id(args, name):
+    default_id = _slugify(name)
+    char_id = args.id or _ask("Character id (used as filename)", default_id)
     while not ID_RE.fullmatch(char_id):
         print("  id must match ^[A-Za-z0-9_-]+$ (letters, numbers, underscore, hyphen)")
-        char_id = ask("Character id (used as filename)", default_id)
+        char_id = _ask("Character id (used as filename)", default_id)
     return char_id
 
 
-def confirm_overwrite(out_path):
-    return not out_path.exists() or ask_yn(
+def _confirm_overwrite(out_path):
+    return not out_path.exists() or _ask_yn(
         f"{out_path} already exists, overwrite?", False
     )
 
 
-def resolve_mode(args):
+def _resolve_mode(args):
     mode = args.mode
     while mode not in ("skeleton", "full"):
-        mode = ask(
+        mode = _ask(
             "Mode ('skeleton' = core fields + defaults, "
             "'full' = prompt for everything)",
             "skeleton",
@@ -254,62 +254,62 @@ def resolve_mode(args):
     return mode
 
 
-def ask_identity_fields():
+def _ask_identity_fields():
     return {
-        "class_level": ask("Class & level (e.g. 'Artificer 5 (Artillerist)')"),
-        "background": ask("Background"),
-        "player_name": ask("Player name"),
-        "race": ask("Race"),
-        "alignment": ask("Alignment"),
+        "class_level": _ask("Class & level (e.g. 'Artificer 5 (Artillerist)')"),
+        "background": _ask("Background"),
+        "player_name": _ask("Player name"),
+        "race": _ask("Race"),
+        "alignment": _ask("Alignment"),
     }
 
 
-def build_full_details(abilities):
+def _build_full_details(abilities):
     dex_mod = next(a["mod"] for a in abilities if a["name"] == "Dexterity")
     details = {
         "other_proficiencies": {
-            "languages": ask("Languages", "Common"),
-            "armor": ask("Armor proficiencies"),
-            "weapons": ask("Weapon proficiencies"),
-            "tools": ask("Tool proficiencies"),
+            "languages": _ask("Languages", "Common"),
+            "armor": _ask("Armor proficiencies"),
+            "weapons": _ask("Weapon proficiencies"),
+            "tools": _ask("Tool proficiencies"),
         },
         "combat": {
-            "ac": ask_int("Armor Class", 10),
-            "initiative": ask("Initiative", dex_mod),
-            "speed": ask("Speed", "30 ft"),
+            "ac": _ask_int("Armor Class", 10),
+            "initiative": _ask("Initiative", dex_mod),
+            "speed": _ask("Speed", "30 ft"),
         },
-        "hp": {"max": ask_int("Max HP", 10), "current": "", "temp": ""},
-        "hit_dice": {"total": ask("Hit dice (e.g. 1d8)", "1d8")},
-        "attacks": collect_named_list("Attacks", ["bonus", "damage", "range"]),
-        "attack_note": ask("Attack note (optional)"),
-        "equipment": collect_simple_list("Equipment"),
-        "currency": {k: ask(f"Currency: {k}") for k in CURRENCY_KEYS},
+        "hp": {"max": _ask_int("Max HP", 10), "current": "", "temp": ""},
+        "hit_dice": {"total": _ask("Hit dice (e.g. 1d8)", "1d8")},
+        "attacks": _collect_named_list("Attacks", ["bonus", "damage", "range"]),
+        "attack_note": _ask("Attack note (optional)"),
+        "equipment": _collect_simple_list("Equipment"),
+        "currency": {k: _ask(f"Currency: {k}") for k in CURRENCY_KEYS},
         "personality": {
-            "traits": ask("Personality traits"),
-            "ideals": ask("Ideals"),
-            "bonds": ask("Bonds"),
-            "flaws": ask("Flaws"),
+            "traits": _ask("Personality traits"),
+            "ideals": _ask("Ideals"),
+            "bonds": _ask("Bonds"),
+            "flaws": _ask("Flaws"),
         },
-        "features": collect_named_list("Features", ["text"]),
+        "features": _collect_named_list("Features", ["text"]),
         "appearance": {
-            f: ask(f"Appearance: {f}")
+            f: _ask(f"Appearance: {f}")
             for f in ["age", "height", "weight", "eyes", "skin", "hair"]
         },
-        "backstory": ask("Backstory"),
-        "allies": collect_named_list("Allies", ["text"]),
+        "backstory": _ask("Backstory"),
+        "allies": _collect_named_list("Allies", ["text"]),
         "treasure": {
-            "title": ask("Treasure title (optional)"),
-            "text": ask("Treasure text (optional)"),
+            "title": _ask("Treasure title (optional)"),
+            "text": _ask("Treasure text (optional)"),
         },
-        "additional_features": ask("Additional features/notes (optional)"),
+        "additional_features": _ask("Additional features/notes (optional)"),
     }
-    spellcasting = build_spellcasting()
+    spellcasting = _build_spellcasting()
     if spellcasting is not None:
         details["spellcasting"] = spellcasting
     return details
 
 
-def build_skeleton_details():
+def _build_skeleton_details():
     return {
         "other_proficiencies": {
             "languages": "",
@@ -336,47 +336,47 @@ def build_skeleton_details():
     }
 
 
-def write_character(out_path, char):
+def _write_character(out_path, char):
     DATA_DIR.mkdir(exist_ok=True)
     with out_path.open("w", encoding="utf-8") as f:
         yaml.safe_dump(char, f, sort_keys=False, allow_unicode=True)
 
 
 def main():
-    args = parse_args()
+    args = _parse_args()
 
-    name = resolve_name(args)
-    char_id = resolve_character_id(args, name)
+    name = _resolve_name(args)
+    char_id = _resolve_character_id(args, name)
     out_path = DATA_DIR / f"{char_id}.yaml"
-    if not confirm_overwrite(out_path):
+    if not _confirm_overwrite(out_path):
         print("Aborted.")
         sys.exit(1)
-    mode = resolve_mode(args)
+    mode = _resolve_mode(args)
 
-    char = {"id": char_id, "name": name, **ask_identity_fields(), "xp": ""}
+    char = {"id": char_id, "name": name, **_ask_identity_fields(), "xp": ""}
 
     if mode == "full":
         abilities, saves, skills, prof_bonus, passive_perception = (
-            full_abilities_saves_skills()
+            _full_abilities_saves_skills()
         )
     else:
         abilities, saves, skills, prof_bonus, passive_perception = (
-            skeleton_abilities_saves_skills()
+            _skeleton_abilities_saves_skills()
         )
 
     char.update(
         inspiration=False,
-        proficiency_bonus=fmt_mod(prof_bonus),
+        proficiency_bonus=_fmt_mod(prof_bonus),
         abilities=abilities,
         saves=saves,
         skills=skills,
         passive_perception=passive_perception,
     )
     char.update(
-        build_full_details(abilities) if mode == "full" else build_skeleton_details()
+        _build_full_details(abilities) if mode == "full" else _build_skeleton_details()
     )
 
-    write_character(out_path, char)
+    _write_character(out_path, char)
     print(f"\nWrote {out_path}")
 
 
