@@ -1,5 +1,5 @@
 services:
-  codex:
+  codex-dev:
     container_name: codex-dev
     labels:
       environment: "dev"

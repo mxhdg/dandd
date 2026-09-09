@@ -135,11 +135,27 @@ def _parse_int_field(form, key, default):
         return default
 
 
-def _state_from_form(form, previous, slot_levels):
+def _apply_hp_delta(current, temp, damage, healing, max_hp):
+    absorbed = min(temp, damage)
+    temp -= absorbed
+    damage -= absorbed
+    current = max(current - damage, 0)
+    current = min(current + healing, max_hp)
+    return current, temp
+
+
+def _state_from_form(form, previous, slot_levels, max_hp):
     xp_value = form.get("xp")
+    hp_current, hp_temp = _apply_hp_delta(
+        _parse_int_field(form, "hp_current", previous["hp_current"]),
+        _parse_int_field(form, "hp_temp", previous["hp_temp"]),
+        max(_parse_int_field(form, "damage_taken", 0), 0),
+        max(_parse_int_field(form, "healing_received", 0), 0),
+        max_hp,
+    )
     return {
-        "hp_current": _parse_int_field(form, "hp_current", previous["hp_current"]),
-        "hp_temp": _parse_int_field(form, "hp_temp", previous["hp_temp"]),
+        "hp_current": hp_current,
+        "hp_temp": hp_temp,
         "hit_dice_used": _parse_int_field(
             form, "hit_dice_used", previous["hit_dice_used"]
         ),
@@ -175,7 +191,7 @@ def update_character(character_id):
     slot_levels = [
         slot["level"] for slot in data.get("spellcasting", {}).get("slots", [])
     ]
-    state = _state_from_form(request.form, previous, slot_levels)
+    state = _state_from_form(request.form, previous, slot_levels, data["hp"]["max"])
     _save_state(character_id, state)
     return redirect(url_for("character_sheet", character_id=character_id))
 

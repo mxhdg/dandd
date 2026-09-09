@@ -9,7 +9,7 @@ Ranked below by actual-play pain: how much a mistake or friction point it
 causes at the table right now, not by how easy it'd be to build. Re-shuffle
 freely as actual play surfaces new pain points.
 
-1. **HP by delta, not by typing the new total.** A "Damage taken" / "Healing
+1. **DONE (1.1.0). HP by delta, not by typing the new total.** A "Damage taken" / "Healing
    received" field that adds or subtracts from current HP. Combat is
    arithmetic under time pressure right now (subtract damage from current HP
    in your head, then type the result); a delta field removes the most common

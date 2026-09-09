@@ -1,5 +1,5 @@
-import yaml
 import pytest
+import yaml
 
 import app as app_module
 
@@ -62,6 +62,33 @@ def test_update_persists_state(client, tmp_path):
     assert saved["hit_dice_used"] == 1
     assert saved["inspiration"] is True
     assert saved["xp"] == "150"
+
+
+def test_update_applies_hp_delta(client, tmp_path):
+    resp = client.post(
+        "/characters/sample_character/update",
+        data={"hp_current": "10", "hp_temp": "3", "damage_taken": "5"},
+    )
+    assert resp.status_code == 302
+
+    saved = yaml.safe_load((tmp_path / "sample_character.yaml").read_text())
+    assert saved["hp_temp"] == 0
+    assert saved["hp_current"] == 8
+
+
+def test_update_hp_delta_caps_healing_at_max(client, tmp_path):
+    data = app_module._load_character("sample_character")
+    resp = client.post(
+        "/characters/sample_character/update",
+        data={
+            "hp_current": str(data["hp"]["max"] - 1),
+            "healing_received": "100",
+        },
+    )
+    assert resp.status_code == 302
+
+    saved = yaml.safe_load((tmp_path / "sample_character.yaml").read_text())
+    assert saved["hp_current"] == data["hp"]["max"]
 
 
 def test_update_unknown_character_404s(client):

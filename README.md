@@ -12,7 +12,7 @@ A personal D&D 5e campaign notebook: hand-maintained Markdown for characters, du
 
 ## `codex/`
 
-Reads per-character YAML files and renders an HTML character sheet styled after the original hand-built reference sheet, with a "Save Changes" button that persists in-session state (HP, spell slots, currency, etc.) separately from the character's static build data.
+Reads per-character YAML files and renders an HTML character sheet styled after the original hand-built reference sheet, with a "Save Changes" button that persists in-session state (HP, spell slots, currency, etc.) separately from the character's static build data. HP updates by delta ("Damage Taken" / "Healing Received" fields that adjust current HP, accounting for temp HP absorption and capping at max) rather than by typing a new total.
 
 ### Local development
 
