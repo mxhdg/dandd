@@ -218,6 +218,7 @@ input[type="checkbox"] { width: 14px; height: 14px; vertical-align: middle; }
   h1.charname { font-size: 19px; letter-spacing: 1px; }
   .header-fields { grid-template-columns: repeat(2, 1fr); }
   .columns-3 { grid-template-columns: 1fr; }
+  .columns-3 .col:nth-child(2) { order: -1; }
   .appearance-fields { grid-template-columns: repeat(2, 1fr); }
   .spell-header-grid { grid-template-columns: repeat(2, 1fr); }
   .spell-list-cols { grid-template-columns: 1fr; }
