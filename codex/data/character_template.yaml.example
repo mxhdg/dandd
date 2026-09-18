@@ -1,0 +1,165 @@
+id: ''
+name: ''
+class_level: ''
+background: ''
+player_name: ''
+race: ''
+alignment: ''
+xp: ''
+inspiration: false
+proficiency_bonus: '+2'
+abilities:
+- name: Strength
+  score: 10
+  mod: '+0'
+- name: Dexterity
+  score: 10
+  mod: '+0'
+- name: Constitution
+  score: 10
+  mod: '+0'
+- name: Intelligence
+  score: 10
+  mod: '+0'
+- name: Wisdom
+  score: 10
+  mod: '+0'
+- name: Charisma
+  score: 10
+  mod: '+0'
+saves:
+- name: Strength
+  mod: '+0'
+  prof: false
+- name: Dexterity
+  mod: '+0'
+  prof: false
+- name: Constitution
+  mod: '+0'
+  prof: false
+- name: Intelligence
+  mod: '+0'
+  prof: false
+- name: Wisdom
+  mod: '+0'
+  prof: false
+- name: Charisma
+  mod: '+0'
+  prof: false
+skills:
+- name: Acrobatics
+  ability: Dex
+  mod: '+0'
+  prof: false
+- name: Animal Handling
+  ability: Wis
+  mod: '+0'
+  prof: false
+- name: Arcana
+  ability: Int
+  mod: '+0'
+  prof: false
+- name: Athletics
+  ability: Str
+  mod: '+0'
+  prof: false
+- name: Deception
+  ability: Cha
+  mod: '+0'
+  prof: false
+- name: History
+  ability: Int
+  mod: '+0'
+  prof: false
+- name: Insight
+  ability: Wis
+  mod: '+0'
+  prof: false
+- name: Intimidation
+  ability: Cha
+  mod: '+0'
+  prof: false
+- name: Investigation
+  ability: Int
+  mod: '+0'
+  prof: false
+- name: Medicine
+  ability: Wis
+  mod: '+0'
+  prof: false
+- name: Nature
+  ability: Int
+  mod: '+0'
+  prof: false
+- name: Perception
+  ability: Wis
+  mod: '+0'
+  prof: false
+- name: Performance
+  ability: Cha
+  mod: '+0'
+  prof: false
+- name: Persuasion
+  ability: Cha
+  mod: '+0'
+  prof: false
+- name: Religion
+  ability: Int
+  mod: '+0'
+  prof: false
+- name: Sleight of Hand
+  ability: Dex
+  mod: '+0'
+  prof: false
+- name: Stealth
+  ability: Dex
+  mod: '+0'
+  prof: false
+- name: Survival
+  ability: Wis
+  mod: '+0'
+  prof: false
+passive_perception: 10
+other_proficiencies:
+  languages: ''
+  armor: ''
+  weapons: ''
+  tools: ''
+combat:
+  ac: 10
+  initiative: '+0'
+  speed: 30 ft
+hp:
+  max: 10
+  current: ''
+  temp: ''
+hit_dice:
+  total: 1d8
+attacks: []
+attack_note: ''
+equipment: []
+currency:
+  cp: ''
+  sp: ''
+  ep: ''
+  gp: ''
+  pp: ''
+personality:
+  traits: ''
+  ideals: ''
+  bonds: ''
+  flaws: ''
+features: []
+appearance:
+  age: ''
+  height: ''
+  weight: ''
+  eyes: ''
+  skin: ''
+  hair: ''
+backstory: ''
+allies: []
+treasure:
+  title: ''
+  text: ''
+additional_features: ''
