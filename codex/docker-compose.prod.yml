@@ -1,5 +1,8 @@
+name: codex-prod
+
 services:
   codex:
+    container_name: codex
     image: ghcr.io/mxhdg/dandd/codex:${CODEX_TAG:-latest}
     restart: unless-stopped
     ports:
