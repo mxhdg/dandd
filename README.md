@@ -1,11 +1,10 @@
 # D&D Campaign Notebook
 
-A personal D&D 5e campaign notebook: hand-maintained Markdown for characters, dungeon prep, and homebrew guides, plus a small self-hosted web app (`codex/`) for running and live-editing a character sheet during actual play.
+A personal D&D 5e campaign notebook: hand-maintained Markdown for characters and homebrew guides, plus a small self-hosted web app (`codex/`) for running and live-editing a character sheet during actual play. Campaign-specific prep (dungeon crawls, session notes, NPC dialogue) lives in its own sibling repo per campaign instead, e.g. `TheChillBeneaththeCrust/`.
 
 ## Structure
 
 - `characters/` — character sheets and related reference material (hand-maintained Markdown/HTML).
-- `dungeon/` — session/dungeon-crawl prep notes: room-by-room writeups, monster stat blocks, and a system for turning Magic: The Gathering booster-pack cards into loot/encounters.
 - `guides/` — standalone homebrew rules guides (e.g. tarot-based character creation).
 - `codex_roadmap.md` — running list of future ideas for `codex/`, not a commitment or schedule.
 - `codex/` — the Flask/Docker character sheet app described below.

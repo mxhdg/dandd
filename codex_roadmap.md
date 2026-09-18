@@ -57,9 +57,10 @@ DM-facing prep/mid-session pain that exists right now regardless of party
 size, unlike the party-overview/initiative items below which explicitly
 wait on more characters being in the app.
 
-8. **Monster/NPC stat block viewer**, pulling from `dungeon/monsters.md`, so
-   the DM gets the same clean sheet treatment for monsters that players get
-   for characters.
+8. **Monster/NPC stat block viewer**, pulling from a campaign repo's
+   `monsters.md` (e.g. `TheChillBeneaththeCrust/arc-vanilla-vault/monsters.md`),
+   so the DM gets the same clean sheet treatment for monsters that players
+   get for characters.
 9. **Session notes field per character**: a scratchpad for things like
    "already used Lucky reroll this fight" or loot/plot reminders that don't
    belong on the permanent sheet.
@@ -117,8 +118,8 @@ the live sheet.
     requires adding an OGL Section 15 attribution notice somewhere in the
     app (footer or a `/license` page) as a condition of using that content.
     Content outside the SRD (some subclasses/spells) would still need to be
-    hand-authored the way `dungeon/monsters.md` already handles original
-    stat blocks.
+    hand-authored the way campaign repos already handle original stat
+    blocks (e.g. `TheChillBeneaththeCrust/arc-vanilla-vault/monsters.md`).
 
 ## Explicitly not planned right now
 
