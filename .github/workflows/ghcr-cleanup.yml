@@ -1,0 +1,78 @@
+name: Clean up old codex images
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # every Monday at 06:00 UTC
+  workflow_dispatch: {}
+
+permissions: {}
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      packages: write
+
+    steps:
+      - name: Find codex image versions older than 30 days
+        id: stale
+        shell: python3 {0}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          import json
+          import os
+          import re
+          import subprocess
+          from datetime import datetime, timedelta, timezone
+
+          KEEP_PATTERN = re.compile(r"^(latest|v\d+\.\d+\.\d+.*)$")
+          CUTOFF = datetime.now(timezone.utc) - timedelta(days=30)
+
+          result = subprocess.run(
+              [
+                  "gh",
+                  "api",
+                  "--paginate",
+                  f"/orgs/{os.environ['OWNER']}/packages/container/dandd%2Fcodex/versions",
+              ],
+              capture_output=True,
+              text=True,
+          )
+          if result.returncode != 0:
+              # Falls back to the user-owned endpoint if the package isn't org-owned.
+              result = subprocess.run(
+                  [
+                      "gh",
+                      "api",
+                      "--paginate",
+                      f"/users/{os.environ['OWNER']}/packages/container/dandd%2Fcodex/versions",
+                  ],
+                  capture_output=True,
+                  text=True,
+                  check=True,
+              )
+
+          versions = json.loads(result.stdout)
+          stale_ids = []
+          for version in versions:
+              tags = version.get("metadata", {}).get("container", {}).get("tags", [])
+              created_at = datetime.fromisoformat(version["created_at"].replace("Z", "+00:00"))
+              if created_at >= CUTOFF:
+                  continue
+              if any(KEEP_PATTERN.match(tag) for tag in tags):
+                  continue
+              stale_ids.append(str(version["id"]))
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+              fh.write(f"ids={','.join(stale_ids)}\n")
+
+      - name: Delete stale versions
+        if: steps.stale.outputs.ids != ''
+        uses: actions/delete-package-versions@e5bc658cc4c965c472efe991f8beea3981499c55 # v5.0.0
+        with:
+          package-name: dandd/codex
+          package-type: container
+          package-version-ids: ${{ steps.stale.outputs.ids }}
