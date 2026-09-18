@@ -121,6 +121,18 @@ the live sheet.
     hand-authored the way campaign repos already handle original stat
     blocks (e.g. `TheChillBeneaththeCrust/arc-vanilla-vault/monsters.md`).
 
+## Unscoped ideas
+
+Parked here because there's not enough shape yet to slot into a version
+group above.
+
+- **DM campaign-level tooling.** Some way for the DM to use `codex/` across
+  a whole campaign, not just one character's sheet at a time — exact shape
+  still TBD (a dashboard tying into a campaign repo like
+  `TheChillBeneaththeCrust/`? cross-character campaign state? something
+  else?). Revisit once there's a concrete at-the-table pain point to design
+  against, same as everything else on this list.
+
 ## Explicitly not planned right now
 
 - **Full user accounts/authentication.** Deferred deliberately (see the
