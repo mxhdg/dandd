@@ -20,6 +20,24 @@ points.
   in your head, then type the result); a delta field removes the most
   common way to end up with the wrong number on the sheet.
 
+## 1.1.3 (in progress)
+
+- **DONE. Fixed literal `&nbsp;` text shown on the Spellcasting page**
+  (e.g. "Cantrips Known" rendered the entity name itself instead of a space
+  between items). Jinja was auto-escaping the `&nbsp;` in the join
+  separator instead of rendering it, since that output wasn't marked
+  `|safe`. Found 2026-09 while verifying the print-layout fix below.
+- **DONE. Fixed print layout scattering content across pages** (the
+  3-column CSS grid couldn't fragment across a print page break, and Hit
+  Points landed on page 2 instead of page 1). See item 16 under 1.6.0 for
+  the remaining page-density follow-up.
+
+## Known bugs (fix before new features)
+
+Actual defects in shipped behavior, not feature gaps. These rank above
+every group below regardless of playability impact, since they're wrong
+output today rather than a missing capability. None currently tracked.
+
 ## 1.2.0 — At-the-table combat clarity
 
 The highest actual-play pain right now: things forgotten or fumbled
@@ -95,11 +113,22 @@ existing workaround.
     official layout, so this is mostly wiring up print CSS that's already
     most of the way there. Low pain today since the browser's own print
     dialog already covers this in a pinch.
-16. **Lightweight per-character lock** (a PIN, not a full account system) so
+16. **Further optimize the print layout for page count/density.** The
+    2026-09 pagination fix (single-column print flow instead of the
+    3-column CSS grid, which browsers can't fragment across a page break;
+    reordering columns so Hit Points lands on page 1 instead of the long
+    abilities/skills column pushing it to page 2; wrapping ability score
+    boxes into a compact row instead of each spanning the full page width)
+    fixed the worst breakage and wasted space, but the print output still
+    isn't tightly packed — more pages than strictly necessary, uneven
+    whitespace per page. Revisit with more time to explore a denser
+    print-only layout (e.g. CSS multi-column, or hand-tuned per-section
+    widths) without reintroducing the grid-fragmentation bug it just fixed.
+17. **Lightweight per-character lock** (a PIN, not a full account system) so
     one player can't accidentally edit another's sheet mid-session. Doesn't
     need to be more than that unless there's an actual reason for real
     accounts later, and doesn't matter until more players share the app.
-17. **Add to Home Screen support** (a small web manifest), so the sheet
+18. **Add to Home Screen support** (a small web manifest), so the sheet
     opens like an app icon on a phone instead of a bookmarked tab.
 
 ## 1.7.0 — Character creation tooling
@@ -107,7 +136,16 @@ existing workaround.
 Separate from actual-play pain entirely; touches `new_character.py`, not
 the live sheet.
 
-18. **API-guided character creation in `new_character.py`**, sourcing race/
+19. **Edit-existing-character mode in `new_character.py`**, alongside the
+    current `skeleton`/`full` creation modes: point it at an existing
+    `data/<id>.yaml`, walk through the same prompts pre-filled with that
+    character's current values, and write the result back. Right now
+    leveling up or any other build change to a real character means
+    hand-editing the YAML directly; a guided edit mode would keep the same
+    validation/derived-value computation (modifiers, DC, passive
+    perception) that creation already gets, instead of that only applying
+    the first time a character is made.
+20. **API-guided character creation in `new_character.py`**, sourcing race/
     class/background/equipment/spell lists from the Open5e API
     (`api.open5e.com`) instead of the user typing everything freehand.
     Must be opt-in (e.g. a prompt or flag before any network call), never
