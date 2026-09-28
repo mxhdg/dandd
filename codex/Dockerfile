@@ -13,6 +13,13 @@ RUN apt-get update \
     && apt-get upgrade -y \
     && rm -rf /var/lib/apt/lists/*
 
+# setuptools ships pre-installed with the base image at a version behind
+# the latest CVE fix; upgrade it directly rather than waiting on a new
+# base tag. (pip itself vendors a vulnerable msgpack copy too, but that's
+# not fixable here - upstream pip hasn't released a build with a patched
+# vendored copy yet, so this upgrade doesn't touch it.)
+RUN pip install --no-cache-dir --upgrade pip setuptools
+
 RUN groupadd --gid "${APP_GID}" appuser \
     && useradd --uid "${APP_UID}" --gid "${APP_GID}" --no-create-home --shell /usr/sbin/nologin appuser
 

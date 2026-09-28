@@ -338,6 +338,15 @@ def _build_skeleton_details():
     }
 
 
+_MODE_HANDLERS = {
+    "full": (_full_abilities_saves_skills, _build_full_details),
+    "skeleton": (
+        _skeleton_abilities_saves_skills,
+        lambda abilities: _build_skeleton_details(),
+    ),
+}
+
+
 def _write_character(out_path, char):
     DATA_DIR.mkdir(exist_ok=True)
     with out_path.open("w", encoding="utf-8") as f:
@@ -357,14 +366,8 @@ def main():
 
     char = {"id": char_id, "name": name, **_ask_identity_fields(), "xp": ""}
 
-    if mode == "full":
-        abilities, saves, skills, prof_bonus, passive_perception = (
-            _full_abilities_saves_skills()
-        )
-    else:
-        abilities, saves, skills, prof_bonus, passive_perception = (
-            _skeleton_abilities_saves_skills()
-        )
+    stats_fn, details_fn = _MODE_HANDLERS[mode]
+    abilities, saves, skills, prof_bonus, passive_perception = stats_fn()
 
     char.update(
         inspiration=False,
@@ -374,9 +377,7 @@ def main():
         skills=skills,
         passive_perception=passive_perception,
     )
-    char.update(
-        _build_full_details(abilities) if mode == "full" else _build_skeleton_details()
-    )
+    char.update(details_fn(abilities))
 
     _write_character(out_path, char)
     print(f"\nWrote {out_path}")
