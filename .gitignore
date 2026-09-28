@@ -8,3 +8,8 @@ codex/static/howto.css
 # this covers Python elsewhere in the repo, e.g. .github/scripts/)
 __pycache__/
 *.py[cod]
+._.DS_Store
+.DS_Store
+._*
+
+codex/data/2014_marigold_kettlewick.yaml
