@@ -232,7 +232,7 @@
 
   <div class="boxed-section">
     <div class="section-title">Cantrips Known</div>
-    <div class="box" style="font-size:11px;">{{ c.spellcasting.cantrips | join(' &nbsp;·&nbsp; ') }}</div>
+    <div class="box" style="font-size:11px;">{{ c.spellcasting.cantrips | join(' &nbsp;·&nbsp; ') | safe }}</div>
   </div>
 
   <div class="boxed-section">
