@@ -24,6 +24,10 @@ body {
 }
 .table-wrap { overflow-x: auto; }
 @media print {
+  @page {
+    size: letter;
+    margin: 0;
+  }
   :root {
     --red: #000;
     --parchment: #fff;
@@ -32,6 +36,14 @@ body {
   }
   body { background: #fff; }
   .sheet-page { box-shadow: none; margin: 0; }
+  .boxed-section, .ability-box, .feat-block {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  table.attack-table tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
 }
 h1.charname {
   text-align: center;

@@ -9,3 +9,8 @@ codex/static/howto.css
 __pycache__/
 *.py[cod]
 ._.DS_Store
+.DS_Store
+._*
+
+characters/elowen_turnerleaf.md
+codex/data/2014_marigold_kettlewick.yaml
