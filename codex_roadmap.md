@@ -29,7 +29,7 @@ points.
   `|safe`. Found 2026-09 while verifying the print-layout fix below.
 - **DONE. Fixed print layout scattering content across pages** (the
   3-column CSS grid couldn't fragment across a print page break, and Hit
-  Points landed on page 2 instead of page 1). See item 16 under 1.6.0 for
+  Points landed on page 2 instead of page 1). See item 17 under 1.6.0 for
   the remaining page-density follow-up.
 
 ## Known bugs (fix before new features)
@@ -56,16 +56,24 @@ mid-combat.
    show "STABILIZED" or "DEAD" clearly instead of leaving it as three
    checkboxes someone has to interpret in the moment.
 
+Also riding along in this release, unrelated to actual-play pain (ops/
+deployment reliability instead):
+
+5. **Container healthcheck.** A Docker `HEALTHCHECK` (e.g. hitting the
+   index route) so `docker ps`/orchestration tooling can see a hung or
+   crashed app instead of a container that looks "up" but isn't actually
+   serving requests.
+
 ## 1.3.0 — Rest & recovery bookkeeping
 
-5. **Long Rest button**: resets HP to max, clears temp HP, restores all
+6. **Long Rest button**: resets HP to max, clears temp HP, restores all
    spell slots, resets hit dice used to half, clears one level of
    exhaustion. Right now all of this is manual, field by field, which is
    exactly the kind of bookkeeping that gets rushed or skipped when
    everyone's ready to stop for the night.
-6. **Short Rest button**: prompts for hit dice spent, adds the rolled
+7. **Short Rest button**: prompts for hit dice spent, adds the rolled
    healing, decrements hit dice remaining.
-7. **Exhaustion level tracker (0-6)** with the effect at the current level
+8. **Exhaustion level tracker (0-6)** with the effect at the current level
    shown inline. Exhaustion is one of the most commonly misremembered rules
    at most tables, though it comes up less often than the items above.
 
@@ -75,27 +83,27 @@ DM-facing prep/mid-session pain that exists right now regardless of party
 size, unlike the party-overview/initiative items below which explicitly
 wait on more characters being in the app.
 
-8. **Monster/NPC stat block viewer**, pulling from a campaign repo's
+9. **Monster/NPC stat block viewer**, pulling from a campaign repo's
    `monsters.md` (e.g. `TheChillBeneaththeCrust/arc-vanilla-vault/monsters.md`),
    so the DM gets the same clean sheet treatment for monsters that players
    get for characters.
-9. **Session notes field per character**: a scratchpad for things like
+10. **Session notes field per character**: a scratchpad for things like
    "already used Lucky reroll this fight" or loot/plot reminders that don't
    belong on the permanent sheet.
-10. **Party overview page**: one screen showing every character's current
+11. **Party overview page**: one screen showing every character's current
     HP/AC/conditions at a glance, so the DM isn't clicking through separate
     sheets mid-combat. Bigger payoff once more than one character is in the
     app; only Marigold is wired in today.
-11. **Initiative tracker** tied to the party overview. Juggling initiative
+12. **Initiative tracker** tied to the party overview. Juggling initiative
     order on paper is one of the most common things to fumble at the table,
     but like the party overview, the payoff scales with party size.
 
 ## 1.5.0 — Multi-character & session history
 
-12. **Character switcher** on the sheet page itself (dropdown or tab strip)
+13. **Character switcher** on the sheet page itself (dropdown or tab strip)
     instead of going back to the list. Useful once more than one or two
     characters are in the app.
-13. **Session snapshots**: a way to save a dated copy of a character's state
+14. **Session snapshots**: a way to save a dated copy of a character's state
     at the end of a session, so there's an actual record of HP/inventory/XP
     over time instead of relying on memory of where things were left off.
 
@@ -104,16 +112,16 @@ wait on more characters being in the app.
 Lower urgency: preference-driven or already partially covered by an
 existing workaround.
 
-14. **Inline attack/damage roller** for weapons and cannon modes: tap "Light
+15. **Inline attack/damage roller** for weapons and cannon modes: tap "Light
     Crossbow" and get an attack roll plus damage roll without leaving the
     sheet. This is a table-preference change, not a friction fix, worth
     asking the table about first since some groups want physical dice no
     matter what.
-15. **Print/PDF export button.** The sheet already visually matches the
+16. **Print/PDF export button.** The sheet already visually matches the
     official layout, so this is mostly wiring up print CSS that's already
     most of the way there. Low pain today since the browser's own print
     dialog already covers this in a pinch.
-16. **Further optimize the print layout for page count/density.** The
+17. **Further optimize the print layout for page count/density.** The
     2026-09 pagination fix (single-column print flow instead of the
     3-column CSS grid, which browsers can't fragment across a page break;
     reordering columns so Hit Points lands on page 1 instead of the long
@@ -124,11 +132,11 @@ existing workaround.
     whitespace per page. Revisit with more time to explore a denser
     print-only layout (e.g. CSS multi-column, or hand-tuned per-section
     widths) without reintroducing the grid-fragmentation bug it just fixed.
-17. **Lightweight per-character lock** (a PIN, not a full account system) so
+18. **Lightweight per-character lock** (a PIN, not a full account system) so
     one player can't accidentally edit another's sheet mid-session. Doesn't
     need to be more than that unless there's an actual reason for real
     accounts later, and doesn't matter until more players share the app.
-18. **Add to Home Screen support** (a small web manifest), so the sheet
+19. **Add to Home Screen support** (a small web manifest), so the sheet
     opens like an app icon on a phone instead of a bookmarked tab.
 
 ## 1.7.0 — Character creation tooling
@@ -136,7 +144,7 @@ existing workaround.
 Separate from actual-play pain entirely; touches `new_character.py`, not
 the live sheet.
 
-19. **Edit-existing-character mode in `new_character.py`**, alongside the
+20. **Edit-existing-character mode in `new_character.py`**, alongside the
     current `skeleton`/`full` creation modes: point it at an existing
     `data/<id>.yaml`, walk through the same prompts pre-filled with that
     character's current values, and write the result back. Right now
@@ -145,7 +153,7 @@ the live sheet.
     validation/derived-value computation (modifiers, DC, passive
     perception) that creation already gets, instead of that only applying
     the first time a character is made.
-20. **API-guided character creation in `new_character.py`**, sourcing race/
+21. **API-guided character creation in `new_character.py`**, sourcing race/
     class/background/equipment/spell lists from the Open5e API
     (`api.open5e.com`) instead of the user typing everything freehand.
     Must be opt-in (e.g. a prompt or flag before any network call), never
