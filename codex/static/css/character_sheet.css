@@ -214,13 +214,32 @@ input[type="checkbox"] { width: 14px; height: 14px; vertical-align: middle; }
 .page-footer .github-link { display: inline-flex; color: var(--ink); }
 .page-footer .github-link svg { display: block; fill: currentColor; }
 
+.condition-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.condition-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  border: 1.5px solid var(--ink); border-radius: 12px;
+  padding: 3px 10px; font-size: 11px; font-weight: bold;
+  background: var(--paper); color: var(--ink); cursor: pointer;
+}
+.condition-chip input[type="checkbox"] { display: none; }
+.condition-chip:has(input:checked) { background: var(--red); color: var(--parchment); border-color: var(--red); }
+
+.save-banner {
+  display: inline-block; margin-left: 8px;
+  border: 1.5px solid var(--ink); border-radius: 4px;
+  padding: 2px 8px; font-size: 11px; font-weight: bold; letter-spacing: 1px;
+}
+.save-banner.dead { background: var(--red); color: var(--parchment); border-color: var(--red); }
+.save-banner.stabilized { background: var(--paper); color: var(--ink); }
+
 @media print {
   .save-btn, .back-link, .page-footer { display: none; }
   .section-title { background: none; color: var(--ink); border: 1.5px solid var(--ink); }
   table.attack-table th { background: none; }
   .columns-3 { display: flex; flex-direction: column; }
   .columns-3 .col:nth-child(2) { order: -1; }
-  .col { margin-bottom: 10px; }
+  .col { display: block; margin-bottom: 10px; }
+  .col > * { margin-bottom: 10px; }
   .ability-row {
     flex-direction: row;
     flex-wrap: wrap;
@@ -243,4 +262,6 @@ input[type="checkbox"] { width: 14px; height: 14px; vertical-align: middle; }
   .appearance-fields { grid-template-columns: repeat(2, 1fr); }
   .spell-header-grid { grid-template-columns: repeat(2, 1fr); }
   .spell-list-cols { grid-template-columns: 1fr; }
+  input[type="number"].narrow { width: 56px; height: 28px; font-size: 14px; }
+  .condition-chip { padding: 5px 12px; font-size: 12px; }
 }
