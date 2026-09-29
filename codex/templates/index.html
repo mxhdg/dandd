@@ -4,11 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Characters</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
 </head>
 <body>
   <div class="list-box">
     <h1>Characters</h1>
+    <p><a href="{{ url_for('guide') }}">Getting Started</a></p>
     <ul>
       {% for char in characters %}
       <li><a href="/characters/{{ char.id }}">{{ char.name }}</a></li>

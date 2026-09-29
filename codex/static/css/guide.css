@@ -1,0 +1,4 @@
+.guide-box { background: #f5ecd8; max-width: 700px; margin: 0 auto; padding: 24px; border: 2px solid #1c1a16; color: #1c1a16; }
+h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .5px; border-bottom: 1.5px solid #1c1a16; padding-bottom: 4px; margin-top: 28px; }
+p { line-height: 1.5; }
+.note { background: #fffdf6; border: 1.5px solid #7a1414; padding: 10px 14px; margin: 12px 0; font-size: 14px; }

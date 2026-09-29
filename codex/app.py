@@ -1,6 +1,7 @@
 import os
 import re
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import yaml
 from flask import Flask, abort, redirect, render_template, request, url_for
@@ -45,6 +46,17 @@ def _valid_character_id(character_id):
     return bool(CHARACTER_ID_RE.fullmatch(character_id))
 
 
+def _same_origin_request(req):
+    # No auth/session exists to hang a CSRF token off of (see CLAUDE.md), so
+    # this checks Origin (falling back to Referer) against the request's own
+    # host instead - enough to block a cross-site page from forging a POST
+    # to /update, which a browser wouldn't let it forge these headers for.
+    source = req.headers.get("Origin") or req.headers.get("Referer")
+    if not source:
+        return False
+    return urlsplit(source).netloc == req.host
+
+
 @app.context_processor
 def inject_app_version():
     return {
@@ -60,7 +72,8 @@ def set_security_headers(response):
     response.headers["Referrer-Policy"] = "no-referrer"
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; style-src 'self' 'unsafe-inline'; "
-        "script-src 'none'; frame-ancestors 'none'"
+        "script-src 'none'; frame-ancestors 'none'; "
+        "form-action 'self'; base-uri 'none'; object-src 'none'"
     )
     return response
 
@@ -140,6 +153,11 @@ def index():
     return render_template("index.html", characters=_list_characters())
 
 
+@app.route("/guide")
+def guide():
+    return render_template("guide.html")
+
+
 @app.route("/characters/<character_id>")
 def character_sheet(character_id):
     if not _valid_character_id(character_id):
@@ -215,6 +233,8 @@ def _state_from_form(form, previous, slot_levels, max_hp):
 
 @app.route("/characters/<character_id>/update", methods=["POST"])
 def update_character(character_id):
+    if not _same_origin_request(request):
+        abort(403)
     if not _valid_character_id(character_id):
         abort(404)
     data = _load_character(character_id)
