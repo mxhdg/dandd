@@ -66,6 +66,14 @@ deployment reliability instead):
    orchestration tooling can see a hung or crashed app instead of a
    container that looks "up" but isn't actually serving requests.
 
+Also added while shipping this release, not originally scoped above:
+
+- **DONE. Getting Started guide**, linked from the character list
+  (`/guide`), covering full app usage for a new reader (how editing/saving
+  works with no JS, HP deltas, conditions, concentration, death saves,
+  spell slots/hit dice, printing, mobile) rather than just the features
+  added in this release.
+
 ## 1.3.0 — Rest & recovery bookkeeping
 
 6. **Long Rest button**: resets HP to max, clears temp HP, restores all
@@ -138,15 +146,35 @@ existing workaround.
     one player can't accidentally edit another's sheet mid-session. Doesn't
     need to be more than that unless there's an actual reason for real
     accounts later, and doesn't matter until more players share the app.
-19. **Add to Home Screen support** (a small web manifest), so the sheet
+    Separate concern from the CSRF/CSP hardening done 2026-09 — this is
+    about accidental cross-edits between trusted players, not a hostile
+    request forgery.
+19. **Make the Trivy image scan blocking** in `codex-image.yml` for
+    HIGH/CRITICAL findings, instead of the current non-blocking report-only
+    scan. Right now a real CVE in a future base-image bump ships silently;
+    low urgency since a home-LAN app isn't a high-value target, but cheap
+    to tighten once noticed.
+20. **Add to Home Screen support** (a small web manifest), so the sheet
     opens like an app icon on a phone instead of a bookmarked tab.
+21. **Derived stats from equipment** (encumbrance, AC changing with
+    equipped armor) instead of everything being hand-typed into
+    `data/<id>.yaml`. Would need the equipment list to become structured
+    entries (weight, armor type, an equipped flag) rather than the current
+    plain list of strings — a data-model change, not just a display one.
+22. **Selectable color themes.** Right now the parchment/red palette is
+    the only option (`--red`/`--parchment`/`--paper`/`--ink`/`--rule`
+    custom properties in `character_sheet.css`, already centralized
+    enough to swap). Exact shape TBD — per-character preference stored in
+    `data/<id>.yaml`? a query param? something else? — and how it should
+    interact with the existing `@media print` override, which already
+    repurposes those same variables for black-on-white output.
 
 ## 1.7.0 — Character creation tooling
 
 Separate from actual-play pain entirely; touches `new_character.py`, not
 the live sheet.
 
-20. **Edit-existing-character mode in `new_character.py`**, alongside the
+23. **Edit-existing-character mode in `new_character.py`**, alongside the
     current `skeleton`/`full` creation modes: point it at an existing
     `data/<id>.yaml`, walk through the same prompts pre-filled with that
     character's current values, and write the result back. Right now
@@ -155,7 +183,7 @@ the live sheet.
     validation/derived-value computation (modifiers, DC, passive
     perception) that creation already gets, instead of that only applying
     the first time a character is made.
-21. **API-guided character creation in `new_character.py`**, sourcing race/
+24. **API-guided character creation in `new_character.py`**, sourcing race/
     class/background/equipment/spell lists from the Open5e API
     (`api.open5e.com`) instead of the user typing everything freehand.
     Must be opt-in (e.g. a prompt or flag before any network call), never
@@ -168,6 +196,13 @@ the live sheet.
     Content outside the SRD (some subclasses/spells) would still need to be
     hand-authored the way campaign repos already handle original stat
     blocks (e.g. `TheChillBeneaththeCrust/arc-vanilla-vault/monsters.md`).
+25. **Rules-content lookup** for spells/features/conditions on the live
+    sheet (e.g. tap "Poisoned" and see what it actually does, rather than
+    just a toggle label). Same SRD/OGL licensing path as item 24's Open5e
+    API idea above — could plausibly share that same content source
+    rather than being a separate integration. Display only; explicitly not
+    a step toward automated dice rolling, which stays out of scope per
+    "Explicitly not planned right now" below.
 
 ## Unscoped ideas
 
