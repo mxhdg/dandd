@@ -43,26 +43,28 @@ output today rather than a missing capability. None currently tracked.
 The highest actual-play pain right now: things forgotten or fumbled
 mid-combat.
 
-1. **Condition tags** (poisoned, prone, stunned, grappled, restrained,
+1. **DONE. Condition tags** (poisoned, prone, stunned, grappled, restrained,
    frightened, etc.) as simple toggle chips on the sheet. These are exactly
    the kind of thing that gets forgotten three rounds after they're applied.
-2. **Concentration tracker**: one field showing what spell is currently
+   Exhaustion excluded since it's its own 0-6 tracker under 1.3.0 below.
+2. **DONE. Concentration tracker**: one field showing what spell is currently
    being concentrated on, so a Constitution save prompt after taking damage
    doesn't require flipping back through notes to remember what's at stake.
-3. **+/- stepper buttons for spell slots used and hit dice used**, so a tap
-   increments instead of having to clear and retype a number on a phone
-   mid-turn.
-4. **Death save status banner.** Once 3 successes or 3 failures are logged,
-   show "STABILIZED" or "DEAD" clearly instead of leaving it as three
-   checkboxes someone has to interpret in the moment.
+3. **DONE. Spell slots used / hit dice used are tap-adjustable**: the app has
+   no JS (CSP blocks it), so this ships as the browser's native
+   `<input type="number">` spinner rather than custom +/- buttons, with a
+   larger touch target on mobile, instead of a full page reload per tap.
+4. **DONE. Death save status banner.** Once 3 successes or 3 failures are
+   logged, shows "STABILIZED" or "DEAD" clearly instead of leaving it as
+   three checkboxes someone has to interpret in the moment.
 
 Also riding along in this release, unrelated to actual-play pain (ops/
 deployment reliability instead):
 
-5. **Container healthcheck.** A Docker `HEALTHCHECK` (e.g. hitting the
-   index route) so `docker ps`/orchestration tooling can see a hung or
-   crashed app instead of a container that looks "up" but isn't actually
-   serving requests.
+5. **DONE. Container healthcheck.** A Docker `HEALTHCHECK` (hitting the
+   index route via stdlib `urllib`, no new package) so `docker ps`/
+   orchestration tooling can see a hung or crashed app instead of a
+   container that looks "up" but isn't actually serving requests.
 
 ## 1.3.0 — Rest & recovery bookkeeping
 

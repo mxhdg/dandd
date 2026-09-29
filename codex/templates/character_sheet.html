@@ -104,6 +104,24 @@
           <div class="death-saves">
             <span><strong>Successes</strong> {% for i in range(3) %}<input type="checkbox" name="death_success_{{ i }}" {% if i < c.death_saves.successes %}checked{% endif %}>{% endfor %}</span>
             <span><strong>Failures</strong> {% for i in range(3) %}<input type="checkbox" name="death_failure_{{ i }}" {% if i < c.death_saves.failures %}checked{% endif %}>{% endfor %}</span>
+            {% if c.death_saves.successes >= 3 %}
+            <span class="save-banner stabilized">STABILIZED</span>
+            {% elif c.death_saves.failures >= 3 %}
+            <span class="save-banner dead">DEAD</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="boxed-section">
+        <div class="section-title">Conditions</div>
+        <div class="box">
+          <div class="condition-chips">
+            {% for cond in condition_keys %}
+            <label class="condition-chip">
+              <input type="checkbox" name="condition_{{ cond }}" {% if c.conditions[cond] %}checked{% endif %}>{{ cond|capitalize }}
+            </label>
+            {% endfor %}
           </div>
         </div>
       </div>
@@ -242,6 +260,11 @@
       <div class="slots-row"><strong>{{ slot.level }}</strong> <span class="slot-pips">{% for _ in range(slot.total) %}<span class="pip"></span>{% endfor %}</span> ({{ slot.total }}) &nbsp; Used: <input type="number" min="0" max="{{ slot.total }}" class="narrow" name="slot_used_{{ slot.level }}" value="{{ slot.used }}"></div>
       {% endfor %}
     </div>
+  </div>
+
+  <div class="boxed-section">
+    <div class="section-title">Concentration</div>
+    <div class="box"><input type="text" class="sheet-input" name="concentration" value="{{ c.concentration }}" placeholder="Spell being concentrated on"></div>
   </div>
 
   <div class="boxed-section">

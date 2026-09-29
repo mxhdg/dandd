@@ -91,6 +91,61 @@ def test_update_hp_delta_caps_healing_at_max(client, tmp_path):
     assert saved["hp_current"] == data["hp"]["max"]
 
 
+def test_update_persists_conditions(client, tmp_path):
+    resp = client.post(
+        "/characters/sample_character/update",
+        data={"condition_poisoned": "on", "condition_prone": "on"},
+    )
+    assert resp.status_code == 302
+
+    saved = yaml.safe_load((tmp_path / "sample_character.yaml").read_text())
+    assert saved["conditions"]["poisoned"] is True
+    assert saved["conditions"]["prone"] is True
+    assert saved["conditions"]["stunned"] is False
+
+
+def test_update_persists_concentration(client, tmp_path):
+    resp = client.post(
+        "/characters/sample_character/update",
+        data={"concentration": "Fireball"},
+    )
+    assert resp.status_code == 302
+    saved = yaml.safe_load((tmp_path / "sample_character.yaml").read_text())
+    assert saved["concentration"] == "Fireball"
+
+    resp = client.post(
+        "/characters/sample_character/update",
+        data={"concentration": ""},
+    )
+    assert resp.status_code == 302
+    saved = yaml.safe_load((tmp_path / "sample_character.yaml").read_text())
+    assert saved["concentration"] == ""
+
+
+def test_death_save_banner_shows_stabilized_at_three_successes(client, tmp_path):
+    (tmp_path / "sample_character.yaml").write_text(
+        yaml.safe_dump({"death_save_successes": 3, "death_save_failures": 0})
+    )
+    resp = client.get("/characters/sample_character")
+    assert b"STABILIZED" in resp.data
+    assert b"DEAD" not in resp.data
+
+
+def test_death_save_banner_shows_dead_at_three_failures(client, tmp_path):
+    (tmp_path / "sample_character.yaml").write_text(
+        yaml.safe_dump({"death_save_successes": 0, "death_save_failures": 3})
+    )
+    resp = client.get("/characters/sample_character")
+    assert b"DEAD" in resp.data
+    assert b"STABILIZED" not in resp.data
+
+
+def test_death_save_banner_hidden_below_three(client):
+    resp = client.get("/characters/sample_character")
+    assert b"STABILIZED" not in resp.data
+    assert b"DEAD" not in resp.data
+
+
 def test_update_unknown_character_404s(client):
     resp = client.post("/characters/does_not_exist/update", data={})
     assert resp.status_code == 404

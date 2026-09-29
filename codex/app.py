@@ -16,6 +16,25 @@ STATE_DIR.mkdir(exist_ok=True)
 
 CURRENCY_KEYS = ["cp", "sp", "ep", "gp", "pp"]
 
+# 2014 PHB conditions, minus Exhaustion (tracked separately as a 0-6 level,
+# see codex_roadmap.md's 1.3.0 group).
+CONDITION_KEYS = [
+    "blinded",
+    "charmed",
+    "deafened",
+    "frightened",
+    "grappled",
+    "incapacitated",
+    "invisible",
+    "paralyzed",
+    "petrified",
+    "poisoned",
+    "prone",
+    "restrained",
+    "stunned",
+    "unconscious",
+]
+
 # Character ids become filenames (data/<id>.yaml, state/<id>.yaml); this keeps
 # a path-traversal payload (e.g. "../../etc/passwd") from ever reaching disk,
 # regardless of how permissive Flask's own URL routing turns out to be.
@@ -74,6 +93,8 @@ def _default_state(char):
         "xp": char.get("xp") or "",
         "currency": {k: char.get("currency", {}).get(k, "") for k in CURRENCY_KEYS},
         "slot_used": {slot["level"]: 0 for slot in slots},
+        "conditions": {k: False for k in CONDITION_KEYS},
+        "concentration": "",
     }
 
 
@@ -86,6 +107,7 @@ def _load_state(character_id, char):
         state.update(saved)
         state["currency"] = {**state["currency"], **saved.get("currency", {})}
         state["slot_used"] = {**state["slot_used"], **saved.get("slot_used", {})}
+        state["conditions"] = {**state["conditions"], **saved.get("conditions", {})}
     return state
 
 
@@ -106,6 +128,8 @@ def _apply_state(char, state):
     char["inspiration"] = state["inspiration"]
     char["xp"] = state["xp"]
     char["currency"] = state["currency"]
+    char["conditions"] = state["conditions"]
+    char["concentration"] = state["concentration"]
     for slot in char.get("spellcasting", {}).get("slots", []):
         slot["used"] = state["slot_used"].get(slot["level"], 0)
     return char
@@ -125,7 +149,9 @@ def character_sheet(character_id):
         abort(404)
     state = _load_state(character_id, data)
     data = _apply_state(data, state)
-    return render_template("character_sheet.html", c=data)
+    return render_template(
+        "character_sheet.html", c=data, condition_keys=CONDITION_KEYS
+    )
 
 
 def _parse_int_field(form, key, default):
@@ -146,6 +172,7 @@ def _apply_hp_delta(current, temp, damage, healing, max_hp):
 
 def _state_from_form(form, previous, slot_levels, max_hp):
     xp_value = form.get("xp")
+    concentration_value = form.get("concentration")
     hp_current, hp_temp = _apply_hp_delta(
         _parse_int_field(form, "hp_current", previous["hp_current"]),
         _parse_int_field(form, "hp_temp", previous["hp_temp"]),
@@ -165,6 +192,11 @@ def _state_from_form(form, previous, slot_levels, max_hp):
         "death_save_failures": sum(1 for i in range(3) if f"death_failure_{i}" in form),
         "inspiration": "inspiration" in form,
         "xp": xp_value.strip() if xp_value is not None else previous["xp"],
+        "concentration": (
+            concentration_value.strip()
+            if concentration_value is not None
+            else previous["concentration"]
+        ),
         "currency": {
             k: _parse_int_field(
                 form, f"currency_{k}", previous["currency"].get(k, 0) or 0
@@ -177,6 +209,7 @@ def _state_from_form(form, previous, slot_levels, max_hp):
             )
             for level in slot_levels
         },
+        "conditions": {k: f"condition_{k}" in form for k in CONDITION_KEYS},
     }
 
 
