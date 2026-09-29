@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Getting Started</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/guide.css') }}">
+</head>
+<body>
+  <div class="guide-box">
+    <p><a href="{{ url_for('index') }}">&laquo; Characters</a></p>
+    <h1>Getting Started</h1>
+
+    <p>This app shows a live character sheet during a session. Static build
+    info (class, stats, backstory) is set up ahead of time; the fields you
+    can actually edit here are the ones that change moment to moment during
+    play &mdash; HP, conditions, spell slots, and so on.</p>
+
+    <h2>Opening a sheet</h2>
+    <p>Pick a character from the <a href="{{ url_for('index') }}">list</a>.
+    Everything on the page loads from that character's last saved state.</p>
+
+    <div class="note">
+      <strong>Nothing saves until you click it.</strong> This app has no
+      JavaScript, so edits only exist in your browser until you press
+      <strong>Save Changes</strong> (top right). That includes condition
+      chips, HP, spell slots &mdash; everything. Refreshing or navigating
+      away before saving throws the change away.
+    </div>
+
+    <h2>Hit Points</h2>
+    <p>Rather than doing the subtraction yourself, put the amount into
+    <strong>Damage Taken</strong> or <strong>Healing Received</strong> and
+    save &mdash; the app applies it against Current/Temporary HP for you
+    (temp HP absorbs damage first, healing caps at your max).</p>
+
+    <h2>Conditions</h2>
+    <p>Tap a condition chip to toggle it &mdash; it turns solid immediately,
+    no save needed to see the highlight. Saving is still what makes it
+    stick for next time you open the sheet.</p>
+
+    <h2>Concentration</h2>
+    <p>A plain text field for whatever spell you're concentrating on, so a
+    Constitution save prompt doesn't send you digging through notes.</p>
+
+    <h2>Death Saves</h2>
+    <p>Check off successes and failures as they happen. Once either count
+    hits 3 and you save, a <strong>STABILIZED</strong> or <strong>DEAD</strong>
+    banner appears next to the checkboxes.</p>
+
+    <h2>Spell Slots &amp; Hit Dice</h2>
+    <p>The "Used" boxes are normal number fields &mdash; use your browser's
+    up/down arrows or type a number directly.</p>
+
+    <h2>Printing / exporting to PDF</h2>
+    <p>There's no export button. Use your browser's own Print dialog
+    (Ctrl/Cmd+P &rarr; Save as PDF). The layout switches to a clean
+    black-and-white printout automatically.</p>
+
+    <h2>On your phone</h2>
+    <p>The sheet is usable down to a phone-sized screen &mdash; no separate
+    mobile app needed, just open the same page.</p>
+
+    {% include "_footer.html" %}
+  </div>
+</body>
+</html>

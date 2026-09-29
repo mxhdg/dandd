@@ -9,6 +9,9 @@ def client(tmp_path, monkeypatch):
     monkeypatch.setattr(app_module, "STATE_DIR", tmp_path)
     app_module.app.config["TESTING"] = True
     with app_module.app.test_client() as client:
+        # Real browsers send Origin on POSTs; set it here so every existing
+        # test reflects that instead of adding it to each call site.
+        client.environ_base["HTTP_ORIGIN"] = "http://localhost"
         yield client
 
 
@@ -22,6 +25,17 @@ def test_character_sheet_renders(client):
     resp = client.get("/characters/sample_character")
     assert resp.status_code == 200
     assert b"Sample Character" in resp.data
+
+
+def test_guide_page_renders(client):
+    resp = client.get("/guide")
+    assert resp.status_code == 200
+    assert b"Getting Started" in resp.data
+
+
+def test_index_links_to_guide(client):
+    resp = client.get("/")
+    assert b'href="/guide"' in resp.data
 
 
 def test_unknown_character_404s(client):
@@ -89,6 +103,83 @@ def test_update_hp_delta_caps_healing_at_max(client, tmp_path):
 
     saved = yaml.safe_load((tmp_path / "sample_character.yaml").read_text())
     assert saved["hp_current"] == data["hp"]["max"]
+
+
+def test_update_persists_conditions(client, tmp_path):
+    resp = client.post(
+        "/characters/sample_character/update",
+        data={"condition_poisoned": "on", "condition_prone": "on"},
+    )
+    assert resp.status_code == 302
+
+    saved = yaml.safe_load((tmp_path / "sample_character.yaml").read_text())
+    assert saved["conditions"]["poisoned"] is True
+    assert saved["conditions"]["prone"] is True
+    assert saved["conditions"]["stunned"] is False
+
+
+def test_update_persists_concentration(client, tmp_path):
+    resp = client.post(
+        "/characters/sample_character/update",
+        data={"concentration": "Fireball"},
+    )
+    assert resp.status_code == 302
+    saved = yaml.safe_load((tmp_path / "sample_character.yaml").read_text())
+    assert saved["concentration"] == "Fireball"
+
+    resp = client.post(
+        "/characters/sample_character/update",
+        data={"concentration": ""},
+    )
+    assert resp.status_code == 302
+    saved = yaml.safe_load((tmp_path / "sample_character.yaml").read_text())
+    assert saved["concentration"] == ""
+
+
+def test_death_save_banner_shows_stabilized_at_three_successes(client, tmp_path):
+    (tmp_path / "sample_character.yaml").write_text(
+        yaml.safe_dump({"death_save_successes": 3, "death_save_failures": 0})
+    )
+    resp = client.get("/characters/sample_character")
+    assert b"STABILIZED" in resp.data
+    assert b"DEAD" not in resp.data
+
+
+def test_death_save_banner_shows_dead_at_three_failures(client, tmp_path):
+    (tmp_path / "sample_character.yaml").write_text(
+        yaml.safe_dump({"death_save_successes": 0, "death_save_failures": 3})
+    )
+    resp = client.get("/characters/sample_character")
+    assert b"DEAD" in resp.data
+    assert b"STABILIZED" not in resp.data
+
+
+def test_death_save_banner_hidden_below_three(client):
+    resp = client.get("/characters/sample_character")
+    assert b"STABILIZED" not in resp.data
+    assert b"DEAD" not in resp.data
+
+
+def test_update_rejects_missing_origin(client):
+    del client.environ_base["HTTP_ORIGIN"]
+    resp = client.post("/characters/sample_character/update", data={"xp": "1"})
+    assert resp.status_code == 403
+
+
+def test_update_rejects_cross_site_origin(client):
+    client.environ_base["HTTP_ORIGIN"] = "http://evil.example"
+    resp = client.post("/characters/sample_character/update", data={"xp": "1"})
+    assert resp.status_code == 403
+
+
+def test_update_accepts_matching_referer_without_origin(client):
+    del client.environ_base["HTTP_ORIGIN"]
+    resp = client.post(
+        "/characters/sample_character/update",
+        data={"xp": "1"},
+        headers={"Referer": "http://localhost/characters/sample_character"},
+    )
+    assert resp.status_code == 302
 
 
 def test_update_unknown_character_404s(client):
