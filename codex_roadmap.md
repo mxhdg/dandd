@@ -5,7 +5,7 @@ perspective rather than a generic software backlog. It's not a commitment or
 a schedule, just a place to park ideas between sessions and pull from
 opportunistically.
 
-Grouped below into candidate minor releases (current prod version: 1.1.0),
+Grouped below into candidate minor releases (current prod version: 1.2.0),
 ordered by actual-play pain within each group: how much a mistake or
 friction point it causes at the table right now, not by how easy it'd be to
 build. Group boundaries and version numbers are a rough planning aid, not a
@@ -20,7 +20,7 @@ points.
   in your head, then type the result); a delta field removes the most
   common way to end up with the wrong number on the sheet.
 
-## 1.1.3 (in progress)
+## 1.1.3 (shipped)
 
 - **DONE. Fixed literal `&nbsp;` text shown on the Spellcasting page**
   (e.g. "Cantrips Known" rendered the entity name itself instead of a space
@@ -38,7 +38,7 @@ Actual defects in shipped behavior, not feature gaps. These rank above
 every group below regardless of playability impact, since they're wrong
 output today rather than a missing capability. None currently tracked.
 
-## 1.2.0 — At-the-table combat clarity
+## 1.2.0 (shipped) — At-the-table combat clarity
 
 The highest actual-play pain right now: things forgotten or fumbled
 mid-combat.
