@@ -38,6 +38,10 @@ jobs:
         working-directory: codex
         run: python -m black --check .
 
+      - name: Check import order (isort)
+        working-directory: codex
+        run: python -m isort --check .
+
       - name: Lint (flake8)
         working-directory: codex
         run: python -m flake8 .

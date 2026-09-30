@@ -49,11 +49,12 @@ cd codex
 pip install -r requirements-dev.txt
 python -m black --check .   # formatting
 python -m flake8 .          # linting
+python -m isort --check .     # import order
 python -m pytest            # unit tests (Flask test client, no Docker needed)
 ```
 
 The [codex tests](.github/workflows/codex-tests.yml) GitHub Actions workflow runs all of this automatically on every pull request (and push to `main`) that touches `codex/**`, across three jobs:
 
-- **lint** — `black --check` and `flake8` against the whole app.
+- **lint** — `black --check`, `isort --check` and `flake8` (including a cyclomatic-complexity limit) against the whole app.
 - **test** — the `pytest` suite in `codex/tests/`, exercising the Flask routes directly (index listing, character sheet rendering, the character-id allowlist that blocks path traversal, security headers, and that "Save Changes" persists the right fields to `state/<id>.yaml`).
 - **docker-smoke-test** — builds the real `Dockerfile`, runs the resulting image, and curls `/` and a sample character sheet to confirm the container actually serves traffic end to end, the same check used to validate the Python 3.14 upgrade.

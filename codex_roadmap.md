@@ -102,6 +102,10 @@ with the project's code standards (one responsibility per function,
   comma-list helpers, and extracted character assembly out of `main()`.
   Verified byte-identical output against the old code for skeleton, full,
   and full-with-spellcasting runs.
+- **DONE. Enforcement**, so the standards hold going forward: flake8
+  `max-complexity = 6`, `isort --check` added to the CI lint job, and
+  `tests/test_code_standards.py` (function length <= 30 lines, `_` prefix
+  on every non-route/non-entry-point function).
 - **DONE. Tests** for the newly testable pure helpers
   (`tests/test_new_character.py`).
 
