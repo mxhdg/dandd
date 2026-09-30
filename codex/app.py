@@ -100,8 +100,25 @@ def set_security_headers(response):
     return response
 
 
+def _character_path(directory, character_id):
+    # Defense in depth: routes already reject bad ids, but every helper that
+    # builds a path from one re-checks it, so a future caller can't reach
+    # outside data/ or state/ by forgetting to. The normpath + prefix check is
+    # the form static analysis (CodeQL) recognizes as a path sanitizer.
+    if not _valid_character_id(character_id):
+        raise ValueError("invalid character id")
+    base = os.path.normpath(directory)
+    full = os.path.normpath(os.path.join(base, f"{character_id}.yaml"))
+    if not full.startswith(base + os.sep):
+        raise ValueError("invalid character id")
+    return Path(full)
+
+
 def _load_character(character_id):
-    path = DATA_DIR / f"{character_id}.yaml"
+    try:
+        path = _character_path(DATA_DIR, character_id)
+    except ValueError:
+        return None
     if not path.is_file():
         return None
     with path.open(encoding="utf-8") as f:
@@ -136,7 +153,7 @@ def _default_state(char):
 
 def _load_state(character_id, char):
     state = _default_state(char)
-    path = STATE_DIR / f"{character_id}.yaml"
+    path = _character_path(STATE_DIR, character_id)
     if path.is_file():
         with path.open(encoding="utf-8") as f:
             saved = yaml.safe_load(f) or {}
@@ -148,7 +165,7 @@ def _load_state(character_id, char):
 
 
 def _save_state(character_id, state):
-    path = STATE_DIR / f"{character_id}.yaml"
+    path = _character_path(STATE_DIR, character_id)
     with path.open("w", encoding="utf-8") as f:
         yaml.safe_dump(state, f, sort_keys=False)
 

@@ -358,3 +358,10 @@ def test_pdf_fetcher_only_serves_static_files():
     ):
         with pytest.raises(ValueError):
             fetcher.fetch(bad)
+
+
+@pytest.mark.parametrize("bad_id", ["..", "../x", "a/b", "a b", ""])
+def test_character_path_rejects_bad_ids_even_without_route_checks(bad_id):
+    assert app_module._load_character(bad_id) is None
+    with pytest.raises(ValueError):
+        app_module._character_path(app_module.STATE_DIR, bad_id)
