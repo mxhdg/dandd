@@ -5,7 +5,7 @@ perspective rather than a generic software backlog. It's not a commitment or
 a schedule, just a place to park ideas between sessions and pull from
 opportunistically.
 
-Grouped below into candidate minor releases (current prod version: 1.2.0),
+Grouped below into candidate minor releases (current prod version: 1.3.0),
 ordered by actual-play pain within each group: how much a mistake or
 friction point it causes at the table right now, not by how easy it'd be to
 build. Group boundaries and version numbers are a rough planning aid, not a
@@ -74,7 +74,7 @@ Also added while shipping this release, not originally scoped above:
   spell slots/hit dice, printing, mobile) rather than just the features
   added in this release.
 
-## 1.3.0 — Rest & recovery bookkeeping
+## 1.3.0 (shipped) — Rest & recovery bookkeeping
 
 6. **DONE. Long Rest button**:
    resets HP to max, clears temp HP and death saves, restores all spell
