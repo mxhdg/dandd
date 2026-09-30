@@ -88,6 +88,23 @@ Also added while shipping this release, not originally scoped above:
    shown inline. Exhaustion is one of the most commonly misremembered rules
    at most tables, though it comes up less often than the items above.
 
+## 1.3.1 (in progress) — Code standards refactor
+
+No user-facing change. Brings `app.py` and `scripts/new_character.py` in line
+with the project's code standards (one responsibility per function,
+`_`-prefixed private functions; see `CLAUDE.md`).
+
+- **DONE. `app.py`**: extracted shared route lookup/origin/render helpers,
+  split form parsing into one helper per field group, split saved-state
+  reading from merging, split the PDF static-file check from the fetcher.
+- **DONE. `new_character.py`**: split prompting from computation for
+  abilities/saves/skills, per-section prompt helpers, spell-slot and
+  comma-list helpers, and extracted character assembly out of `main()`.
+  Verified byte-identical output against the old code for skeleton, full,
+  and full-with-spellcasting runs.
+- **DONE. Tests** for the newly testable pure helpers
+  (`tests/test_new_character.py`).
+
 ## 1.4.0 — DM session tools
 
 DM-facing prep/mid-session pain that exists right now regardless of party
