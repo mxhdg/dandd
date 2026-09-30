@@ -11,7 +11,7 @@ A personal D&D 5e campaign notebook: hand-maintained Markdown for characters and
 
 ## `codex/`
 
-Reads per-character YAML files and renders an HTML character sheet styled after the original hand-built reference sheet, with a "Save Changes" button that persists in-session state (HP, spell slots, currency, etc.) separately from the character's static build data. HP updates by delta ("Damage Taken" / "Healing Received" fields that adjust current HP, accounting for temp HP absorption and capping at max) rather than by typing a new total.
+Reads per-character YAML files and renders an HTML character sheet styled after the original hand-built reference sheet, with a "Save Changes" button that persists in-session state (HP, spell slots, currency, etc.) separately from the character's static build data. HP updates by delta ("Damage Taken" / "Healing Received" fields that adjust current HP, accounting for temp HP absorption and capping at max) rather than by typing a new total. Short Rest and Long Rest buttons apply the 2014 rest rules (HP, hit dice, spell slots, death saves), and an exhaustion tracker (0-6) lists the effects at the current level. A "PDF" button on each sheet opens a server-rendered PDF (WeasyPrint) with consistent page margins in any browser.
 
 ### Local development
 
