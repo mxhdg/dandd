@@ -4,7 +4,17 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 import yaml
-from flask import Flask, abort, redirect, render_template, request, url_for
+from flask import (
+    Flask,
+    Response,
+    abort,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
+from weasyprint import HTML, URLFetcher
+from weasyprint.urls import URLFetcherResponse
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = (
@@ -13,6 +23,7 @@ app.config["MAX_CONTENT_LENGTH"] = (
 
 DATA_DIR = Path(__file__).parent / "data"
 STATE_DIR = Path(__file__).parent / "state"
+STATIC_DIR = Path(__file__).parent / "static"
 STATE_DIR.mkdir(exist_ok=True)
 
 CURRENCY_KEYS = ["cp", "sp", "ep", "gp", "pp"]
@@ -185,6 +196,50 @@ def character_sheet(character_id):
         c=data,
         condition_keys=CONDITION_KEYS,
         exhaustion_effects=EXHAUSTION_EFFECTS,
+    )
+
+
+class _StaticOnlyFetcher(URLFetcher):
+    # WeasyPrint would otherwise fetch any URL the page references. The sheet
+    # only needs its own stylesheet, so serve files under static/ and refuse
+    # everything else (no network access, no arbitrary local files).
+    def fetch(self, url, headers=None):
+        url_path = urlsplit(url).path
+        path = (STATIC_DIR / url_path.removeprefix("/static/")).resolve()
+        if (
+            not url_path.startswith("/static/")
+            or not path.is_file()
+            or STATIC_DIR.resolve() not in path.parents
+        ):
+            raise ValueError(f"blocked resource: {url}")
+        mime = "text/css" if path.suffix == ".css" else "application/octet-stream"
+        return URLFetcherResponse(url, path.read_bytes(), {"Content-Type": mime})
+
+
+@app.route("/characters/<character_id>/pdf")
+def character_pdf(character_id):
+    # Rendered server-side so margins and page breaks are identical in every
+    # browser, instead of depending on each browser's print dialog/engine.
+    if not _valid_character_id(character_id):
+        abort(404)
+    data = _load_character(character_id)
+    if data is None:
+        abort(404)
+    data = _apply_state(data, _load_state(character_id, data))
+    html = render_template(
+        "character_sheet.html",
+        c=data,
+        condition_keys=CONDITION_KEYS,
+        exhaustion_effects=EXHAUSTION_EFFECTS,
+        pdf=True,
+    )
+    pdf = HTML(
+        string=html, base_url="http://codex.invalid/", url_fetcher=_StaticOnlyFetcher()
+    ).write_pdf()
+    return Response(
+        pdf,
+        mimetype="application/pdf",
+        headers={"Content-Disposition": f'inline; filename="{character_id}.pdf"'},
     )
 
 

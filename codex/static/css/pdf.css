@@ -1,0 +1,15 @@
+/* Overrides for the server-rendered PDF (WeasyPrint), loaded after
+   character_sheet.css only when the sheet is rendered with pdf=True. The
+   shared @media print block is tuned for browsers; WeasyPrint lays out
+   multi-column content differently, so anything it needs goes here. */
+@page { size: letter; margin: 1in 0.5in; }
+.col { display: block; }
+.columns-3 { column-fill: auto; }
+
+/* Form controls should read as printed values, not widgets. */
+input, select { border: 0; background: transparent; appearance: none; }
+input[type="checkbox"] {
+  display: inline-block; width: 11px; height: 11px;
+  border: 1.3px solid var(--ink); margin-right: 4px;
+}
+input[type="checkbox"]:checked { background: var(--ink); }

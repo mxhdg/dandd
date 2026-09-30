@@ -325,3 +325,35 @@ def test_print_overrides_come_after_base_layout_rules():
         ".rest-buttons { display: flex",
     ):
         assert css.index(base_rule) < print_at, base_rule
+
+
+def test_pdf_route_returns_a_pdf(client):
+    resp = client.get("/characters/sample_character/pdf")
+    assert resp.status_code == 200
+    assert resp.mimetype == "application/pdf"
+    assert resp.data.startswith(b"%PDF")
+
+
+def test_pdf_route_unknown_and_invalid_ids_404(client):
+    assert client.get("/characters/does_not_exist/pdf").status_code == 404
+    assert client.get("/characters/a b/pdf").status_code == 404
+
+
+def test_sheet_links_to_pdf(client):
+    body = client.get("/characters/sample_character").data
+    assert b'href="/characters/sample_character/pdf"' in body
+
+
+def test_pdf_fetcher_only_serves_static_files():
+    fetcher = app_module._StaticOnlyFetcher()
+    ok = fetcher.fetch("http://codex.invalid/static/css/character_sheet.css")
+    assert b".sheet-page" in ok.read()
+    for bad in (
+        "http://example.com/static/css/character_sheet.css.evil",
+        "http://codex.invalid/static/../app.py",
+        "http://codex.invalid/etc/passwd",
+        "file:///etc/passwd",
+        "http://169.254.169.254/latest/meta-data/",
+    ):
+        with pytest.raises(ValueError):
+            fetcher.fetch(bad)
