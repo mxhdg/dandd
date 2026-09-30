@@ -31,6 +31,23 @@ docker compose -f docker-compose.prod.yml up -d
 
 Pulls the published image from `ghcr.io/mxhdg/dandd/codex` and uses standard `/opt/codex/...` bind-mount paths. Set `CODEX_TAG` to pin a specific version instead of `latest`.
 
+#### Allowed hostnames (DNS-rebinding guard)
+
+The app has no login, so it refuses any request whose `Host` header is a public-looking hostname (a defense against DNS-rebinding attacks). These work out of the box: `localhost`, IP addresses, single-label names (`codex`), and `*.local`, `*.lan`, `*.localdomain`, `*.home.arpa`, `*.internal`. Anything else gets a `400`.
+
+To serve it under any other name (your own domain, a reverse proxy, a Cloudflare Tunnel), set `CODEX_ALLOWED_HOSTS` to a comma-separated list of bare hostnames (no `https://`, no path; a port is optional) in `docker-compose.prod.yml`. The block is already there, commented out:
+
+```yaml
+    environment:
+      CODEX_ALLOWED_HOSTS: codex.yourdomain.com
+```
+
+To keep the domain out of git, instead write `CODEX_ALLOWED_HOSTS: ${CODEX_ALLOWED_HOSTS:-}` in that block and put `CODEX_ALLOWED_HOSTS=codex.yourdomain.com` in a `.env` file next to the compose file (Compose reads it automatically, the same way as `CODEX_TAG`). Either way, apply it with `docker compose -f docker-compose.prod.yml up -d`. Set this **before** upgrading to 1.3.1 or later, or the site answers `400` after the upgrade.
+
+**Cloudflare Tunnel:** `cloudflared` forwards your public hostname as the `Host` header by default, so that hostname is the value to list. Leave the tunnel's **HTTP Host Header** override (Zero Trust, Networks, Tunnels, your tunnel, Public Hostname, Additional application settings, HTTP Settings) empty, or `originRequest.httpHostHeader` unset in a config file. Rewriting `Host` to an internal name makes "Save Changes" fail with `403`, because the save endpoint compares the browser's `Origin` to `Host`.
+
+**Put a login in front of it.** This app has none, so anyone who finds a publicly reachable URL can view and edit the sheets. For a tunnel, add a Cloudflare Access application for the hostname (Zero Trust, Access, Applications) with a policy allowing only your players' emails; it needs no code change.
+
 ### Creating a new character
 
 ```bash
@@ -46,14 +63,15 @@ New to D&D and not sure what to pick for race/class/background before running th
 
 ```bash
 cd codex
-pip install -r requirements-dev.txt
+pip install -r requirements-dev.txt   # hash-pinned; edit requirements*.in and recompile, never the .txt
 python -m black --check .   # formatting
 python -m flake8 .          # linting
-python -m pytest            # unit tests (Flask test client, no Docker needed)
+python -m isort --check .     # import order
+python -m pytest --cov      # unit + integration tests with coverage (must stay at 100%)
 ```
 
 The [codex tests](.github/workflows/codex-tests.yml) GitHub Actions workflow runs all of this automatically on every pull request (and push to `main`) that touches `codex/**`, across three jobs:
 
-- **lint** — `black --check` and `flake8` against the whole app.
+- **lint** — `black --check`, `isort --check` and `flake8` (including a cyclomatic-complexity limit) against the whole app.
 - **test** — the `pytest` suite in `codex/tests/`, exercising the Flask routes directly (index listing, character sheet rendering, the character-id allowlist that blocks path traversal, security headers, and that "Save Changes" persists the right fields to `state/<id>.yaml`).
 - **docker-smoke-test** — builds the real `Dockerfile`, runs the resulting image, and curls `/` and a sample character sheet to confirm the container actually serves traffic end to end, the same check used to validate the Python 3.14 upgrade.

@@ -5,7 +5,7 @@ perspective rather than a generic software backlog. It's not a commitment or
 a schedule, just a place to park ideas between sessions and pull from
 opportunistically.
 
-Grouped below into candidate minor releases (current prod version: 1.3.0),
+Grouped below into candidate minor releases (current prod version: 1.3.1),
 ordered by actual-play pain within each group: how much a mistake or
 friction point it causes at the table right now, not by how easy it'd be to
 build. Group boundaries and version numbers are a rough planning aid, not a
@@ -87,6 +87,49 @@ Also added while shipping this release, not originally scoped above:
 8. **DONE. Exhaustion level tracker (0-6)** with the effect at the current level
    shown inline. Exhaustion is one of the most commonly misremembered rules
    at most tables, though it comes up less often than the items above.
+
+## 1.3.1 (shipped) — Code standards, tests, efficiency, security
+
+No user-facing change. Brings `app.py` and `scripts/new_character.py` in line
+with the project's code standards (one responsibility per function,
+`_`-prefixed private functions; see `CLAUDE.md`).
+
+- **DONE. `app.py`**: extracted shared route lookup/origin/render helpers,
+  split form parsing into one helper per field group, split saved-state
+  reading from merging, split the PDF static-file check from the fetcher.
+- **DONE. `new_character.py`**: split prompting from computation for
+  abilities/saves/skills, per-section prompt helpers, spell-slot and
+  comma-list helpers, and extracted character assembly out of `main()`.
+  Verified byte-identical output against the old code for skeleton, full,
+  and full-with-spellcasting runs.
+- **DONE. Enforcement**, so the standards hold going forward: flake8
+  `max-complexity = 6`, `isort --check` added to the CI lint job, and
+  `tests/test_code_standards.py` (function length <= 30 lines, `_` prefix
+  on every non-route/non-entry-point function).
+- **DONE. Front-end efficiency**: removed all 27 inline `style=""`
+  attributes (now classes) and dropped `unsafe-inline` from the CSP;
+  cache-busted (`?v=mtime`), immutable static assets; template whitespace
+  trimmed (sheet HTML about 6% smaller); `/favicon.ico` answers 204 instead
+  of a 404 on every page. Verified pixel-identical on desktop, mobile,
+  browser print and PDF. Not done: response compression (would need a new
+  dependency for ~17 KB pages on a home LAN) and CSS minification (10 KB of
+  CSS, and the repo deliberately has no build step).
+- **DONE. Security hardening** from a full review: Host-header
+  allowlist against DNS rebinding (`CODEX_ALLOWED_HOSTS`), escaped cantrip
+  list (was `|safe` on raw data), server-side clamping of HP/hit dice/slots/
+  currency, PDF concurrency cap, extra response headers, loopback-only dev
+  server, `pids_limit` and `noexec` tmpfs, hash-pinned lock files
+  (`pip-compile`) installed with `--require-hashes`, and Dependabot for pip,
+  Docker, and Actions. Still open (needs a human): branch protection on
+  `main` (GitHub setting), and whether to rewrite git history to drop the
+  gitignored-since "howto" files from the public repo.
+- **DONE. Top-to-bottom tests**: `new_character.py` unit tests (30% -> 100%
+  coverage), integration journeys (a full play session, spellcasters,
+  script-generated characters rendering in the app, security sweep,
+  gunicorn config), tests converted to in-body loops with shared fixtures in
+  `conftest.py`, and a 100% line+branch coverage gate enforced in CI.
+- **DONE. Tests** for the newly testable pure helpers
+  (`tests/test_new_character.py`).
 
 ## 1.4.0 — DM session tools
 

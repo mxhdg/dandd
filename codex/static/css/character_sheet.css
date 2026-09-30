@@ -217,6 +217,19 @@ input[type="checkbox"] { width: 14px; height: 14px; vertical-align: middle; }
 .save-banner.dead { background: var(--red); color: var(--parchment); border-color: var(--red); }
 .save-banner.stabilized { background: var(--paper); color: var(--ink); }
 
+/* Small utilities replacing what used to be inline style="" attributes, so the
+   CSP can drop 'unsafe-inline' for styles. */
+.text-sm { font-size: 11px; }
+.text-xs { font-size: 10.5px; }
+.prose { font-size: 11px; line-height: 1.5; }
+.min-h-60 { min-height: 60px; }
+.mt-4 { margin-top: 4px; }
+.mt-6 { margin-top: 6px; }
+.nowrap { white-space: nowrap; }
+.currency-row { margin-top: 6px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.passive-box strong { font-size: 16px; }
+h1.charname.charname-sm { font-size: 20px; }
+
 @media (max-width: 700px) {
   .save-btn, .back-link, .pdf-link { top: 6px; font-size: 11px; padding: 6px 10px; }
   .save-btn { right: 6px; }

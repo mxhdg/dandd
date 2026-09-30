@@ -17,10 +17,16 @@ services:
       - ./state:/app/state
     read_only: true
     tmpfs:
-      - /tmp
+      - /tmp:noexec,nosuid,size=64m
     cap_drop:
       - ALL
     security_opt:
       - no-new-privileges:true
     mem_limit: 512m
     cpus: 1.0
+    pids_limit: 256
+    # Hostnames other than localhost, IP addresses, single-label names and
+    # *.local/*.lan/*.home.arpa are refused (DNS-rebinding guard). To reach
+    # the app through another name, e.g. behind a reverse proxy, list it here:
+    # environment:
+    #   CODEX_ALLOWED_HOSTS: codex.example.com

@@ -32,7 +32,7 @@ RUN groupadd --gid "${APP_GID}" appuser \
 WORKDIR /app
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --require-hashes -r requirements.txt
 
 # Declared after the pip install layer so a version bump doesn't bust the
 # dependency-install cache; CI passes the real values as build-args.
