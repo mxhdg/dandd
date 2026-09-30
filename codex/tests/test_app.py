@@ -1,20 +1,10 @@
+import re
 from pathlib import Path
 
 import pytest
 import yaml
 
 import app as app_module
-
-
-@pytest.fixture
-def client(tmp_path, monkeypatch):
-    monkeypatch.setattr(app_module, "STATE_DIR", tmp_path)
-    app_module.app.config["TESTING"] = True
-    with app_module.app.test_client() as client:
-        # Real browsers send Origin on POSTs; set it here so every existing
-        # test reflects that instead of adding it to each call site.
-        client.environ_base["HTTP_ORIGIN"] = "http://localhost"
-        yield client
 
 
 def test_index_lists_sample_character(client):
@@ -45,10 +35,9 @@ def test_unknown_character_404s(client):
     assert resp.status_code == 404
 
 
-@pytest.mark.parametrize("bad_id", ["..", "%2e%2e", "a b", "a/../b"])
-def test_invalid_character_id_404s(client, bad_id):
-    resp = client.get(f"/characters/{bad_id}")
-    assert resp.status_code == 404
+def test_invalid_character_id_404s(client):
+    for bad_id in ["..", "%2e%2e", "a b", "a/../b"]:
+        assert client.get(f"/characters/{bad_id}").status_code == 404, bad_id
 
 
 def test_security_headers_present(client):
@@ -279,11 +268,10 @@ def test_rest_rejects_missing_origin(client):
     assert resp.status_code == 403
 
 
-@pytest.mark.parametrize(
-    "total,count", [("3d10", 3), ("3d10 + 2d8", 5), ("1d8", 1), ("", 0)]
-)
-def test_hit_dice_count(total, count):
-    assert app_module._hit_dice_count(total) == count
+def test_hit_dice_count():
+    cases = [("3d10", 3), ("3d10 + 2d8", 5), ("1d8", 1), ("", 0)]
+    for total, count in cases:
+        assert app_module._hit_dice_count(total) == count, total
 
 
 def test_update_persists_exhaustion_and_clamps(client, tmp_path):
@@ -360,8 +348,53 @@ def test_pdf_fetcher_only_serves_static_files():
             fetcher.fetch(bad)
 
 
-@pytest.mark.parametrize("bad_id", ["..", "../x", "a/b", "a b", ""])
-def test_character_path_rejects_bad_ids_even_without_route_checks(bad_id):
-    assert app_module._load_character(bad_id) is None
-    with pytest.raises(ValueError):
-        app_module._character_path(app_module.STATE_DIR, bad_id)
+def test_character_path_rejects_bad_ids_even_without_route_checks():
+    for bad_id in ["..", "../x", "a/b", "a b", ""]:
+        assert app_module._load_character(bad_id) is None, bad_id
+        with pytest.raises(ValueError):
+            app_module._character_path(app_module.STATE_DIR, bad_id)
+
+
+def test_merge_state_fills_missing_nested_keys_from_defaults():
+    defaults = {
+        "hp_current": 10,
+        "currency": {"gp": 0, "sp": 0},
+        "slot_used": {"1st": 0},
+        "conditions": {"prone": False, "poisoned": False},
+    }
+    saved = {"hp_current": 4, "conditions": {"prone": True}}
+    merged = app_module._merge_state(defaults, saved)
+    assert merged["hp_current"] == 4
+    assert merged["conditions"] == {"prone": True, "poisoned": False}
+    assert merged["currency"] == {"gp": 0, "sp": 0}
+
+
+def test_death_saves_from_form_counts_checked_boxes():
+    form = {"death_success_0": "on", "death_success_2": "on", "death_failure_1": "on"}
+    assert app_module._death_saves_from_form(form) == (2, 1)
+
+
+def test_csp_forbids_inline_styles_and_pages_use_none(client):
+    csp = client.get("/").headers["Content-Security-Policy"]
+    assert "unsafe-inline" not in csp
+    for url in ("/", "/guide", "/characters/sample_character"):
+        body = client.get(url).data
+        assert b' style="' not in body
+        assert b"<style" not in body
+
+
+def test_static_assets_are_cache_busted_and_immutable(client):
+    body = client.get("/characters/sample_character").data.decode()
+    match = re.search(r'href="(/static/css/character_sheet\.css\?v=\d+)"', body)
+    assert match
+    resp = client.get(match.group(1))
+    assert "immutable" in resp.headers["Cache-Control"]
+
+
+def test_unversioned_static_is_not_marked_immutable(client):
+    resp = client.get("/static/css/character_sheet.css")
+    assert "immutable" not in resp.headers.get("Cache-Control", "")
+
+
+def test_favicon_is_a_quiet_204(client):
+    assert client.get("/favicon.ico").status_code == 204

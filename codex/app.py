@@ -1,5 +1,8 @@
+import contextlib
+import ipaddress
 import os
 import re
+import threading
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -17,6 +20,9 @@ from weasyprint import HTML, URLFetcher
 from weasyprint.urls import URLFetcherResponse
 
 app = Flask(__name__)
+# Drop the newline/indent around {% %} lines from rendered HTML.
+app.jinja_env.trim_blocks = True
+app.jinja_env.lstrip_blocks = True
 app.config["MAX_CONTENT_LENGTH"] = (
     16 * 1024
 )  # form posts here are a few dozen small fields
@@ -64,6 +70,19 @@ EXHAUSTION_EFFECTS = [
 CHARACTER_ID_RE = re.compile(r"^[A-Za-z0-9_-]+$")
 
 
+@app.after_request
+def cache_versioned_static(response):
+    if request.endpoint == "static" and "v" in request.args:
+        response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+    return response
+
+
+@app.route("/favicon.ico")
+def favicon():
+    # No icon to serve; answering 204 stops browsers logging a 404 per page.
+    return "", 204
+
+
 def _valid_character_id(character_id):
     return bool(CHARACTER_ID_RE.fullmatch(character_id))
 
@@ -79,12 +98,63 @@ def _same_origin_request(req):
     return urlsplit(source).netloc == req.host
 
 
+def _static_url(filename):
+    # The file's mtime in the query string makes each edit a new URL, so the
+    # asset can be cached "forever" (see cache_versioned_static) and still
+    # update the moment it changes.
+    version = int((STATIC_DIR / filename).stat().st_mtime)
+    return url_for("static", filename=filename, v=version)
+
+
 @app.context_processor
-def inject_app_version():
+def inject_template_globals():
     return {
         "app_version": os.environ.get("APP_VERSION", "dev"),
         "app_commit_sha": os.environ.get("APP_COMMIT_SHA", "unknown"),
+        "static_url": _static_url,
     }
+
+
+# Hostnames a browser can only reach by name if public DNS can resolve them, so
+# a DNS-rebinding page (which needs its own registered domain) can never use
+# one of these; IP literals and single-label names can't be rebound either.
+_LOCAL_NAME_SUFFIXES = (".local", ".lan", ".localdomain", ".home.arpa", ".internal")
+
+
+def _host_name(host):
+    return (urlsplit(f"//{host}").hostname or "").lower()
+
+
+def _is_ip_literal(name):
+    try:
+        ipaddress.ip_address(name)
+    except ValueError:
+        return False
+    return True
+
+
+def _extra_allowed_hosts():
+    raw = os.environ.get("CODEX_ALLOWED_HOSTS", "")
+    return {h.strip().lower() for h in raw.split(",") if h.strip()}
+
+
+def _host_allowed(host):
+    name = _host_name(host)
+    return bool(name) and (
+        host.lower() in _extra_allowed_hosts()
+        or name in _extra_allowed_hosts()
+        or _is_ip_literal(name)
+        or "." not in name
+        or name.endswith(_LOCAL_NAME_SUFFIXES)
+    )
+
+
+@app.before_request
+def enforce_trusted_host():
+    # There is no login, so the Host header is the only thing standing between
+    # this app and a DNS-rebinding page on the same network (see CLAUDE.md).
+    if not _host_allowed(request.host):
+        abort(400)
 
 
 @app.after_request
@@ -92,8 +162,11 @@ def set_security_headers(response):
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "no-referrer"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+    response.headers["Cross-Origin-Resource-Policy"] = "same-origin"
     response.headers["Content-Security-Policy"] = (
-        "default-src 'self'; style-src 'self' 'unsafe-inline'; "
+        "default-src 'self'; style-src 'self'; "
         "script-src 'none'; frame-ancestors 'none'; "
         "form-action 'self'; base-uri 'none'; object-src 'none'"
     )
@@ -151,17 +224,25 @@ def _default_state(char):
     }
 
 
-def _load_state(character_id, char):
-    state = _default_state(char)
+def _read_saved_state(character_id):
     path = _character_path(STATE_DIR, character_id)
-    if path.is_file():
-        with path.open(encoding="utf-8") as f:
-            saved = yaml.safe_load(f) or {}
-        state.update(saved)
-        state["currency"] = {**state["currency"], **saved.get("currency", {})}
-        state["slot_used"] = {**state["slot_used"], **saved.get("slot_used", {})}
-        state["conditions"] = {**state["conditions"], **saved.get("conditions", {})}
+    if not path.is_file():
+        return {}
+    with path.open(encoding="utf-8") as f:
+        return yaml.safe_load(f) or {}
+
+
+def _merge_state(defaults, saved):
+    # Nested dicts are merged key by key so a state file written before a new
+    # key existed (e.g. a newly added condition) still loads with that default.
+    state = {**defaults, **saved}
+    for key in ("currency", "slot_used", "conditions"):
+        state[key] = {**defaults[key], **saved.get(key, {})}
     return state
+
+
+def _load_state(character_id, char):
+    return _merge_state(_default_state(char), _read_saved_state(character_id))
 
 
 def _save_state(character_id, state):
@@ -199,21 +280,46 @@ def guide():
     return render_template("guide.html")
 
 
-@app.route("/characters/<character_id>")
-def character_sheet(character_id):
+def _character_or_404(character_id):
     if not _valid_character_id(character_id):
         abort(404)
     data = _load_character(character_id)
     if data is None:
         abort(404)
+    return data
+
+
+def _enforce_same_origin():
+    if not _same_origin_request(request):
+        abort(403)
+
+
+def _render_sheet(character_id, data, pdf=False):
     state = _load_state(character_id, data)
-    data = _apply_state(data, state)
     return render_template(
         "character_sheet.html",
-        c=data,
+        c=_apply_state(data, state),
         condition_keys=CONDITION_KEYS,
         exhaustion_effects=EXHAUSTION_EFFECTS,
+        pdf=pdf,
     )
+
+
+@app.route("/characters/<character_id>")
+def character_sheet(character_id):
+    return _render_sheet(character_id, _character_or_404(character_id))
+
+
+def _resolve_static_file(url):
+    url_path = urlsplit(url).path
+    path = (STATIC_DIR / url_path.removeprefix("/static/")).resolve()
+    if (
+        not url_path.startswith("/static/")
+        or not path.is_file()
+        or STATIC_DIR.resolve() not in path.parents
+    ):
+        raise ValueError(f"blocked resource: {url}")
+    return path
 
 
 class _StaticOnlyFetcher(URLFetcher):
@@ -221,38 +327,35 @@ class _StaticOnlyFetcher(URLFetcher):
     # only needs its own stylesheet, so serve files under static/ and refuse
     # everything else (no network access, no arbitrary local files).
     def fetch(self, url, headers=None):
-        url_path = urlsplit(url).path
-        path = (STATIC_DIR / url_path.removeprefix("/static/")).resolve()
-        if (
-            not url_path.startswith("/static/")
-            or not path.is_file()
-            or STATIC_DIR.resolve() not in path.parents
-        ):
-            raise ValueError(f"blocked resource: {url}")
+        path = _resolve_static_file(url)
         mime = "text/css" if path.suffix == ".css" else "application/octet-stream"
         return URLFetcherResponse(url, path.read_bytes(), {"Content-Type": mime})
+
+
+# A render costs about a second of CPU and ~150 MB, and there is no login, so
+# cap how many run at once instead of letting repeated requests exhaust the box.
+_PDF_RENDER_SLOTS = threading.BoundedSemaphore(2)
+
+
+def _html_to_pdf(html):
+    if not _PDF_RENDER_SLOTS.acquire(blocking=False):
+        abort(503)
+    try:
+        return HTML(
+            string=html,
+            base_url="http://codex.invalid/",
+            url_fetcher=_StaticOnlyFetcher(),
+        ).write_pdf()
+    finally:
+        _PDF_RENDER_SLOTS.release()
 
 
 @app.route("/characters/<character_id>/pdf")
 def character_pdf(character_id):
     # Rendered server-side so margins and page breaks are identical in every
     # browser, instead of depending on each browser's print dialog/engine.
-    if not _valid_character_id(character_id):
-        abort(404)
-    data = _load_character(character_id)
-    if data is None:
-        abort(404)
-    data = _apply_state(data, _load_state(character_id, data))
-    html = render_template(
-        "character_sheet.html",
-        c=data,
-        condition_keys=CONDITION_KEYS,
-        exhaustion_effects=EXHAUSTION_EFFECTS,
-        pdf=True,
-    )
-    pdf = HTML(
-        string=html, base_url="http://codex.invalid/", url_fetcher=_StaticOnlyFetcher()
-    ).write_pdf()
+    data = _character_or_404(character_id)
+    pdf = _html_to_pdf(_render_sheet(character_id, data, pdf=True))
     return Response(
         pdf,
         mimetype="application/pdf",
@@ -276,50 +379,87 @@ def _apply_hp_delta(current, temp, damage, healing, max_hp):
     return current, temp
 
 
-def _state_from_form(form, previous, slot_levels, max_hp):
-    xp_value = form.get("xp")
-    concentration_value = form.get("concentration")
-    hp_current, hp_temp = _apply_hp_delta(
-        _parse_int_field(form, "hp_current", previous["hp_current"]),
-        _parse_int_field(form, "hp_temp", previous["hp_temp"]),
+def _text_field(form, key, previous):
+    value = form.get(key)
+    return value.strip() if value is not None else previous
+
+
+def _as_int(value, default=0):
+    # Currency starts out as whatever the data file holds ("" or "15"), so
+    # coerce before doing arithmetic or comparisons on it.
+    with contextlib.suppress(TypeError, ValueError):
+        return int(value)
+    return default
+
+
+def _clamp(value, low, high):
+    return min(max(value, low), high)
+
+
+def _hp_from_form(form, previous, max_hp):
+    return _apply_hp_delta(
+        _clamp(_parse_int_field(form, "hp_current", previous["hp_current"]), 0, max_hp),
+        max(_parse_int_field(form, "hp_temp", previous["hp_temp"]), 0),
         max(_parse_int_field(form, "damage_taken", 0), 0),
         max(_parse_int_field(form, "healing_received", 0), 0),
         max_hp,
     )
+
+
+def _death_saves_from_form(form):
+    successes = sum(1 for i in range(3) if f"death_success_{i}" in form)
+    failures = sum(1 for i in range(3) if f"death_failure_{i}" in form)
+    return successes, failures
+
+
+def _currency_from_form(form, previous):
+    return {
+        k: max(_parse_int_field(form, f"currency_{k}", _as_int(previous.get(k))), 0)
+        for k in CURRENCY_KEYS
+    }
+
+
+def _slots_used_from_form(form, previous, slot_totals):
+    return {
+        level: _clamp(
+            _parse_int_field(form, f"slot_used_{level}", previous.get(level, 0)),
+            0,
+            total,
+        )
+        for level, total in slot_totals.items()
+    }
+
+
+def _hit_dice_used_from_form(form, previous, hit_dice_total):
+    used = _parse_int_field(form, "hit_dice_used", previous)
+    return _clamp(used, 0, hit_dice_total)
+
+
+def _exhaustion_from_form(form, previous):
+    level = _parse_int_field(form, "exhaustion", previous)
+    return min(max(level, 0), len(EXHAUSTION_EFFECTS))
+
+
+def _state_from_form(form, previous, limits):
+    hp_current, hp_temp = _hp_from_form(form, previous, limits["max_hp"])
+    death_successes, death_failures = _death_saves_from_form(form)
     return {
         "hp_current": hp_current,
         "hp_temp": hp_temp,
-        "hit_dice_used": _parse_int_field(
-            form, "hit_dice_used", previous["hit_dice_used"]
+        "hit_dice_used": _hit_dice_used_from_form(
+            form, previous["hit_dice_used"], limits["hit_dice"]
         ),
-        "death_save_successes": sum(
-            1 for i in range(3) if f"death_success_{i}" in form
-        ),
-        "death_save_failures": sum(1 for i in range(3) if f"death_failure_{i}" in form),
+        "death_save_successes": death_successes,
+        "death_save_failures": death_failures,
         "inspiration": "inspiration" in form,
-        "xp": xp_value.strip() if xp_value is not None else previous["xp"],
-        "concentration": (
-            concentration_value.strip()
-            if concentration_value is not None
-            else previous["concentration"]
+        "xp": _text_field(form, "xp", previous["xp"]),
+        "concentration": _text_field(form, "concentration", previous["concentration"]),
+        "currency": _currency_from_form(form, previous["currency"]),
+        "slot_used": _slots_used_from_form(
+            form, previous["slot_used"], limits["slot_totals"]
         ),
-        "currency": {
-            k: _parse_int_field(
-                form, f"currency_{k}", previous["currency"].get(k, 0) or 0
-            )
-            for k in CURRENCY_KEYS
-        },
-        "slot_used": {
-            level: _parse_int_field(
-                form, f"slot_used_{level}", previous["slot_used"].get(level, 0)
-            )
-            for level in slot_levels
-        },
         "conditions": {k: f"condition_{k}" in form for k in CONDITION_KEYS},
-        "exhaustion": min(
-            max(_parse_int_field(form, "exhaustion", previous["exhaustion"]), 0),
-            len(EXHAUSTION_EFFECTS),
-        ),
+        "exhaustion": _exhaustion_from_form(form, previous["exhaustion"]),
     }
 
 
@@ -354,26 +494,37 @@ def _apply_short_rest(state, char, form):
     return state
 
 
-def _handle_update(character_id, rest=None):
-    if not _same_origin_request(request):
-        abort(403)
-    if not _valid_character_id(character_id):
-        abort(404)
-    data = _load_character(character_id)
-    if data is None:
-        abort(404)
+def _apply_rest(state, char, form, rest):
+    if rest == "long":
+        return _apply_long_rest(state, char)
+    if rest == "short":
+        return _apply_short_rest(state, char, form)
+    return state
+
+
+def _limits_for(char):
+    # Server-side ceilings for the numeric fields; the HTML max= attributes are
+    # only a hint, anything can POST whatever it likes.
+    slots = char.get("spellcasting", {}).get("slots", [])
+    return {
+        "max_hp": char["hp"]["max"],
+        "hit_dice": _hit_dice_count(char["hit_dice"]["total"]),
+        "slot_totals": {slot["level"]: slot["total"] for slot in slots},
+    }
+
+
+def _state_from_submission(character_id, data, form):
     previous = _load_state(character_id, data)
-    slot_levels = [
-        slot["level"] for slot in data.get("spellcasting", {}).get("slots", [])
-    ]
+    return _state_from_form(form, previous, _limits_for(data))
+
+
+def _handle_update(character_id, rest=None):
+    _enforce_same_origin()
+    data = _character_or_404(character_id)
     # Edits typed into the sheet before pressing a rest button are applied
     # first, not silently lost.
-    state = _state_from_form(request.form, previous, slot_levels, data["hp"]["max"])
-    if rest == "long":
-        state = _apply_long_rest(state, data)
-    elif rest == "short":
-        state = _apply_short_rest(state, data, request.form)
-    _save_state(character_id, state)
+    state = _state_from_submission(character_id, data, request.form)
+    _save_state(character_id, _apply_rest(state, data, request.form, rest))
     return redirect(url_for("character_sheet", character_id=character_id))
 
 
@@ -392,4 +543,4 @@ def rest_character(character_id, kind):
 if __name__ == "__main__":
     # Direct "python app.py" is for local template iteration only.
     # The container runs this through gunicorn.conf.py instead (see Dockerfile).
-    app.run(host="0.0.0.0", port=5000, debug=os.environ.get("FLASK_DEBUG") == "1")
+    app.run(host="127.0.0.1", port=5000, debug=os.environ.get("FLASK_DEBUG") == "1")
