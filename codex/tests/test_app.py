@@ -342,6 +342,7 @@ def test_pdf_route_unknown_and_invalid_ids_404(client):
 def test_sheet_links_to_pdf(client):
     body = client.get("/characters/sample_character").data
     assert b'href="/characters/sample_character/pdf"' in body
+    assert b'target="_blank"' in body
 
 
 def test_pdf_fetcher_only_serves_static_files():

@@ -9,7 +9,7 @@
 </head>
 <body>
 <a class="back-link" href="{{ url_for('index') }}">&laquo; Characters</a>
-{% if not pdf %}<a class="pdf-link" href="{{ url_for('character_pdf', character_id=c.id) }}">PDF</a>{% endif %}
+{% if not pdf %}<a class="pdf-link" href="{{ url_for('character_pdf', character_id=c.id) }}" target="_blank" rel="noopener">PDF</a>{% endif %}
 {% include "_footer.html" %}
 <form method="POST" action="{{ url_for('update_character', character_id=c.id) }}">
 <button type="submit" class="save-btn">Save Changes</button>
