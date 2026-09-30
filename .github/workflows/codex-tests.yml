@@ -105,6 +105,9 @@ jobs:
           curl -sf -o /dev/null -w "index: %{http_code}\n" http://localhost:8890/
           curl -sf -o /dev/null -w "sample sheet: %{http_code}\n" \
             http://localhost:8890/characters/sample_character
+          curl -sf -o pdf-smoke.pdf -w "sample pdf: %{http_code} %{content_type}\n" \
+            http://localhost:8890/characters/sample_character/pdf
+          head -c 4 pdf-smoke.pdf | grep -q '%PDF'
 
       - name: Container logs
         if: always()

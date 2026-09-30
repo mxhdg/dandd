@@ -164,18 +164,20 @@ ul.plain { margin: 4px 0 4px 16px; padding: 0; font-size: 11px; }
 input[type="number"].narrow { width: 44px; flex: 0 0 auto; }
 input[type="checkbox"] { width: 14px; height: 14px; vertical-align: middle; }
 
-.save-btn, .back-link, .page-footer {
+.save-btn, .back-link, .pdf-link, .page-footer {
   position: fixed; z-index: 1000;
   border: 2px solid var(--ink); border-radius: 6px;
   font-family: Georgia, "Times New Roman", serif;
   box-shadow: 0 2px 6px rgba(0,0,0,.4);
 }
-.save-btn, .back-link { top: 12px; font-weight: bold; font-size: 13px; padding: 8px 16px; }
+.save-btn, .back-link, .pdf-link { top: 12px; font-weight: bold; font-size: 13px; padding: 8px 16px; }
 .save-btn { right: 12px; background: var(--red); color: var(--parchment); cursor: pointer; }
-.back-link {
-  left: 12px; background: var(--paper); color: var(--ink);
+.back-link, .pdf-link {
+  background: var(--paper); color: var(--ink);
   text-decoration: none; display: inline-block;
 }
+.back-link { left: 12px; }
+.pdf-link { left: 150px; }
 .page-footer {
   bottom: 12px; right: 12px; background: var(--paper); color: var(--ink);
   font-size: 12px; padding: 6px 10px; display: flex; align-items: center; gap: 8px;
@@ -216,9 +218,10 @@ input[type="checkbox"] { width: 14px; height: 14px; vertical-align: middle; }
 .save-banner.stabilized { background: var(--paper); color: var(--ink); }
 
 @media (max-width: 700px) {
-  .save-btn, .back-link { top: 6px; font-size: 11px; padding: 6px 10px; }
+  .save-btn, .back-link, .pdf-link { top: 6px; font-size: 11px; padding: 6px 10px; }
   .save-btn { right: 6px; }
   .back-link { left: 6px; }
+  .pdf-link { left: 100px; }
   .page-footer { bottom: 6px; right: 6px; font-size: 11px; padding: 4px 8px; }
   body { -webkit-text-size-adjust: 100%; }
   .sheet-page { margin: 8px auto; padding: 16px; min-height: 0; box-shadow: none; }
@@ -259,7 +262,7 @@ input[type="checkbox"] { width: 14px; height: 14px; vertical-align: middle; }
     break-inside: avoid;
     page-break-inside: avoid;
   }
-  .save-btn, .back-link, .page-footer, .rest-buttons, .rest-section { display: none; }
+  .save-btn, .back-link, .pdf-link, .page-footer, .rest-buttons, .rest-section { display: none; }
   .section-title { background: none; color: var(--ink); border: 1.5px solid var(--ink); }
   table.attack-table th { background: none; }
   /* Two balanced text columns that fragment across pages (a CSS grid or flex

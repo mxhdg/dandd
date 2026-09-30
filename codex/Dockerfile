@@ -9,8 +9,14 @@ ARG APP_GID=1000
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
+# WeasyPrint (server-side PDF export) needs Pango for text layout and
+# HarfBuzz-Subset for font embedding; fonts-liberation gives the serif/sans
+# faces the sheet's CSS falls back to (Georgia/Times New Roman aren't
+# installed in the slim image).
 RUN apt-get update \
     && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends \
+        libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0 fonts-liberation \
     && rm -rf /var/lib/apt/lists/*
 
 # setuptools ships pre-installed with the base image at a version behind
