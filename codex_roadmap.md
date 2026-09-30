@@ -5,7 +5,7 @@ perspective rather than a generic software backlog. It's not a commitment or
 a schedule, just a place to park ideas between sessions and pull from
 opportunistically.
 
-Grouped below into candidate minor releases (current prod version: 1.1.0),
+Grouped below into candidate minor releases (current prod version: 1.3.0),
 ordered by actual-play pain within each group: how much a mistake or
 friction point it causes at the table right now, not by how easy it'd be to
 build. Group boundaries and version numbers are a rough planning aid, not a
@@ -20,7 +20,7 @@ points.
   in your head, then type the result); a delta field removes the most
   common way to end up with the wrong number on the sheet.
 
-## 1.1.3 (in progress)
+## 1.1.3 (shipped)
 
 - **DONE. Fixed literal `&nbsp;` text shown on the Spellcasting page**
   (e.g. "Cantrips Known" rendered the entity name itself instead of a space
@@ -38,7 +38,7 @@ Actual defects in shipped behavior, not feature gaps. These rank above
 every group below regardless of playability impact, since they're wrong
 output today rather than a missing capability. None currently tracked.
 
-## 1.2.0 — At-the-table combat clarity
+## 1.2.0 (shipped) — At-the-table combat clarity
 
 The highest actual-play pain right now: things forgotten or fumbled
 mid-combat.
@@ -74,16 +74,17 @@ Also added while shipping this release, not originally scoped above:
   spell slots/hit dice, printing, mobile) rather than just the features
   added in this release.
 
-## 1.3.0 — Rest & recovery bookkeeping
+## 1.3.0 (shipped) — Rest & recovery bookkeeping
 
-6. **Long Rest button**: resets HP to max, clears temp HP, restores all
-   spell slots, resets hit dice used to half, clears one level of
-   exhaustion. Right now all of this is manual, field by field, which is
+6. **DONE. Long Rest button**:
+   resets HP to max, clears temp HP and death saves, restores all spell
+   slots, regains half your total hit dice (min 1, per 2014 PHB), clears one
+   level of exhaustion. Right now all of this is manual, field by field, which is
    exactly the kind of bookkeeping that gets rushed or skipped when
    everyone's ready to stop for the night.
-7. **Short Rest button**: prompts for hit dice spent, adds the rolled
+7. **DONE. Short Rest button**: prompts for hit dice spent, adds the rolled
    healing, decrements hit dice remaining.
-8. **Exhaustion level tracker (0-6)** with the effect at the current level
+8. **DONE. Exhaustion level tracker (0-6)** with the effect at the current level
    shown inline. Exhaustion is one of the most commonly misremembered rules
    at most tables, though it comes up less often than the items above.
 
@@ -183,6 +184,22 @@ the live sheet.
     validation/derived-value computation (modifiers, DC, passive
     perception) that creation already gets, instead of that only applying
     the first time a character is made.
+
+    **Level-up is the first-class flow within this mode**, not an
+    afterthought: a dedicated `level-up` path that bumps class level and
+    proficiency bonus, recomputes max HP (roll or average for the new hit
+    die plus CON modifier), adds the hit die, prompts for new class
+    features, ASI/feat at the right levels, and new spells known/prepared
+    and slot counts, then recomputes every derived value. General edit mode
+    (respec, new gear, backstory changes) builds on the same
+    load/prefill/validate/write-back machinery, so design that machinery
+    for level-up first and let the free-form edit mode reuse it. Level-up
+    must only touch `data/<id>.yaml` (the static build), never
+    `state/<id>.yaml`, though it should flag stale state (e.g. current HP
+    above the new max is fine, but spell slots used beyond a changed slot
+    count isn't). Multiclassing is the awkward case to decide up front
+    whether to support. Depends on the schema validation in item 26: edit
+    and level-up should validate before reading and before writing.
 24. **API-guided character creation in `new_character.py`**, sourcing race/
     class/background/equipment/spell lists from the Open5e API
     (`api.open5e.com`) instead of the user typing everything freehand.
@@ -203,6 +220,25 @@ the live sheet.
     rather than being a separate integration. Display only; explicitly not
     a step toward automated dice rolling, which stays out of scope per
     "Explicitly not planned right now" below.
+26. **Schema validation for `data/<id>.yaml`**, a prerequisite for item 23.
+    Define one schema (required keys, types, allowed values, e.g. ability
+    scores as ints, proficiency lists as lists) and check every character
+    file against it. Today `data/character_template.yaml.example` is the
+    only definition of the format, and nothing enforces it. Where it runs:
+    - `new_character.py` edit/level-up: validate on load and again before
+      writing. On failure, list every problem (file, field path, expected
+      vs. found), not just the first, and refuse to write a file that
+      fails.
+    - `app.py`: validate when loading a character. A failure shows a clear
+      error naming the file and fields (on the index page and the sheet
+      route) rather than a 500 or a half-rendered sheet, and one bad file
+      must not break the other characters' listing.
+    - `pytest`: a test that validates `sample_character.yaml` and the
+      template, so schema and sample can't drift apart.
+    Open decision: a JSON Schema checked with `jsonschema` (standard,
+    declarative, but a new dependency) versus a small hand-rolled validator
+    (no new dependency, matches the repo's stdlib-leaning approach). The
+    same question applies to `state/<id>.yaml`, which is lower priority.
 
 ## Unscoped ideas
 
