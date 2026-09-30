@@ -5,7 +5,7 @@ perspective rather than a generic software backlog. It's not a commitment or
 a schedule, just a place to park ideas between sessions and pull from
 opportunistically.
 
-Grouped below into candidate minor releases (current prod version: 1.3.0),
+Grouped below into candidate minor releases (current prod version: 1.3.1),
 ordered by actual-play pain within each group: how much a mistake or
 friction point it causes at the table right now, not by how easy it'd be to
 build. Group boundaries and version numbers are a rough planning aid, not a
@@ -88,7 +88,7 @@ Also added while shipping this release, not originally scoped above:
    shown inline. Exhaustion is one of the most commonly misremembered rules
    at most tables, though it comes up less often than the items above.
 
-## 1.3.1 (in progress) — Code standards refactor
+## 1.3.1 (shipped) — Code standards, tests, efficiency, security
 
 No user-facing change. Brings `app.py` and `scripts/new_character.py` in line
 with the project's code standards (one responsibility per function,
@@ -114,7 +114,7 @@ with the project's code standards (one responsibility per function,
   browser print and PDF. Not done: response compression (would need a new
   dependency for ~17 KB pages on a home LAN) and CSS minification (10 KB of
   CSS, and the repo deliberately has no build step).
-- **DONE (rc3). Security hardening** from a full review: Host-header
+- **DONE. Security hardening** from a full review: Host-header
   allowlist against DNS rebinding (`CODEX_ALLOWED_HOSTS`), escaped cantrip
   list (was `|safe` on raw data), server-side clamping of HP/hit dice/slots/
   currency, PDF concurrency cap, extra response headers, loopback-only dev
@@ -123,7 +123,7 @@ with the project's code standards (one responsibility per function,
   Docker, and Actions. Still open (needs a human): branch protection on
   `main` (GitHub setting), and whether to rewrite git history to drop the
   gitignored-since "howto" files from the public repo.
-- **DONE (rc2). Top-to-bottom tests**: `new_character.py` unit tests (30% -> 100%
+- **DONE. Top-to-bottom tests**: `new_character.py` unit tests (30% -> 100%
   coverage), integration journeys (a full play session, spellcasters,
   script-generated characters rendering in the app, security sweep,
   gunicorn config), tests converted to in-body loops with shared fixtures in
