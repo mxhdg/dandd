@@ -5,11 +5,13 @@ on:
     paths:
       - "codex/**"
       - "!codex/**/*.md"
+      - ".github/workflows/codex-tests.yml"
   push:
     branches: [main]
     paths:
       - "codex/**"
       - "!codex/**/*.md"
+      - ".github/workflows/codex-tests.yml"
   workflow_dispatch: {}
 
 permissions: {}
