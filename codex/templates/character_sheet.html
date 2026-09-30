@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ c.name }}: Character Sheet</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/character_sheet.css') }}">
-{% if pdf %}<link rel="stylesheet" href="{{ url_for('static', filename='css/pdf.css') }}">{% endif %}
+<link rel="stylesheet" href="{{ static_url('css/character_sheet.css') }}">
+{% if pdf %}<link rel="stylesheet" href="{{ static_url('css/pdf.css') }}">{% endif %}
 </head>
 <body>
 <a class="back-link" href="{{ url_for('index') }}">&laquo; Characters</a>
@@ -66,12 +66,12 @@
 
       <div class="boxed-section">
         <div class="section-title">Passive Wisdom (Perception)</div>
-        <div class="box passive-box"><strong style="font-size:16px;">{{ c.passive_perception }}</strong></div>
+        <div class="box passive-box"><strong>{{ c.passive_perception }}</strong></div>
       </div>
 
       <div class="boxed-section">
         <div class="section-title">Other Proficiencies &amp; Languages</div>
-        <div class="box" style="font-size:11px;">
+        <div class="box text-sm">
           <strong>Languages:</strong> {{ c.other_proficiencies.languages }}<br>
           <strong>Armor:</strong> {{ c.other_proficiencies.armor }}<br>
           <strong>Weapons:</strong> {{ c.other_proficiencies.weapons }}<br>
@@ -92,17 +92,17 @@
         <div class="section-title">Hit Points</div>
         <div class="box">
           <div class="field"><span class="label">Hit Point Maximum</span><span class="value">{{ c.hp.max }}</span></div>
-          <div class="field" style="margin-top:6px;"><span class="label">Current Hit Points</span><span class="value"><input type="number" class="sheet-input" name="hp_current" value="{{ c.hp.current }}"></span></div>
-          <div class="field" style="margin-top:6px;"><span class="label">Temporary Hit Points</span><span class="value"><input type="number" class="sheet-input" name="hp_temp" value="{{ c.hp.temp }}"></span></div>
-          <div class="field" style="margin-top:6px;"><span class="label">Damage Taken</span><span class="value"><input type="number" min="0" class="sheet-input" name="damage_taken" value="0"></span></div>
-          <div class="field" style="margin-top:6px;"><span class="label">Healing Received</span><span class="value"><input type="number" min="0" class="sheet-input" name="healing_received" value="0"></span></div>
+          <div class="field mt-6"><span class="label">Current Hit Points</span><span class="value"><input type="number" class="sheet-input" name="hp_current" value="{{ c.hp.current }}"></span></div>
+          <div class="field mt-6"><span class="label">Temporary Hit Points</span><span class="value"><input type="number" class="sheet-input" name="hp_temp" value="{{ c.hp.temp }}"></span></div>
+          <div class="field mt-6"><span class="label">Damage Taken</span><span class="value"><input type="number" min="0" class="sheet-input" name="damage_taken" value="0"></span></div>
+          <div class="field mt-6"><span class="label">Healing Received</span><span class="value"><input type="number" min="0" class="sheet-input" name="healing_received" value="0"></span></div>
         </div>
       </div>
 
       <div class="boxed-section">
         <div class="section-title">Hit Dice / Death Saves</div>
         <div class="box">
-          <div style="font-size:11px;"><strong>Hit Dice:</strong> {{ c.hit_dice.total }} &nbsp; <strong>Used:</strong> <input type="number" min="0" class="narrow" name="hit_dice_used" value="{{ c.hit_dice.used }}"></div>
+          <div class="text-sm"><strong>Hit Dice:</strong> {{ c.hit_dice.total }} &nbsp; <strong>Used:</strong> <input type="number" min="0" class="narrow" name="hit_dice_used" value="{{ c.hit_dice.used }}"></div>
           <div class="death-saves">
             <span><strong>Successes</strong> {% for i in range(3) %}<input type="checkbox" name="death_success_{{ i }}" {% if i < c.death_saves.successes %}checked{% endif %}>{% endfor %}</span>
             <span><strong>Failures</strong> {% for i in range(3) %}<input type="checkbox" name="death_failure_{{ i }}" {% if i < c.death_saves.failures %}checked{% endif %}>{% endfor %}</span>
@@ -119,7 +119,7 @@
         <div class="section-title">Rest</div>
         <div class="box">
           <div class="field"><span class="label">Hit Dice Spent</span><span class="value"><input type="number" min="0" class="sheet-input" name="rest_hit_dice_spent" value="0"></span></div>
-          <div class="field" style="margin-top:6px;"><span class="label">Healing Rolled</span><span class="value"><input type="number" min="0" class="sheet-input" name="rest_healing" value="0"></span></div>
+          <div class="field mt-6"><span class="label">Healing Rolled</span><span class="value"><input type="number" min="0" class="sheet-input" name="rest_healing" value="0"></span></div>
           <div class="rest-buttons">
             <button type="submit" class="rest-btn" formaction="{{ url_for('rest_character', character_id=c.id, kind='short') }}">Short Rest</button>
             <button type="submit" class="rest-btn" formaction="{{ url_for('rest_character', character_id=c.id, kind='long') }}">Long Rest</button>
@@ -173,18 +173,18 @@
 
       <div class="boxed-section">
         <div class="section-title">Equipment</div>
-        <div class="box" style="font-size:10.5px;">
+        <div class="box text-xs">
           <ul class="plain">
             {% for item in c.equipment %}
             <li>{{ item }}</li>
             {% endfor %}
           </ul>
-          <div style="margin-top:6px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-            <span style="white-space:nowrap;"><strong>CP</strong> <input type="number" class="narrow" name="currency_cp" value="{{ c.currency.cp }}"></span>
-            <span style="white-space:nowrap;"><strong>SP</strong> <input type="number" class="narrow" name="currency_sp" value="{{ c.currency.sp }}"></span>
-            <span style="white-space:nowrap;"><strong>EP</strong> <input type="number" class="narrow" name="currency_ep" value="{{ c.currency.ep }}"></span>
-            <span style="white-space:nowrap;"><strong>GP</strong> <input type="number" class="narrow" name="currency_gp" value="{{ c.currency.gp }}"></span>
-            <span style="white-space:nowrap;"><strong>PP</strong> <input type="number" class="narrow" name="currency_pp" value="{{ c.currency.pp }}"></span>
+          <div class="currency-row">
+            <span class="nowrap"><strong>CP</strong> <input type="number" class="narrow" name="currency_cp" value="{{ c.currency.cp }}"></span>
+            <span class="nowrap"><strong>SP</strong> <input type="number" class="narrow" name="currency_sp" value="{{ c.currency.sp }}"></span>
+            <span class="nowrap"><strong>EP</strong> <input type="number" class="narrow" name="currency_ep" value="{{ c.currency.ep }}"></span>
+            <span class="nowrap"><strong>GP</strong> <input type="number" class="narrow" name="currency_gp" value="{{ c.currency.gp }}"></span>
+            <span class="nowrap"><strong>PP</strong> <input type="number" class="narrow" name="currency_pp" value="{{ c.currency.pp }}"></span>
           </div>
         </div>
       </div>
@@ -213,7 +213,7 @@
 
       <div class="boxed-section">
         <div class="section-title">Features &amp; Traits</div>
-        <div class="box" style="max-height: none;">
+        <div class="box">
           {% for f in c.features %}
           <div class="feat-block"><span class="feat-name">{{ f.name }}</span> {{ f.text }}</div>
           {% endfor %}
@@ -225,7 +225,7 @@
 
 <!-- ================= PAGE 2 ================= -->
 <div class="sheet-page">
-  <h1 class="charname" style="font-size:20px;">{{ c.name }}</h1>
+  <h1 class="charname charname-sm">{{ c.name }}</h1>
 
   <div class="appearance-fields">
     <div class="field"><span class="label">Age</span><span class="value">{{ c.appearance.age }}</span></div>
@@ -238,14 +238,14 @@
 
   <div class="boxed-section">
     <div class="section-title">Character Backstory</div>
-    <div class="box" style="font-size:11px; line-height:1.5;">
+    <div class="box prose">
       {{ c.backstory }}
     </div>
   </div>
 
   <div class="boxed-section">
     <div class="section-title">Allies &amp; Organizations</div>
-    <div class="box" style="font-size:11px; line-height:1.5;">
+    <div class="box prose">
       {% for ally in c.allies %}
       <strong>{{ ally.name }}</strong>: {{ ally.text }}{% if not loop.last %}<br><br>{% endif %}
       {% endfor %}
@@ -254,21 +254,21 @@
 
   <div class="boxed-section">
     <div class="section-title">Treasure: {{ c.treasure.title }}</div>
-    <div class="box" style="font-size:11px; line-height:1.5;">
+    <div class="box prose">
       {{ c.treasure.text }}
     </div>
   </div>
 
   <div class="boxed-section">
     <div class="section-title">Additional Features &amp; Traits</div>
-    <div class="box" style="min-height: 60px; font-size:11px;">{{ c.additional_features or '&nbsp;'|safe }}</div>
+    <div class="box text-sm min-h-60">{{ c.additional_features or '&nbsp;'|safe }}</div>
   </div>
 </div>
 
 <!-- ================= PAGE 3 ================= -->
 {% if c.spellcasting %}
 <div class="sheet-page">
-  <h1 class="charname" style="font-size:20px;">{{ c.name }}: Spellcasting</h1>
+  <h1 class="charname charname-sm">{{ c.name }}: Spellcasting</h1>
 
   <div class="spell-header-grid">
     <div class="field"><span class="label">Spellcasting Class</span><span class="value">{{ c.spellcasting.class }}</span></div>
@@ -280,7 +280,7 @@
 
   <div class="boxed-section">
     <div class="section-title">Cantrips Known</div>
-    <div class="box" style="font-size:11px;">{{ c.spellcasting.cantrips | join(' &nbsp;·&nbsp; ') | safe }}</div>
+    <div class="box text-sm">{{ c.spellcasting.cantrips | join(' &nbsp;·&nbsp; ') | safe }}</div>
   </div>
 
   <div class="boxed-section">
@@ -300,7 +300,7 @@
   <div class="boxed-section">
     <div class="section-title">Spells Prepared ({{ c.spellcasting.prepared | length }})</div>
     <div class="box">
-      <div class="spell-list-cols" style="font-size:11px;">
+      <div class="spell-list-cols text-sm">
         <ul class="plain">
           {% for spell in c.spellcasting.prepared %}
           <li>{{ spell }}</li>
@@ -312,7 +312,7 @@
 
   <div class="boxed-section">
     <div class="section-title">Always Prepared ({{ c.spellcasting.class }} subclass, does not count against total)</div>
-    <div class="box" style="font-size:11px;">
+    <div class="box text-sm">
       {% for grp in c.spellcasting.always_prepared %}{{ grp.spells }} <span class="small-note">{{ grp.note }}</span>{% if not loop.last %} &nbsp;&middot;&nbsp; {% endif %}{% endfor %}
     </div>
   </div>
@@ -320,9 +320,9 @@
   {% if c.spellcasting.cannon_modes %}
   <div class="boxed-section">
     <div class="section-title">Eldritch Cannon Modes</div>
-    <div class="box" style="font-size:11px; line-height:1.5;">
+    <div class="box prose">
       {% for mode in c.spellcasting.cannon_modes %}<strong>{{ mode.name }}</strong>: {{ mode.text }}{% if not loop.last %}<br>{% endif %}{% endfor %}
-      <div class="small-note" style="margin-top:4px;">{{ c.spellcasting.cannon_stats }}</div>
+      <div class="small-note mt-4">{{ c.spellcasting.cannon_stats }}</div>
     </div>
   </div>
   {% endif %}

@@ -106,6 +106,14 @@ with the project's code standards (one responsibility per function,
   `max-complexity = 6`, `isort --check` added to the CI lint job, and
   `tests/test_code_standards.py` (function length <= 30 lines, `_` prefix
   on every non-route/non-entry-point function).
+- **DONE. Front-end efficiency**: removed all 27 inline `style=""`
+  attributes (now classes) and dropped `unsafe-inline` from the CSP;
+  cache-busted (`?v=mtime`), immutable static assets; template whitespace
+  trimmed (sheet HTML about 6% smaller); `/favicon.ico` answers 204 instead
+  of a 404 on every page. Verified pixel-identical on desktop, mobile,
+  browser print and PDF. Not done: response compression (would need a new
+  dependency for ~17 KB pages on a home LAN) and CSS minification (10 KB of
+  CSS, and the repo deliberately has no build step).
 - **DONE. Tests** for the newly testable pure helpers
   (`tests/test_new_character.py`).
 

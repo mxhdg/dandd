@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 import pytest
@@ -384,3 +385,29 @@ def test_merge_state_fills_missing_nested_keys_from_defaults():
 def test_death_saves_from_form_counts_checked_boxes():
     form = {"death_success_0": "on", "death_success_2": "on", "death_failure_1": "on"}
     assert app_module._death_saves_from_form(form) == (2, 1)
+
+
+def test_csp_forbids_inline_styles_and_pages_use_none(client):
+    csp = client.get("/").headers["Content-Security-Policy"]
+    assert "unsafe-inline" not in csp
+    for url in ("/", "/guide", "/characters/sample_character"):
+        body = client.get(url).data
+        assert b' style="' not in body
+        assert b"<style" not in body
+
+
+def test_static_assets_are_cache_busted_and_immutable(client):
+    body = client.get("/characters/sample_character").data.decode()
+    match = re.search(r'href="(/static/css/character_sheet\.css\?v=\d+)"', body)
+    assert match
+    resp = client.get(match.group(1))
+    assert "immutable" in resp.headers["Cache-Control"]
+
+
+def test_unversioned_static_is_not_marked_immutable(client):
+    resp = client.get("/static/css/character_sheet.css")
+    assert "immutable" not in resp.headers.get("Cache-Control", "")
+
+
+def test_favicon_is_a_quiet_204(client):
+    assert client.get("/favicon.ico").status_code == 204

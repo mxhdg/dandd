@@ -17,6 +17,9 @@ from weasyprint import HTML, URLFetcher
 from weasyprint.urls import URLFetcherResponse
 
 app = Flask(__name__)
+# Drop the newline/indent around {% %} lines from rendered HTML.
+app.jinja_env.trim_blocks = True
+app.jinja_env.lstrip_blocks = True
 app.config["MAX_CONTENT_LENGTH"] = (
     16 * 1024
 )  # form posts here are a few dozen small fields
@@ -64,6 +67,19 @@ EXHAUSTION_EFFECTS = [
 CHARACTER_ID_RE = re.compile(r"^[A-Za-z0-9_-]+$")
 
 
+@app.after_request
+def cache_versioned_static(response):
+    if request.endpoint == "static" and "v" in request.args:
+        response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+    return response
+
+
+@app.route("/favicon.ico")
+def favicon():
+    # No icon to serve; answering 204 stops browsers logging a 404 per page.
+    return "", 204
+
+
 def _valid_character_id(character_id):
     return bool(CHARACTER_ID_RE.fullmatch(character_id))
 
@@ -79,11 +95,20 @@ def _same_origin_request(req):
     return urlsplit(source).netloc == req.host
 
 
+def _static_url(filename):
+    # The file's mtime in the query string makes each edit a new URL, so the
+    # asset can be cached "forever" (see cache_versioned_static) and still
+    # update the moment it changes.
+    version = int((STATIC_DIR / filename).stat().st_mtime)
+    return url_for("static", filename=filename, v=version)
+
+
 @app.context_processor
-def inject_app_version():
+def inject_template_globals():
     return {
         "app_version": os.environ.get("APP_VERSION", "dev"),
         "app_commit_sha": os.environ.get("APP_COMMIT_SHA", "unknown"),
+        "static_url": _static_url,
     }
 
 
@@ -93,7 +118,7 @@ def set_security_headers(response):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "no-referrer"
     response.headers["Content-Security-Policy"] = (
-        "default-src 'self'; style-src 'self' 'unsafe-inline'; "
+        "default-src 'self'; style-src 'self'; "
         "script-src 'none'; frame-ancestors 'none'; "
         "form-action 'self'; base-uri 'none'; object-src 'none'"
     )
