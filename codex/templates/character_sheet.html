@@ -113,6 +113,18 @@
         </div>
       </div>
 
+      <div class="boxed-section rest-section">
+        <div class="section-title">Rest</div>
+        <div class="box">
+          <div class="field"><span class="label">Hit Dice Spent</span><span class="value"><input type="number" min="0" class="sheet-input" name="rest_hit_dice_spent" value="0"></span></div>
+          <div class="field" style="margin-top:6px;"><span class="label">Healing Rolled</span><span class="value"><input type="number" min="0" class="sheet-input" name="rest_healing" value="0"></span></div>
+          <div class="rest-buttons">
+            <button type="submit" class="rest-btn" formaction="{{ url_for('rest_character', character_id=c.id, kind='short') }}">Short Rest</button>
+            <button type="submit" class="rest-btn" formaction="{{ url_for('rest_character', character_id=c.id, kind='long') }}">Long Rest</button>
+          </div>
+        </div>
+      </div>
+
       <div class="boxed-section">
         <div class="section-title">Conditions</div>
         <div class="box">
@@ -122,6 +134,22 @@
               <input type="checkbox" name="condition_{{ cond }}" {% if c.conditions[cond] %}checked{% endif %}>{{ cond|capitalize }}
             </label>
             {% endfor %}
+          </div>
+          <div class="exhaustion">
+            <label><strong>Exhaustion</strong>
+              <select name="exhaustion" class="narrow">
+                {% for lvl in range(exhaustion_effects|length + 1) %}
+                <option value="{{ lvl }}" {% if lvl == c.exhaustion %}selected{% endif %}>{{ lvl }}</option>
+                {% endfor %}
+              </select>
+            </label>
+            {% if c.exhaustion %}
+            <ol class="exhaustion-effects">
+              {% for effect in exhaustion_effects[:c.exhaustion] %}
+              <li value="{{ loop.index }}">{{ effect }}</li>
+              {% endfor %}
+            </ol>
+            {% endif %}
           </div>
         </div>
       </div>

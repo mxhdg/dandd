@@ -76,14 +76,15 @@ Also added while shipping this release, not originally scoped above:
 
 ## 1.3.0 — Rest & recovery bookkeeping
 
-6. **Long Rest button**: resets HP to max, clears temp HP, restores all
-   spell slots, resets hit dice used to half, clears one level of
-   exhaustion. Right now all of this is manual, field by field, which is
+6. **DONE. Long Rest button**:
+   resets HP to max, clears temp HP and death saves, restores all spell
+   slots, regains half your total hit dice (min 1, per 2014 PHB), clears one
+   level of exhaustion. Right now all of this is manual, field by field, which is
    exactly the kind of bookkeeping that gets rushed or skipped when
    everyone's ready to stop for the night.
-7. **Short Rest button**: prompts for hit dice spent, adds the rolled
+7. **DONE. Short Rest button**: prompts for hit dice spent, adds the rolled
    healing, decrements hit dice remaining.
-8. **Exhaustion level tracker (0-6)** with the effect at the current level
+8. **DONE. Exhaustion level tracker (0-6)** with the effect at the current level
    shown inline. Exhaustion is one of the most commonly misremembered rules
    at most tables, though it comes up less often than the items above.
 
