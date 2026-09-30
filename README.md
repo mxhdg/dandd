@@ -50,7 +50,7 @@ pip install -r requirements-dev.txt
 python -m black --check .   # formatting
 python -m flake8 .          # linting
 python -m isort --check .     # import order
-python -m pytest            # unit tests (Flask test client, no Docker needed)
+python -m pytest --cov      # unit + integration tests with coverage (must stay at 100%)
 ```
 
 The [codex tests](.github/workflows/codex-tests.yml) GitHub Actions workflow runs all of this automatically on every pull request (and push to `main`) that touches `codex/**`, across three jobs:

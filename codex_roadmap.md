@@ -114,6 +114,11 @@ with the project's code standards (one responsibility per function,
   browser print and PDF. Not done: response compression (would need a new
   dependency for ~17 KB pages on a home LAN) and CSS minification (10 KB of
   CSS, and the repo deliberately has no build step).
+- **DONE (rc2). Top-to-bottom tests**: `new_character.py` unit tests (30% -> 100%
+  coverage), integration journeys (a full play session, spellcasters,
+  script-generated characters rendering in the app, security sweep,
+  gunicorn config), tests converted to in-body loops with shared fixtures in
+  `conftest.py`, and a 100% line+branch coverage gate enforced in CI.
 - **DONE. Tests** for the newly testable pure helpers
   (`tests/test_new_character.py`).
 

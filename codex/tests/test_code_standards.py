@@ -7,8 +7,6 @@ length and the leading-underscore rule, which flake8 has no built-in check for.
 import ast
 from pathlib import Path
 
-import pytest
-
 ROOT = Path(__file__).parent.parent
 SOURCE_FILES = [ROOT / "app.py", ROOT / "scripts" / "new_character.py"]
 
@@ -28,26 +26,41 @@ def _functions(path):
     return [n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)]
 
 
-def _cases():
-    return [
-        pytest.param(fn, id=f"{path.name}::{fn.name}")
-        for path in SOURCE_FILES
-        for fn in _functions(path)
+def _all_functions():
+    return [(path, fn) for path in SOURCE_FILES for fn in _functions(path)]
+
+
+def test_functions_are_private_unless_they_must_be_public():
+    offenders = [
+        f"{path.name}::{fn.name}"
+        for path, fn in _all_functions()
+        if not (
+            fn.name.startswith("_") or fn.decorator_list or fn.name in ALLOWED_PUBLIC
+        )
     ]
+    assert not offenders, f"these should start with an underscore: {offenders}"
 
 
-@pytest.mark.parametrize("fn", _cases())
-def test_function_is_private_unless_it_must_be_public(fn):
-    is_registered = bool(fn.decorator_list)
-    assert (
-        fn.name.startswith("_") or is_registered or fn.name in ALLOWED_PUBLIC
-    ), f"{fn.name} should start with an underscore"
-
-
-@pytest.mark.parametrize("fn", _cases())
-def test_function_stays_short_enough_to_do_one_thing(fn):
-    length = fn.end_lineno - fn.lineno + 1
-    assert length <= MAX_FUNCTION_LINES, (
-        f"{fn.name} is {length} lines (max {MAX_FUNCTION_LINES}); "
-        "split it into single-purpose helpers"
+def test_functions_stay_short_enough_to_do_one_thing():
+    offenders = [
+        f"{path.name}::{fn.name} ({fn.end_lineno - fn.lineno + 1} lines)"
+        for path, fn in _all_functions()
+        if fn.end_lineno - fn.lineno + 1 > MAX_FUNCTION_LINES
+    ]
+    assert not offenders, (
+        f"over {MAX_FUNCTION_LINES} lines; split into single-purpose helpers: "
+        f"{offenders}"
     )
+
+
+def test_test_functions_carry_no_decorators():
+    # Cases are looped inside each test body; shared setup lives in conftest.py
+    # fixtures. So no test_* function may be decorated (parametrize, skip, ...).
+    tests_dir = Path(__file__).parent
+    offenders = [
+        f"{path.name}::{fn.name}"
+        for path in sorted(tests_dir.glob("test_*.py"))
+        for fn in _functions(path)
+        if fn.name.startswith("test_") and fn.decorator_list
+    ]
+    assert not offenders, f"move decorator cases into the test body: {offenders}"

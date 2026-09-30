@@ -67,9 +67,9 @@ jobs:
         working-directory: codex
         run: pip install --no-cache-dir -r requirements-dev.txt
 
-      - name: Run pytest
+      - name: Run pytest with coverage (fails under the pyproject threshold)
         working-directory: codex
-        run: python -m pytest
+        run: python -m pytest --cov
 
   docker-smoke-test:
     runs-on: ubuntu-latest
