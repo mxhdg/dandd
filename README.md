@@ -31,6 +31,8 @@ docker compose -f docker-compose.prod.yml up -d
 
 Pulls the published image from `ghcr.io/mxhdg/dandd/codex` and uses standard `/opt/codex/...` bind-mount paths. Set `CODEX_TAG` to pin a specific version instead of `latest`.
 
+The app refuses requests whose `Host` is a public-looking hostname (a guard against DNS-rebinding attacks, since there is no login). `localhost`, IP addresses, single-label names, and `*.local` / `*.lan` / `*.home.arpa` work out of the box; to reach it through any other name (e.g. behind a reverse proxy), set `CODEX_ALLOWED_HOSTS` (comma-separated) in the compose file's `environment:` section.
+
 ### Creating a new character
 
 ```bash
@@ -46,7 +48,7 @@ New to D&D and not sure what to pick for race/class/background before running th
 
 ```bash
 cd codex
-pip install -r requirements-dev.txt
+pip install -r requirements-dev.txt   # hash-pinned; edit requirements*.in and recompile, never the .txt
 python -m black --check .   # formatting
 python -m flake8 .          # linting
 python -m isort --check .     # import order

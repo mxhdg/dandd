@@ -114,6 +114,15 @@ with the project's code standards (one responsibility per function,
   browser print and PDF. Not done: response compression (would need a new
   dependency for ~17 KB pages on a home LAN) and CSS minification (10 KB of
   CSS, and the repo deliberately has no build step).
+- **DONE (rc3). Security hardening** from a full review: Host-header
+  allowlist against DNS rebinding (`CODEX_ALLOWED_HOSTS`), escaped cantrip
+  list (was `|safe` on raw data), server-side clamping of HP/hit dice/slots/
+  currency, PDF concurrency cap, extra response headers, loopback-only dev
+  server, `pids_limit` and `noexec` tmpfs, hash-pinned lock files
+  (`pip-compile`) installed with `--require-hashes`, and Dependabot for pip,
+  Docker, and Actions. Still open (needs a human): branch protection on
+  `main` (GitHub setting), and whether to rewrite git history to drop the
+  gitignored-since "howto" files from the public repo.
 - **DONE (rc2). Top-to-bottom tests**: `new_character.py` unit tests (30% -> 100%
   coverage), integration journeys (a full play session, spellcasters,
   script-generated characters rendering in the app, security sweep,

@@ -6,6 +6,7 @@ directories; nothing touches the real data/ or state/.
 
 import importlib.util
 import re
+import threading
 from pathlib import Path
 
 import pytest
@@ -358,3 +359,128 @@ def test_gunicorn_config_is_loadable_and_sane():
     spec.loader.exec_module(conf)
     assert conf.bind.endswith(":5000")
     assert conf.workers >= 1 and conf.threads >= 1 and conf.timeout >= 30
+
+
+# --- security hardening -----------------------------------------------------
+
+
+def test_host_header_guard_blocks_named_public_hosts(client):
+    blocked = ["evil.example.com", "rebind.attacker.net:8890", "codex.example.com"]
+    for host in blocked:
+        resp = client.get("/", base_url=f"http://{host}")
+        assert resp.status_code == 400, host
+        post = client.post(
+            "/characters/sample_character/update",
+            base_url=f"http://{host}",
+            headers={"Origin": f"http://{host}"},
+        )
+        assert post.status_code == 400, host
+
+
+def test_host_header_guard_allows_local_ip_and_single_label_hosts(client):
+    allowed = [
+        "localhost",
+        "localhost:5000",
+        "127.0.0.1:8890",
+        "10.0.0.5:8890",
+        "[::1]:5000",
+        "codex",
+        "codex:8890",
+        "nas.lan",
+        "codex.local:8890",
+        "codex.home.arpa",
+    ]
+    for host in allowed:
+        assert client.get("/", base_url=f"http://{host}").status_code == 200, host
+
+
+def test_extra_allowed_hosts_come_from_the_environment(client, monkeypatch):
+    url = "http://codex.example.com:8890"
+    assert client.get("/", base_url=url).status_code == 400
+    monkeypatch.setenv("CODEX_ALLOWED_HOSTS", "other.example.com, codex.example.com")
+    assert client.get("/", base_url=url).status_code == 200
+    assert client.get("/", base_url="http://codex.example.com:9").status_code == 200
+    assert client.get("/", base_url="http://evil.example.com").status_code == 400
+    monkeypatch.setenv("CODEX_ALLOWED_HOSTS", "codex.example.com:8890")
+    assert client.get("/", base_url=url).status_code == 200
+    assert client.get("/", base_url="http://codex.example.com:9").status_code == 400
+
+
+def test_host_allowed_rejects_empty_and_garbage(client):
+    assert app_module._host_allowed("") is False
+    assert app_module._host_allowed(":8890") is False
+    assert app_module._host_allowed("LOCALHOST") is True
+
+
+def test_extra_security_headers_are_sent(client):
+    headers = client.get("/").headers
+    assert headers["Cross-Origin-Opener-Policy"] == "same-origin"
+    assert headers["Cross-Origin-Resource-Policy"] == "same-origin"
+    assert "camera=()" in headers["Permissions-Policy"]
+
+
+def test_cantrips_are_escaped_but_the_separator_is_not(client, write_character):
+    spell = {**SPELLCASTING, "cantrips": ["<b>Evil</b>", "Light & Dark"]}
+    write_character("esc", spellcasting=spell)
+    body = client.get("/characters/esc").data.decode()
+    assert "&lt;b&gt;Evil&lt;/b&gt;" in body and "<b>Evil" not in body
+    assert "Light &amp; Dark" in body
+    assert "&lt;b&gt;Evil&lt;/b&gt; &nbsp;·&nbsp; Light &amp; Dark" in body
+
+
+def test_pdf_renders_are_capped_and_the_slot_is_released(client, monkeypatch):
+    monkeypatch.setattr(app_module, "_PDF_RENDER_SLOTS", threading.BoundedSemaphore(1))
+    assert client.get("/characters/sample_character/pdf").status_code == 200
+    # Released after a successful render, so a second one still works.
+    assert client.get("/characters/sample_character/pdf").status_code == 200
+    assert app_module._PDF_RENDER_SLOTS.acquire(blocking=False)
+    assert client.get("/characters/sample_character/pdf").status_code == 503
+
+
+def test_pdf_slot_is_released_when_rendering_fails(client, monkeypatch):
+    class Boom:
+        def __init__(self, **_kwargs):
+            pass
+
+        def write_pdf(self):
+            raise RuntimeError("render failed")
+
+    slots = threading.BoundedSemaphore(1)
+    monkeypatch.setattr(app_module, "_PDF_RENDER_SLOTS", slots)
+    monkeypatch.setattr(app_module, "HTML", Boom)
+    with pytest.raises(RuntimeError):
+        app_module._html_to_pdf("<p>x</p>")
+    assert slots.acquire(blocking=False)
+
+
+def test_numeric_fields_are_clamped_server_side(client, write_character, tmp_path):
+    write_character("clamp", spellcasting=SPELLCASTING)
+    max_hp = app_module._load_character("clamp")["hp"]["max"]
+    dice = app_module._hit_dice_count(
+        app_module._load_character("clamp")["hit_dice"]["total"]
+    )
+    client.post(
+        "/characters/clamp/update",
+        data={
+            "hp_current": "99999",
+            "hp_temp": "-5",
+            "hit_dice_used": "99",
+            "slot_used_1st": "99",
+            "slot_used_2nd": "-3",
+            "currency_gp": "-40",
+        },
+    )
+    state = _saved(tmp_path, "clamp")
+    assert state["hp_current"] == max_hp and state["hp_temp"] == 0
+    assert state["hit_dice_used"] == dice
+    assert state["slot_used"] == {"1st": 4, "2nd": 0}
+    assert state["currency"]["gp"] == 0
+    client.post("/characters/clamp/update", data={"hp_current": "-9"})
+    assert _saved(tmp_path, "clamp")["hp_current"] == 0
+
+
+def test_as_int_coerces_data_file_values():
+    assert app_module._as_int("15") == 15
+    assert app_module._as_int("") == 0
+    assert app_module._as_int(None, 7) == 7
+    assert app_module._as_int("x") == 0

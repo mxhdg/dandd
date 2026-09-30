@@ -1,5 +1,8 @@
+import contextlib
+import ipaddress
 import os
 import re
+import threading
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -112,11 +115,56 @@ def inject_template_globals():
     }
 
 
+# Hostnames a browser can only reach by name if public DNS can resolve them, so
+# a DNS-rebinding page (which needs its own registered domain) can never use
+# one of these; IP literals and single-label names can't be rebound either.
+_LOCAL_NAME_SUFFIXES = (".local", ".lan", ".localdomain", ".home.arpa", ".internal")
+
+
+def _host_name(host):
+    return (urlsplit(f"//{host}").hostname or "").lower()
+
+
+def _is_ip_literal(name):
+    try:
+        ipaddress.ip_address(name)
+    except ValueError:
+        return False
+    return True
+
+
+def _extra_allowed_hosts():
+    raw = os.environ.get("CODEX_ALLOWED_HOSTS", "")
+    return {h.strip().lower() for h in raw.split(",") if h.strip()}
+
+
+def _host_allowed(host):
+    name = _host_name(host)
+    return bool(name) and (
+        host.lower() in _extra_allowed_hosts()
+        or name in _extra_allowed_hosts()
+        or _is_ip_literal(name)
+        or "." not in name
+        or name.endswith(_LOCAL_NAME_SUFFIXES)
+    )
+
+
+@app.before_request
+def enforce_trusted_host():
+    # There is no login, so the Host header is the only thing standing between
+    # this app and a DNS-rebinding page on the same network (see CLAUDE.md).
+    if not _host_allowed(request.host):
+        abort(400)
+
+
 @app.after_request
 def set_security_headers(response):
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "no-referrer"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+    response.headers["Cross-Origin-Resource-Policy"] = "same-origin"
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; style-src 'self'; "
         "script-src 'none'; frame-ancestors 'none'; "
@@ -284,10 +332,22 @@ class _StaticOnlyFetcher(URLFetcher):
         return URLFetcherResponse(url, path.read_bytes(), {"Content-Type": mime})
 
 
+# A render costs about a second of CPU and ~150 MB, and there is no login, so
+# cap how many run at once instead of letting repeated requests exhaust the box.
+_PDF_RENDER_SLOTS = threading.BoundedSemaphore(2)
+
+
 def _html_to_pdf(html):
-    return HTML(
-        string=html, base_url="http://codex.invalid/", url_fetcher=_StaticOnlyFetcher()
-    ).write_pdf()
+    if not _PDF_RENDER_SLOTS.acquire(blocking=False):
+        abort(503)
+    try:
+        return HTML(
+            string=html,
+            base_url="http://codex.invalid/",
+            url_fetcher=_StaticOnlyFetcher(),
+        ).write_pdf()
+    finally:
+        _PDF_RENDER_SLOTS.release()
 
 
 @app.route("/characters/<character_id>/pdf")
@@ -324,10 +384,22 @@ def _text_field(form, key, previous):
     return value.strip() if value is not None else previous
 
 
+def _as_int(value, default=0):
+    # Currency starts out as whatever the data file holds ("" or "15"), so
+    # coerce before doing arithmetic or comparisons on it.
+    with contextlib.suppress(TypeError, ValueError):
+        return int(value)
+    return default
+
+
+def _clamp(value, low, high):
+    return min(max(value, low), high)
+
+
 def _hp_from_form(form, previous, max_hp):
     return _apply_hp_delta(
-        _parse_int_field(form, "hp_current", previous["hp_current"]),
-        _parse_int_field(form, "hp_temp", previous["hp_temp"]),
+        _clamp(_parse_int_field(form, "hp_current", previous["hp_current"]), 0, max_hp),
+        max(_parse_int_field(form, "hp_temp", previous["hp_temp"]), 0),
         max(_parse_int_field(form, "damage_taken", 0), 0),
         max(_parse_int_field(form, "healing_received", 0), 0),
         max_hp,
@@ -342,16 +414,25 @@ def _death_saves_from_form(form):
 
 def _currency_from_form(form, previous):
     return {
-        k: _parse_int_field(form, f"currency_{k}", previous.get(k, 0) or 0)
+        k: max(_parse_int_field(form, f"currency_{k}", _as_int(previous.get(k))), 0)
         for k in CURRENCY_KEYS
     }
 
 
-def _slots_used_from_form(form, previous, slot_levels):
+def _slots_used_from_form(form, previous, slot_totals):
     return {
-        level: _parse_int_field(form, f"slot_used_{level}", previous.get(level, 0))
-        for level in slot_levels
+        level: _clamp(
+            _parse_int_field(form, f"slot_used_{level}", previous.get(level, 0)),
+            0,
+            total,
+        )
+        for level, total in slot_totals.items()
     }
+
+
+def _hit_dice_used_from_form(form, previous, hit_dice_total):
+    used = _parse_int_field(form, "hit_dice_used", previous)
+    return _clamp(used, 0, hit_dice_total)
 
 
 def _exhaustion_from_form(form, previous):
@@ -359,14 +440,14 @@ def _exhaustion_from_form(form, previous):
     return min(max(level, 0), len(EXHAUSTION_EFFECTS))
 
 
-def _state_from_form(form, previous, slot_levels, max_hp):
-    hp_current, hp_temp = _hp_from_form(form, previous, max_hp)
+def _state_from_form(form, previous, limits):
+    hp_current, hp_temp = _hp_from_form(form, previous, limits["max_hp"])
     death_successes, death_failures = _death_saves_from_form(form)
     return {
         "hp_current": hp_current,
         "hp_temp": hp_temp,
-        "hit_dice_used": _parse_int_field(
-            form, "hit_dice_used", previous["hit_dice_used"]
+        "hit_dice_used": _hit_dice_used_from_form(
+            form, previous["hit_dice_used"], limits["hit_dice"]
         ),
         "death_save_successes": death_successes,
         "death_save_failures": death_failures,
@@ -374,7 +455,9 @@ def _state_from_form(form, previous, slot_levels, max_hp):
         "xp": _text_field(form, "xp", previous["xp"]),
         "concentration": _text_field(form, "concentration", previous["concentration"]),
         "currency": _currency_from_form(form, previous["currency"]),
-        "slot_used": _slots_used_from_form(form, previous["slot_used"], slot_levels),
+        "slot_used": _slots_used_from_form(
+            form, previous["slot_used"], limits["slot_totals"]
+        ),
         "conditions": {k: f"condition_{k}" in form for k in CONDITION_KEYS},
         "exhaustion": _exhaustion_from_form(form, previous["exhaustion"]),
     }
@@ -419,12 +502,20 @@ def _apply_rest(state, char, form, rest):
     return state
 
 
+def _limits_for(char):
+    # Server-side ceilings for the numeric fields; the HTML max= attributes are
+    # only a hint, anything can POST whatever it likes.
+    slots = char.get("spellcasting", {}).get("slots", [])
+    return {
+        "max_hp": char["hp"]["max"],
+        "hit_dice": _hit_dice_count(char["hit_dice"]["total"]),
+        "slot_totals": {slot["level"]: slot["total"] for slot in slots},
+    }
+
+
 def _state_from_submission(character_id, data, form):
     previous = _load_state(character_id, data)
-    slot_levels = [
-        slot["level"] for slot in data.get("spellcasting", {}).get("slots", [])
-    ]
-    return _state_from_form(form, previous, slot_levels, data["hp"]["max"])
+    return _state_from_form(form, previous, _limits_for(data))
 
 
 def _handle_update(character_id, rest=None):
@@ -452,4 +543,4 @@ def rest_character(character_id, kind):
 if __name__ == "__main__":
     # Direct "python app.py" is for local template iteration only.
     # The container runs this through gunicorn.conf.py instead (see Dockerfile).
-    app.run(host="0.0.0.0", port=5000, debug=os.environ.get("FLASK_DEBUG") == "1")
+    app.run(host="127.0.0.1", port=5000, debug=os.environ.get("FLASK_DEBUG") == "1")

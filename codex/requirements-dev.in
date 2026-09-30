@@ -1,0 +1,12 @@
+# Dev/test tooling on top of the runtime set. requirements-dev.txt is generated
+# from this file (with hashes); -c keeps shared packages on the exact versions
+# already locked in requirements.txt. Regenerate with:
+#   docker run --rm -v "$PWD":/w -w /w -e HOME=/tmp --user "$(id -u)" python:3.14-slim \
+#     sh -c "pip install -q pip-tools && python -m piptools compile --generate-hashes -q requirements-dev.in"
+-r requirements.in
+-c requirements.txt
+pytest==9.1.1
+pytest-cov==7.1.0
+black==26.5.1
+flake8==7.3.0
+isort==9.0.1

@@ -1,0 +1,28 @@
+version: 2
+
+updates:
+  # requirements.in / requirements-dev.in (+ their hashed .txt locks). Dependabot
+  # recognises the pip-compile pair and regenerates the lock when it bumps a pin.
+  - package-ecosystem: "pip"
+    directory: "/codex"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    groups:
+      dev-tools:
+        patterns: ["pytest*", "black", "flake8", "isort"]
+
+  # Base image tag + digest in codex/Dockerfile.
+  - package-ecosystem: "docker"
+    directory: "/codex"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+
+  # The SHA-pinned actions in .github/workflows/.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
