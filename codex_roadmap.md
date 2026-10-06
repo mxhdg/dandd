@@ -216,6 +216,18 @@ then 23 (edit/level-up mode), then 24 (Open5e-guided creation), then 25.
     done: per-spell details (time/range/components/duration/save) and
     limited-use trackers (1/Long Rest features, Staff charges, Portent dice).
 
+28. **Revisit the gunicorn 26 upgrade (target 1.4.0-rc3, or rc4).** Held at
+    23.0.0 in rc2 (Dependabot PR #21). Under 26.2.0 the hardened container
+    logs `Control server error: Permission denied: '/home/appuser'` at
+    startup; the app still served requests, but the root filesystem is
+    read-only and the new control socket tries to write to the home
+    directory. Candidate fix, untested: `control_socket_disable = True` in
+    `gunicorn.conf.py` (CLI `--no-control-socket`), or point the socket at
+    `/tmp`. Verify under the real compose files (read-only root, `/tmp`
+    `noexec`), not just a plain `docker run`, and check the 23 to 26 release
+    notes for other breaking changes. Until then, close or ignore PR #21 so
+    Dependabot stops reopening it.
+
 ## 1.5.0 — DM session tools
 
 DM-facing prep/mid-session pain that exists right now regardless of party
