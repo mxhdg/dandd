@@ -1,6 +1,6 @@
 id: ''
 name: ''
-class_level: ''
+class_level: ''  # multiclass: "Fighter 3 / Ranger 1"
 background: ''
 player_name: ''
 edition: '2014'
@@ -135,7 +135,7 @@ hp:
   current: ''
   temp: ''
 hit_dice:
-  total: 1d8
+  total: 1d8  # multiclass: "3d10 + 1d8"
 attacks: []
 attack_note: ''
 equipment: []

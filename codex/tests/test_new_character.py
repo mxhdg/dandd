@@ -138,6 +138,24 @@ def test_ask_ability_inputs_derives_proficiency_bonus_from_level(nc, respond):
     assert expertise == {"Athletics"}
 
 
+def test_total_level_sums_every_class(nc):
+    cases = [
+        ("Fighter 3 / Ranger 1", 4),
+        ("Wizard 5 (Evoker), Cleric 2", 7),
+        ("Artificer 5 (Artillerist)", 5),
+        ("Fighter 3 / Ranger", 3),
+        ("", 0),
+    ]
+    for class_level, total in cases:
+        assert nc._total_level(class_level) == total
+
+
+def test_ask_ability_inputs_defaults_level_to_multiclass_total(nc, respond):
+    respond({})
+    prof_bonus = nc._ask_ability_inputs("Fighter 3 / Ranger 2")[1]
+    assert prof_bonus == 3
+
+
 def test_full_abilities_saves_skills_composes_prompt_and_compute(nc, respond):
     respond({"Strength": "16", "Proficient saving throws": "Strength"})
     abilities, saves, skills, prof_bonus, passive = nc._full_abilities_saves_skills()
