@@ -3,6 +3,6 @@
 #   docker run --rm -v "$PWD":/w -w /w -e HOME=/tmp --user "$(id -u)" python:3.14-slim \
 #     sh -c "pip install -q pip-tools && python -m piptools compile --generate-hashes -q requirements.in"
 Flask==3.1.3
-PyYAML==6.0.2
+PyYAML==6.0.3
 gunicorn==23.0.0
 weasyprint==70.0
