@@ -128,12 +128,14 @@ def test_ask_ability_inputs_derives_proficiency_bonus_from_level(nc, respond):
             "Character level": "5",
             "Proficient saving throws": "Strength",
             "Proficient skills": "Athletics",
+            "Skills with expertise": "Athletics, Stealth",
         }
     )
-    scores, prof_bonus, prof_saves, prof_skills = nc._ask_ability_inputs()
+    scores, prof_bonus, prof_saves, prof_skills, expertise = nc._ask_ability_inputs()
     assert scores["Strength"] == 16 and scores["Dexterity"] == 10
     assert prof_bonus == 3
     assert prof_saves == {"Strength"} and prof_skills == {"Athletics"}
+    assert expertise == {"Athletics"}
 
 
 def test_full_abilities_saves_skills_composes_prompt_and_compute(nc, respond):
@@ -211,10 +213,12 @@ def test_ask_identity_fields(nc, respond):
     respond({"Class & level": "Wizard 3", "Race": "Elf"})
     identity = nc._ask_identity_fields()
     assert identity["class_level"] == "Wizard 3" and identity["race"] == "Elf"
+    assert identity["edition"] == "2014"
     assert set(identity) == {
         "class_level",
         "background",
         "player_name",
+        "edition",
         "race",
         "alignment",
     }
@@ -357,3 +361,32 @@ def test_main_overwrites_when_confirmed(nc, argv, respond, tmp_path, monkeypatch
     respond({"overwrite": "y"})
     nc.main()
     assert yaml.safe_load((tmp_path / "tess.yaml").read_text())["name"] == "Tess"
+
+
+def test_compute_doubles_proficiency_for_expertise(nc):
+    _, _, skills, _, _ = nc._compute_abilities_saves_skills(
+        _scores(nc, Intelligence=20), 2, set(), {"Arcana", "History"}, {"Arcana"}
+    )
+    by_skill = {s["name"]: s for s in skills}
+    assert (
+        by_skill["Arcana"]["mod"] == "+9" and by_skill["Arcana"]["prof"] == "expertise"
+    )
+    assert by_skill["History"]["mod"] == "+7" and by_skill["History"]["prof"] is True
+
+
+def test_compute_ignores_expertise_without_proficiency(nc):
+    _, _, skills, _, _ = nc._compute_abilities_saves_skills(
+        _scores(nc), 2, set(), set(), {"Arcana"}
+    )
+    assert next(s for s in skills if s["name"] == "Arcana")["prof"] is False
+
+
+def test_ask_edition_reprompts_until_valid(nc, respond):
+    respond({"Rules edition": ["2019", "2024"]})
+    assert nc._ask_edition() == "2024"
+
+
+def test_ask_identity_fields_uses_species_label_for_2024(nc, respond):
+    prompts = respond({"Rules edition": "2024", "Species": "Human"})
+    assert nc._ask_identity_fields()["race"] == "Human"
+    assert any("Species" in p for p in prompts)

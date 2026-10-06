@@ -398,3 +398,44 @@ def test_unversioned_static_is_not_marked_immutable(client):
 
 def test_favicon_is_a_quiet_204(client):
     assert client.get("/favicon.ico").status_code == 204
+
+
+def test_sheet_labels_species_for_2024_and_race_otherwise(client, write_character):
+    write_character("old_rules")
+    write_character("new_rules", edition="2024")
+    old = client.get("/characters/old_rules").get_data(as_text=True)
+    new = client.get("/characters/new_rules").get_data(as_text=True)
+    assert '<span class="label">Race</span>' in old
+    assert '<span class="label">Species</span>' in new
+
+
+def test_sheet_marks_expertise_skills(client, write_character):
+    sample = Path(app_module.__file__).parent / "data/sample_character.yaml"
+    char = yaml.safe_load(sample.read_text(encoding="utf-8"))
+    for skill in char["skills"]:
+        skill["prof"] = "expertise" if skill["name"] == "Athletics" else skill["prof"]
+    write_character("expert", skills=char["skills"])
+    html = client.get("/characters/expert").get_data(as_text=True)
+    assert html.count("chk filled expertise") == 1
+
+
+def test_attack_notes_column_only_appears_when_an_attack_has_notes(
+    client, write_character
+):
+    write_character("plain")
+    write_character(
+        "noted",
+        attacks=[
+            {
+                "name": "Dagger",
+                "bonus": "+5",
+                "damage": "1d4",
+                "range": "Melee",
+                "notes": "Finesse, Thrown",
+            }
+        ],
+    )
+    plain = client.get("/characters/plain").get_data(as_text=True)
+    noted = client.get("/characters/noted").get_data(as_text=True)
+    assert "<th>Notes</th>" not in plain
+    assert "<th>Notes</th>" in noted and "Finesse, Thrown" in noted

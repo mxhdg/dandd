@@ -10,7 +10,8 @@ ordered by actual-play pain within each group: how much a mistake or
 friction point it causes at the table right now, not by how easy it'd be to
 build. Group boundaries and version numbers are a rough planning aid, not a
 committed schedule; re-shuffle freely as actual play surfaces new pain
-points.
+points. One deliberate exception: character creation tooling (1.4.0) was
+moved ahead of the DM session tools, by choice rather than by play pain.
 
 ## 1.1.0 (shipped)
 
@@ -29,7 +30,7 @@ points.
   `|safe`. Found 2026-09 while verifying the print-layout fix below.
 - **DONE. Fixed print layout scattering content across pages** (the
   3-column CSS grid couldn't fragment across a print page break, and Hit
-  Points landed on page 2 instead of page 1). See item 17 under 1.6.0 for
+  Points landed on page 2 instead of page 1). See item 17 under 1.7.0 for
   the remaining page-density follow-up.
 
 ## Known bugs (fix before new features)
@@ -131,92 +132,14 @@ with the project's code standards (one responsibility per function,
 - **DONE. Tests** for the newly testable pure helpers
   (`tests/test_new_character.py`).
 
-## 1.4.0 — DM session tools
-
-DM-facing prep/mid-session pain that exists right now regardless of party
-size, unlike the party-overview/initiative items below which explicitly
-wait on more characters being in the app.
-
-9. **Monster/NPC stat block viewer**, pulling from a campaign repo's
-   `monsters.md` (e.g. `TheChillBeneaththeCrust/arc-vanilla-vault/monsters.md`),
-   so the DM gets the same clean sheet treatment for monsters that players
-   get for characters.
-10. **Session notes field per character**: a scratchpad for things like
-   "already used Lucky reroll this fight" or loot/plot reminders that don't
-   belong on the permanent sheet.
-11. **Party overview page**: one screen showing every character's current
-    HP/AC/conditions at a glance, so the DM isn't clicking through separate
-    sheets mid-combat. Bigger payoff once more than one character is in the
-    app; only Marigold is wired in today.
-12. **Initiative tracker** tied to the party overview. Juggling initiative
-    order on paper is one of the most common things to fumble at the table,
-    but like the party overview, the payoff scales with party size.
-
-## 1.5.0 — Multi-character & session history
-
-13. **Character switcher** on the sheet page itself (dropdown or tab strip)
-    instead of going back to the list. Useful once more than one or two
-    characters are in the app.
-14. **Session snapshots**: a way to save a dated copy of a character's state
-    at the end of a session, so there's an actual record of HP/inventory/XP
-    over time instead of relying on memory of where things were left off.
-
-## 1.6.0 — Polish & convenience
-
-Lower urgency: preference-driven or already partially covered by an
-existing workaround.
-
-15. **Inline attack/damage roller** for weapons and cannon modes: tap "Light
-    Crossbow" and get an attack roll plus damage roll without leaving the
-    sheet. This is a table-preference change, not a friction fix, worth
-    asking the table about first since some groups want physical dice no
-    matter what.
-16. **Print/PDF export button.** The sheet already visually matches the
-    official layout, so this is mostly wiring up print CSS that's already
-    most of the way there. Low pain today since the browser's own print
-    dialog already covers this in a pinch.
-17. **Further optimize the print layout for page count/density.** The
-    2026-09 pagination fix (single-column print flow instead of the
-    3-column CSS grid, which browsers can't fragment across a page break;
-    reordering columns so Hit Points lands on page 1 instead of the long
-    abilities/skills column pushing it to page 2; wrapping ability score
-    boxes into a compact row instead of each spanning the full page width)
-    fixed the worst breakage and wasted space, but the print output still
-    isn't tightly packed — more pages than strictly necessary, uneven
-    whitespace per page. Revisit with more time to explore a denser
-    print-only layout (e.g. CSS multi-column, or hand-tuned per-section
-    widths) without reintroducing the grid-fragmentation bug it just fixed.
-18. **Lightweight per-character lock** (a PIN, not a full account system) so
-    one player can't accidentally edit another's sheet mid-session. Doesn't
-    need to be more than that unless there's an actual reason for real
-    accounts later, and doesn't matter until more players share the app.
-    Separate concern from the CSRF/CSP hardening done 2026-09 — this is
-    about accidental cross-edits between trusted players, not a hostile
-    request forgery.
-19. **Make the Trivy image scan blocking** in `codex-image.yml` for
-    HIGH/CRITICAL findings, instead of the current non-blocking report-only
-    scan. Right now a real CVE in a future base-image bump ships silently;
-    low urgency since a home-LAN app isn't a high-value target, but cheap
-    to tighten once noticed.
-20. **Add to Home Screen support** (a small web manifest), so the sheet
-    opens like an app icon on a phone instead of a bookmarked tab.
-21. **Derived stats from equipment** (encumbrance, AC changing with
-    equipped armor) instead of everything being hand-typed into
-    `data/<id>.yaml`. Would need the equipment list to become structured
-    entries (weight, armor type, an equipped flag) rather than the current
-    plain list of strings — a data-model change, not just a display one.
-22. **Selectable color themes.** Right now the parchment/red palette is
-    the only option (`--red`/`--parchment`/`--paper`/`--ink`/`--rule`
-    custom properties in `character_sheet.css`, already centralized
-    enough to swap). Exact shape TBD — per-character preference stored in
-    `data/<id>.yaml`? a query param? something else? — and how it should
-    interact with the existing `@media print` override, which already
-    repurposes those same variables for black-on-white output.
-
-## 1.7.0 — Character creation tooling
+## 1.4.0 — Character creation tooling (next)
 
 Separate from actual-play pain entirely; touches `new_character.py`, not
-the live sheet.
+the live sheet (item 25 is the one exception, a live-sheet lookup that shares
+item 24's content source). Prioritized ahead of the DM tools.
+
+**Suggested order:** 26 (schema validation) first, since 23 depends on it,
+then 23 (edit/level-up mode), then 24 (Open5e-guided creation), then 25.
 
 23. **Edit-existing-character mode in `new_character.py`**, alongside the
     current `skeleton`/`full` creation modes: point it at an existing
@@ -282,6 +205,98 @@ the live sheet.
     declarative, but a new dependency) versus a small hand-rolled validator
     (no new dependency, matches the repo's stdlib-leaning approach). The
     same question applies to `state/<id>.yaml`, which is lower priority.
+
+27. **DONE (1.4.0-rc1). Import-friendliness schema additions**, found while
+    hand-converting a D&D Beyond (2024-rules) PDF sheet into
+    `data/<id>.yaml`: (a) skill `prof` accepts `"expertise"` (doubles the
+    proficiency bonus, shown as a ringed checkbox), (b) attacks take an
+    optional `notes` string (extra Notes column only when used), (c) an
+    optional `edition` field (`"2014"` default, `"2024"` labels "Race" as
+    "Species"). `new_character.py` prompts for all three. Deferred, not
+    done: per-spell details (time/range/components/duration/save) and
+    limited-use trackers (1/Long Rest features, Staff charges, Portent dice).
+
+## 1.5.0 — DM session tools
+
+DM-facing prep/mid-session pain that exists right now regardless of party
+size, unlike the party-overview/initiative items below which explicitly
+wait on more characters being in the app.
+
+9. **Monster/NPC stat block viewer**, pulling from a campaign repo's
+   `monsters.md` (e.g. `TheChillBeneaththeCrust/arc-vanilla-vault/monsters.md`),
+   so the DM gets the same clean sheet treatment for monsters that players
+   get for characters.
+10. **Session notes field per character**: a scratchpad for things like
+   "already used Lucky reroll this fight" or loot/plot reminders that don't
+   belong on the permanent sheet.
+11. **Party overview page**: one screen showing every character's current
+    HP/AC/conditions at a glance, so the DM isn't clicking through separate
+    sheets mid-combat. Bigger payoff once more than one character is in the
+    app; only Marigold is wired in today.
+12. **Initiative tracker** tied to the party overview. Juggling initiative
+    order on paper is one of the most common things to fumble at the table,
+    but like the party overview, the payoff scales with party size.
+
+## 1.6.0 — Multi-character & session history
+
+13. **Character switcher** on the sheet page itself (dropdown or tab strip)
+    instead of going back to the list. Useful once more than one or two
+    characters are in the app.
+14. **Session snapshots**: a way to save a dated copy of a character's state
+    at the end of a session, so there's an actual record of HP/inventory/XP
+    over time instead of relying on memory of where things were left off.
+
+## 1.7.0 — Polish & convenience
+
+Lower urgency: preference-driven or already partially covered by an
+existing workaround.
+
+15. **Inline attack/damage roller** for weapons and cannon modes: tap "Light
+    Crossbow" and get an attack roll plus damage roll without leaving the
+    sheet. This is a table-preference change, not a friction fix, worth
+    asking the table about first since some groups want physical dice no
+    matter what.
+16. **Print/PDF export button.** The sheet already visually matches the
+    official layout, so this is mostly wiring up print CSS that's already
+    most of the way there. Low pain today since the browser's own print
+    dialog already covers this in a pinch.
+17. **Further optimize the print layout for page count/density.** The
+    2026-09 pagination fix (single-column print flow instead of the
+    3-column CSS grid, which browsers can't fragment across a page break;
+    reordering columns so Hit Points lands on page 1 instead of the long
+    abilities/skills column pushing it to page 2; wrapping ability score
+    boxes into a compact row instead of each spanning the full page width)
+    fixed the worst breakage and wasted space, but the print output still
+    isn't tightly packed — more pages than strictly necessary, uneven
+    whitespace per page. Revisit with more time to explore a denser
+    print-only layout (e.g. CSS multi-column, or hand-tuned per-section
+    widths) without reintroducing the grid-fragmentation bug it just fixed.
+18. **Lightweight per-character lock** (a PIN, not a full account system) so
+    one player can't accidentally edit another's sheet mid-session. Doesn't
+    need to be more than that unless there's an actual reason for real
+    accounts later, and doesn't matter until more players share the app.
+    Separate concern from the CSRF/CSP hardening done 2026-09 — this is
+    about accidental cross-edits between trusted players, not a hostile
+    request forgery.
+19. **Make the Trivy image scan blocking** in `codex-image.yml` for
+    HIGH/CRITICAL findings, instead of the current non-blocking report-only
+    scan. Right now a real CVE in a future base-image bump ships silently;
+    low urgency since a home-LAN app isn't a high-value target, but cheap
+    to tighten once noticed.
+20. **Add to Home Screen support** (a small web manifest), so the sheet
+    opens like an app icon on a phone instead of a bookmarked tab.
+21. **Derived stats from equipment** (encumbrance, AC changing with
+    equipped armor) instead of everything being hand-typed into
+    `data/<id>.yaml`. Would need the equipment list to become structured
+    entries (weight, armor type, an equipped flag) rather than the current
+    plain list of strings — a data-model change, not just a display one.
+22. **Selectable color themes.** Right now the parchment/red palette is
+    the only option (`--red`/`--parchment`/`--paper`/`--ink`/`--rule`
+    custom properties in `character_sheet.css`, already centralized
+    enough to swap). Exact shape TBD — per-character preference stored in
+    `data/<id>.yaml`? a query param? something else? — and how it should
+    interact with the existing `@media print` override, which already
+    repurposes those same variables for black-on-white output.
 
 ## Unscoped ideas
 
