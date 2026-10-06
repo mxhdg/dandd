@@ -228,6 +228,26 @@ then 23 (edit/level-up mode), then 24 (Open5e-guided creation), then 25.
     notes for other breaking changes. Until then, close or ignore PR #21 so
     Dependabot stops reopening it.
 
+29. **Image scan follow-ups (same rc3/rc4 pass as item 28).** From the
+    `v1.4.0-rc2` Trivy scan (non-blocking, exit-code 0): 48 HIGH on Debian
+    13.7, 4 HIGH in Python, 0 CRITICAL.
+    - **Remove pip from the final image** (e.g. `pip uninstall -y pip` as the
+      last build step, after the `--require-hashes` install). All 4 Python
+      findings (msgpack 1.1.2, setuptools 70.3.0, urllib3 2.7.0 x2) are
+      copies vendored inside the base image's pip 26.2.1, not the app's real
+      dependencies, which all scan clean. Untested: confirm the app and
+      `/pdf` still work, the smoke test passes, and the findings clear. Also
+      update the Dockerfile comment that says the vendored msgpack can't be
+      fixed.
+    - **Debian findings: nothing to do yet.** None has a fixed version
+      (util-linux's 4 CVEs repeat across about 11 sub-packages; also expat,
+      ncurses, systemd/udev, libacl1, perl-base). All need mount/namespace
+      privileges the non-root, cap-dropped container doesn't have. Re-scan
+      after each base-image digest bump (Dependabot) and re-check then.
+    - **Trivy is 5 minor versions behind** (0.70.0 vs 0.75.0 available). The
+      version comes from the pinned `trivy-action` default, so it moves when
+      Dependabot bumps the action; no manual change needed.
+
 ## 1.5.0 — DM session tools
 
 DM-facing prep/mid-session pain that exists right now regardless of party
