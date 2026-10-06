@@ -24,6 +24,8 @@ import yaml
 DATA_DIR = Path(__file__).parent.parent / "data"
 
 ID_RE = re.compile(r"^[A-Za-z0-9_-]+$")
+_SUBCLASS_RE = re.compile(r"\([^)]*\)")
+_CLASS_LEVEL_RE = re.compile(r"(\d+)\s*(?=[/,]|$)")
 
 ABILITIES = [
     "Strength",
@@ -79,6 +81,13 @@ def _fmt_mod(n):
 
 def _proficiency_bonus(level):
     return 2 + (max(level, 1) - 1) // 4
+
+
+def _total_level(class_level):
+    # "Fighter 3 / Ranger 1 (Hunter)" -> 4: the number that ends each
+    # "/"- or ","-separated class, once parenthesised subclasses are dropped.
+    classes = _SUBCLASS_RE.sub("", class_level)
+    return sum(int(level) for level in _CLASS_LEVEL_RE.findall(classes))
 
 
 def _ask(prompt_text, default=""):
@@ -146,10 +155,13 @@ def _skeleton_abilities_saves_skills():
     return abilities, saves, skills, 2, 10
 
 
-def _ask_ability_inputs():
+def _ask_ability_inputs(class_level=""):
     print("\nAbility scores:")
     scores = {a: _ask_int(f"  {a}", 10) for a in ABILITIES}
-    level = _ask_int("Character level (for proficiency bonus)", 1)
+    level = _ask_int(
+        "Character level (total across all classes, for proficiency bonus)",
+        _total_level(class_level) or 1,
+    )
     prof_bonus = _proficiency_bonus(level)
     print(f"  proficiency bonus: {_fmt_mod(prof_bonus)}")
     prof_saves = _ask_names("Proficient saving throws", ABILITIES)
@@ -198,8 +210,8 @@ def _compute_abilities_saves_skills(
     return abilities, saves, skills, prof_bonus, 10 + perception_mod
 
 
-def _full_abilities_saves_skills():
-    return _compute_abilities_saves_skills(*_ask_ability_inputs())
+def _full_abilities_saves_skills(class_level=""):
+    return _compute_abilities_saves_skills(*_ask_ability_inputs(class_level))
 
 
 def _ask_spell_slots():
@@ -222,7 +234,7 @@ def _build_spellcasting():
         return None
     slots = _ask_spell_slots()
     return {
-        "class": _ask("Spellcasting class"),
+        "class": _ask("Spellcasting class (or classes, e.g. 'Wizard / Cleric')"),
         "ability": _ask("Spellcasting ability (e.g. Intelligence)"),
         "save_dc": _ask_int("Spell save DC", 10),
         "attack_bonus": _ask("Spell attack bonus (e.g. +5)", "+0"),
@@ -290,7 +302,10 @@ def _ask_edition():
 def _ask_identity_fields():
     edition = _ask_edition()
     return {
-        "class_level": _ask("Class & level (e.g. 'Artificer 5 (Artillerist)')"),
+        "class_level": _ask(
+            "Class & level (e.g. 'Artificer 5 (Artillerist)'; "
+            "multiclass: 'Fighter 3 / Ranger 1')"
+        ),
         "background": _ask("Background"),
         "player_name": _ask("Player name"),
         "edition": edition,
@@ -345,7 +360,12 @@ def _build_full_details(abilities):
         "other_proficiencies": _ask_other_proficiencies(),
         "combat": _ask_combat(dex_mod),
         "hp": {"max": _ask_int("Max HP", 10), "current": "", "temp": ""},
-        "hit_dice": {"total": _ask("Hit dice (e.g. 1d8)", "1d8")},
+        "hit_dice": {
+            "total": _ask(
+                "Hit dice (e.g. 1d8; multiclass: '3d10 + 1d10' or '3d10 + 2d8')",
+                "1d8",
+            )
+        },
         "attacks": _collect_named_list(
             "Attacks", ["bonus", "damage", "range", "notes"]
         ),
@@ -396,7 +416,7 @@ def _build_skeleton_details():
 _MODE_HANDLERS = {
     "full": (_full_abilities_saves_skills, _build_full_details),
     "skeleton": (
-        _skeleton_abilities_saves_skills,
+        lambda class_level: _skeleton_abilities_saves_skills(),
         lambda abilities: _build_skeleton_details(),
     ),
 }
@@ -412,7 +432,9 @@ def _build_character(char_id, name, mode):
     char = {"id": char_id, "name": name, **_ask_identity_fields(), "xp": ""}
 
     stats_fn, details_fn = _MODE_HANDLERS[mode]
-    abilities, saves, skills, prof_bonus, passive_perception = stats_fn()
+    abilities, saves, skills, prof_bonus, passive_perception = stats_fn(
+        char["class_level"]
+    )
 
     char.update(
         inspiration=False,

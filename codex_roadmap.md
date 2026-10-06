@@ -294,6 +294,13 @@ not started; 28 to 30 are open follow-ups.
     `characters/2014_marigold_kettlewick.{html,css}` and cleaned up the root
     `.gitignore`.
 
+35. **DONE (1.4.0-rc6). Multiclass characters.** `new_character.py` accepts
+    `Fighter 3 / Ranger 1`, defaults total level (proficiency bonus) to the
+    sum, and prompts mention mixed hit dice (`3d10 + 1d8`) and multiple
+    spellcasting classes. The sheet already rendered these as free text.
+    Not done: separate hit dice "Used" counts per die type, and per-class
+    spell lists/slot tables (slots are entered by hand, one shared pool).
+
 ## 1.5.0 — DM session tools
 
 DM-facing prep/mid-session pain that exists right now regardless of party
