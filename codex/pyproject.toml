@@ -1,6 +1,6 @@
 [project]
 name = "codex"
-version = "1.4.0-rc3"
+version = "1.4.0-rc4"
 
 [tool.black]
 line-length = 88
