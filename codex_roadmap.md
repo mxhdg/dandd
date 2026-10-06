@@ -248,6 +248,15 @@ then 23 (edit/level-up mode), then 24 (Open5e-guided creation), then 25.
       version comes from the pinned `trivy-action` default, so it moves when
       Dependabot bumps the action; no manual change needed.
 
+30. **Gender and faith character fields.** Found importing a D&D Beyond
+    sheet, which has both in its header block; codex has neither, so for now
+    they live as plain text in `additional_features`. Add optional `gender`
+    and `faith` keys (alongside `alignment` in the header, or in the
+    appearance block), shown on the sheet only when set. Touches the
+    template, `character_template.yaml.example`, `new_character.py` prompts
+    and the docs; a schema addition like item 27, so the same upgrade path
+    (optional, existing character files keep working).
+
 ## 1.5.0 — DM session tools
 
 DM-facing prep/mid-session pain that exists right now regardless of party

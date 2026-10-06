@@ -1,4 +1,5 @@
 import re
+from html import unescape
 from pathlib import Path
 
 import pytest
@@ -439,3 +440,12 @@ def test_attack_notes_column_only_appears_when_an_attack_has_notes(
     noted = client.get("/characters/noted").get_data(as_text=True)
     assert "<th>Notes</th>" not in plain
     assert "<th>Notes</th>" in noted and "Finesse, Thrown" in noted
+
+
+def test_personality_boxes_share_one_markup(client):
+    page = client.get("/characters/sample_character").get_data(as_text=True)
+    page = unescape(page)
+    sample = Path(app_module.__file__).parent / "data/sample_character.yaml"
+    personality = yaml.safe_load(sample.read_text(encoding="utf-8"))["personality"]
+    for field in ("traits", "ideals", "bonds", "flaws"):
+        assert f'<div class="value">{personality[field]}</div>' in page
