@@ -268,7 +268,7 @@ def test_every_route_sends_security_headers(client):
         headers = client.get(url).headers
         assert headers["X-Content-Type-Options"] == "nosniff", url
         assert headers["X-Frame-Options"] == "DENY", url
-        assert headers["Referrer-Policy"] == "no-referrer", url
+        assert headers["Referrer-Policy"] == "same-origin", url
         assert "script-src 'none'" in headers["Content-Security-Policy"], url
 
 

@@ -1,0 +1,304 @@
+id: hazel_briar
+name: Hazel Briar
+class_level: Wizard 3 (Diviner)
+background: Sage
+player_name: VioletEchoes
+edition: '2024'
+race: Human
+alignment: Neutral Good
+xp: (Milestone)
+inspiration: false
+proficiency_bonus: '+2'
+abilities:
+- name: Strength
+  score: 9
+  mod: '-1'
+- name: Dexterity
+  score: 16
+  mod: '+3'
+- name: Constitution
+  score: 16
+  mod: '+3'
+- name: Intelligence
+  score: 20
+  mod: '+5'
+- name: Wisdom
+  score: 18
+  mod: '+4'
+- name: Charisma
+  score: 11
+  mod: '+0'
+saves:
+- name: Strength
+  mod: '-1'
+  prof: false
+- name: Dexterity
+  mod: '+3'
+  prof: false
+- name: Constitution
+  mod: '+3'
+  prof: false
+- name: Intelligence
+  mod: '+7'
+  prof: true
+- name: Wisdom
+  mod: '+6'
+  prof: true
+- name: Charisma
+  mod: '+0'
+  prof: false
+skills:
+- name: Acrobatics
+  ability: Dex
+  mod: '+3'
+  prof: false
+- name: Animal Handling
+  ability: Wis
+  mod: '+4'
+  prof: false
+- name: Arcana
+  ability: Int
+  mod: '+9'
+  prof: expertise
+- name: Athletics
+  ability: Str
+  mod: '-1'
+  prof: false
+- name: Deception
+  ability: Cha
+  mod: '+0'
+  prof: false
+- name: History
+  ability: Int
+  mod: '+7'
+  prof: true
+- name: Insight
+  ability: Wis
+  mod: '+6'
+  prof: true
+- name: Intimidation
+  ability: Cha
+  mod: '+0'
+  prof: false
+- name: Investigation
+  ability: Int
+  mod: '+7'
+  prof: true
+- name: Medicine
+  ability: Wis
+  mod: '+4'
+  prof: false
+- name: Nature
+  ability: Int
+  mod: '+5'
+  prof: false
+- name: Perception
+  ability: Wis
+  mod: '+4'
+  prof: false
+- name: Performance
+  ability: Cha
+  mod: '+0'
+  prof: false
+- name: Persuasion
+  ability: Cha
+  mod: '+0'
+  prof: false
+- name: Religion
+  ability: Int
+  mod: '+5'
+  prof: false
+- name: Sleight of Hand
+  ability: Dex
+  mod: '+3'
+  prof: false
+- name: Stealth
+  ability: Dex
+  mod: '+5'
+  prof: true
+- name: Survival
+  ability: Wis
+  mod: '+4'
+  prof: false
+passive_perception: 14
+other_proficiencies:
+  languages: Common, Common Sign Language, Elvish
+  armor: ''
+  weapons: Simple Weapons
+  tools: Calligrapher's Supplies
+combat:
+  ac: 13
+  initiative: '+5'
+  speed: 30 ft
+hp:
+  max: 23
+  current: ''
+  temp: ''
+hit_dice:
+  total: 3d6
+attacks:
+- name: Dagger
+  bonus: '+5'
+  damage: 1d4+3 piercing
+  range: Melee / 20/60 ft
+  notes: Simple, Finesse, Light, Thrown, Nick
+- name: Staff of Frost
+  bonus: '+1'
+  damage: 1d6-1 bludgeoning
+  range: Melee
+  notes: 5/10 charges, Simple, Versatile, Topple
+- name: Chill Touch
+  bonus: '+7'
+  damage: 1d10 necrotic
+  range: 120 ft
+  notes: V/S
+- name: Fire Bolt
+  bonus: '+7'
+  damage: 1d10 fire
+  range: 120 ft
+  notes: V/S
+- name: Unarmed Strike
+  bonus: '+1'
+  damage: 0 bludgeoning
+  range: Melee
+  notes: ''
+attack_note: ''
+equipment:
+- Staff of Frost (attuned, 5/10 charges)
+- Dagger (2)
+- Quarterstaff
+- Spellbook (Rhonda’s recipe book)
+- Parchment (18)
+- Backpack
+- Calligrapher's Supplies
+- Robe
+- Book (2)
+- Oil (10)
+- Tinderbox
+- Lamp
+- Ink Pen
+- Ink
+currency:
+  cp: '0'
+  sp: '0'
+  ep: '0'
+  gp: '8'
+  pp: '0'
+personality:
+  traits: Overthinks every choice, afraid of disappointing someone or choosing wrong. When
+    watched, she slips into a practiced, “acceptable” persona. Convinced her real self is
+    too much or not enough, she stays gentle even when unraveling, never wanting to burden
+    anyone.
+  ideals: 'Kindness, even when it costs her: people deserve the gentleness she went without.
+    She values quiet integrity over bold declarations, and wants to do what’s right, not what’s
+    expected, though she struggles to tell them apart. She hopes understanding can lead to
+    something better than the roles she’s played.'
+  bonds: She holds tight to anyone who has ever accepted her and feels obliged to be what
+    they need, even when it strains her. Loyal because she knows how it hurts to be left behind.
+    Her bonds steady her, but also pull her back into the roles she thinks she must play to
+    stay wanted.
+  flaws: Doubts herself constantly and assumes she’s at fault. Unsure where her real thoughts
+    end and the practiced ones begin. Hides her needs until they’re impossible to ignore,
+    sure that asking makes her a burden. When overwhelmed, she retreats into silence and overthinking.
+features:
+- name: Spellcasting
+  text: 'Int is your spellcasting ability. Ritual Adept: cast Ritual spells from your spellbook.'
+- name: Arcane Recovery
+  text: After a Short Rest, recover spell slots with combined level up to 2 (none 6th+). Once
+    per Long Rest.
+- name: Scholar
+  text: Expertise in one skill you're proficient in (Arcana).
+- name: Divination Savant
+  text: Add two Divination spells (max level 2) to your spellbook free; add one Divination
+    Wizard spell free whenever you gain a new slot level.
+- name: Portent
+  text: After a Long Rest, roll 2d20 and record them. Replace any D20 Test by you or a creature
+    you can see with one of these rolls, once per turn. Unused rolls are lost on your next
+    Long Rest.
+- name: 'Human: Resourceful'
+  text: Gain Heroic Inspiration after each Long Rest.
+- name: 'Human: Skillful'
+  text: Proficiency in one skill of your choice.
+- name: 'Human: Versatile'
+  text: Gain an Origin feat of your choice.
+- name: Alert
+  text: Add proficiency bonus (+2) to Initiative. After rolling Initiative, swap with a willing
+    ally in the same combat (neither Incapacitated).
+- name: Magic Initiate (Wizard)
+  text: 'Two cantrips (True Strike, Minor Illusion) and Chromatic Orb: cast once free per
+    Long Rest or with any spell slot. Int is the casting ability. Can swap the spell on level-up.'
+- name: 'Sage: Ability Score Improvements'
+  text: +2 / +1 to two scores.
+appearance:
+  age: '50'
+  height: 5'5
+  weight: 175 lb
+  eyes: blue
+  skin: fair
+  hair: Slightly wavy
+backstory: 'She grew up learning that being herself came with consequences. Two people shaped
+  that lesson more than anyone else. Garron Hale, her uncle, was harsh and unyielding, always
+  reminding her of who he believed she should be. The other was Lyra, a younger relative she
+  helped raise, who watched her with sharp, expectant eyes. Lyra adored her, but also mirrored
+  the judgments of the adults around them, leaving her caught between wanting to protect the
+  girl and feeling crushed by the pressure to be the version of herself Lyra seemed to need.
+
+
+  Between Garron''s criticism and Lyra''s innocent but heavy expectations, she learned to
+  survive by performing. She became quiet, careful, and endlessly accommodating, slipping
+  into a practiced persona that kept the peace even as it hollowed her out. Books and magic
+  became her refuge, the only places where she could breathe without pretending.
+
+
+  She was the first in her family to feel any magic, and she was shunned for it. It first
+  stirred while she was cooking beside her aunt Rhonda, a chef whose kitchen was her whole
+  world, and the one person who supported her. When Hazel fled, Rhonda gave her her own recipe
+  book. It has become, in effect, Hazel’s grimoire.
+
+
+  Leaving home gave her distance, but not freedom. She still fears being seen too clearly,
+  still worries that her real self is too much or not enough. Yet she also carries a fragile
+  hope that she can grow beyond the roles Garron and Lyra forced onto her. Adventuring is
+  her way of searching for a life where she can finally exist without the mask, even if she
+  is still learning who that unmasked version of herself might be.'
+allies:
+- name: Rhonda (her aunt)
+  text: A chef whose kitchen was her whole world. She supported Hazel’s magic and gave her
+    the recipe book that is now her grimoire.
+treasure:
+  title: Staff of Frost
+  text: Attuned. Bought second-hand at a magic thrift store and not owned for long, but it
+    helped her defeat a big bad in her previous campaign. Currently 5/10 charges.
+additional_features: 'Gender: Female. Faith: If I plan enough, I won’t fail the people I care
+  about.'
+spellcasting:
+  class: Wizard
+  ability: Intelligence
+  save_dc: 15
+  attack_bonus: '+7'
+  note: 'Spellbook, not prepared (swap in after a Long Rest): Witch Bolt, Dragon''s Breath,
+    Warding Wind, Arcane Lock, Chromatic Orb (Wizard copy).'
+  cantrips:
+  - Fire Bolt
+  - Acid Splash
+  - Chill Touch
+  - True Strike (Magic Initiate)
+  - Minor Illusion (Magic Initiate)
+  slots:
+  - level: 1st
+    total: 4
+  - level: 2nd
+    total: 2
+  prepared:
+  - Magic Missile
+  - Ice Knife
+  - Shield
+  - Scorching Ray
+  - Mind Spike (Divination Savant)
+  - Melf's Acid Arrow
+  always_prepared:
+  - spells: Detect Magic
+    note: (ritual only, cast from the spellbook via Ritual Adept, no preparation needed)
+  - spells: Chromatic Orb
+    note: '(Magic Initiate: once free per Long Rest, or with any spell slot, so it is not
+      prepared separately)'
