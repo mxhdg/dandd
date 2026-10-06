@@ -154,10 +154,30 @@ def _ask_ability_inputs():
     print(f"  proficiency bonus: {_fmt_mod(prof_bonus)}")
     prof_saves = _ask_names("Proficient saving throws", ABILITIES)
     prof_skills = _ask_names("Proficient skills", [s for s, _ in SKILLS])
-    return scores, prof_bonus, prof_saves, prof_skills
+    expertise = _ask_names("Skills with expertise (must be proficient)", prof_skills)
+    return scores, prof_bonus, prof_saves, prof_skills, expertise
 
 
-def _compute_abilities_saves_skills(scores, prof_bonus, prof_saves, prof_skills):
+def _skill_proficiency(skill, prof_skills, expertise):
+    if skill in prof_skills and skill in expertise:
+        return "expertise"
+    return skill in prof_skills
+
+
+def _compute_skill(skill, ability, mods, prof_bonus, prof_skills, expertise):
+    prof = _skill_proficiency(skill, prof_skills, expertise)
+    multiplier = {"expertise": 2, True: 1, False: 0}[prof]
+    return {
+        "name": skill,
+        "ability": ABILITY_ABBR[ability],
+        "mod": _fmt_mod(mods[ability] + prof_bonus * multiplier),
+        "prof": prof,
+    }
+
+
+def _compute_abilities_saves_skills(
+    scores, prof_bonus, prof_saves, prof_skills, expertise=frozenset()
+):
     mods = {a: _ability_mod(scores[a]) for a in ABILITIES}
     abilities = [
         {"name": a, "score": scores[a], "mod": _fmt_mod(mods[a])} for a in ABILITIES
@@ -171,12 +191,7 @@ def _compute_abilities_saves_skills(scores, prof_bonus, prof_saves, prof_skills)
         for a in ABILITIES
     ]
     skills = [
-        {
-            "name": s,
-            "ability": ABILITY_ABBR[a],
-            "mod": _fmt_mod(mods[a] + (prof_bonus if s in prof_skills else 0)),
-            "prof": s in prof_skills,
-        }
+        _compute_skill(s, a, mods, prof_bonus, prof_skills, expertise)
         for s, a in SKILLS
     ]
     perception_mod = int(next(sk["mod"] for sk in skills if sk["name"] == "Perception"))
@@ -264,12 +279,22 @@ def _resolve_mode(args):
     return mode
 
 
+def _ask_edition():
+    while True:
+        edition = _ask("Rules edition (2014 or 2024)", "2014")
+        if edition in ("2014", "2024"):
+            return edition
+        print("  please enter 2014 or 2024")
+
+
 def _ask_identity_fields():
+    edition = _ask_edition()
     return {
         "class_level": _ask("Class & level (e.g. 'Artificer 5 (Artillerist)')"),
         "background": _ask("Background"),
         "player_name": _ask("Player name"),
-        "race": _ask("Race"),
+        "edition": edition,
+        "race": _ask("Species" if edition == "2024" else "Race"),
         "alignment": _ask("Alignment"),
     }
 
@@ -321,7 +346,9 @@ def _build_full_details(abilities):
         "combat": _ask_combat(dex_mod),
         "hp": {"max": _ask_int("Max HP", 10), "current": "", "temp": ""},
         "hit_dice": {"total": _ask("Hit dice (e.g. 1d8)", "1d8")},
-        "attacks": _collect_named_list("Attacks", ["bonus", "damage", "range"]),
+        "attacks": _collect_named_list(
+            "Attacks", ["bonus", "damage", "range", "notes"]
+        ),
         "attack_note": _ask("Attack note (optional)"),
         "equipment": _collect_simple_list("Equipment"),
         "currency": {k: _ask(f"Currency: {k}") for k in CURRENCY_KEYS},

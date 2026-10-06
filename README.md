@@ -55,7 +55,7 @@ cd codex
 python scripts/new_character.py
 ```
 
-Interactively generates a new `data/<id>.yaml` file. Choose `skeleton` mode for just the identity fields plus valid defaults you hand-fill afterward, or `full` mode to also be prompted for ability scores, proficiencies, equipment, backstory, etc., with derived stats (modifiers, proficiency bonus, passive perception) computed for you. Needs PyYAML (`pip install -r requirements.txt`), no other setup required. Either mode's output is a starting point, expect to hand-edit the result the same way existing character sheets are maintained.
+Interactively generates a new `data/<id>.yaml` file. Choose `skeleton` mode for just the identity fields plus valid defaults you hand-fill afterward, or `full` mode to also be prompted for ability scores, proficiencies, equipment, backstory, etc., with derived stats (modifiers, proficiency bonus, passive perception) computed for you. Both modes ask for the rules edition (2014 or 2024; 2024 relabels "Race" as "Species" on the sheet), and `full` mode asks which proficient skills have expertise. In a character file, a skill's `prof` is `true`, `false`, or `"expertise"`, and each attack can carry an optional `notes` string (the sheet only shows a Notes column when at least one attack has one). Needs PyYAML (`pip install -r requirements.txt`), no other setup required. Either mode's output is a starting point, expect to hand-edit the result the same way existing character sheets are maintained.
 
 New to D&D and not sure what to pick for race/class/background before running the script? D&D Beyond's free [Step-by-Step Characters](https://www.dndbeyond.com/sources/dnd/basic-rules-2014/step-by-step-characters) guide walks through those decisions.
 

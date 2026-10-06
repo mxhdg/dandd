@@ -118,6 +118,7 @@ h1.charname {
   display: inline-block;
 }
 .chk.filled { background: var(--ink); }
+.chk.expertise { outline: 1.5px solid var(--ink); outline-offset: 1.5px; }
 .mod-box {
   width: 28px; text-align: center; font-weight: bold;
   border: 1px solid var(--ink); background: #fff; font-size: 11px;
