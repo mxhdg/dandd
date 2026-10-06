@@ -132,7 +132,7 @@ with the project's code standards (one responsibility per function,
 - **DONE. Tests** for the newly testable pure helpers
   (`tests/test_new_character.py`).
 
-## 1.4.0 — Character creation tooling (next)
+## 1.4.0 — Character creation tooling (in progress, at 1.4.0-rc5)
 
 Separate from actual-play pain entirely; touches `new_character.py`, not
 the live sheet (item 25 is the one exception, a live-sheet lookup that shares
@@ -140,6 +140,12 @@ item 24's content source). Prioritized ahead of the DM tools.
 
 **Suggested order:** 26 (schema validation) first, since 23 depends on it,
 then 23 (edit/level-up mode), then 24 (Open5e-guided creation), then 25.
+
+**Release candidates so far (items 27 and 31 to 34):** rc1 added the
+import-friendly sheet fields, rc2 folded in the Dependabot updates, rc3
+made sheet text uniform, rc4 fixed the 403 on Save/rest buttons, and rc5
+fit the sheet on phones. Items 23 to 26 (the creation-tooling theme) are
+not started; 28 to 30 are open follow-ups.
 
 23. **Edit-existing-character mode in `new_character.py`**, alongside the
     current `skeleton`/`full` creation modes: point it at an existing
@@ -216,8 +222,8 @@ then 23 (edit/level-up mode), then 24 (Open5e-guided creation), then 25.
     done: per-spell details (time/range/components/duration/save) and
     limited-use trackers (1/Long Rest features, Staff charges, Portent dice).
 
-28. **Revisit the gunicorn 26 upgrade (target 1.4.0-rc3, or rc4).** Held at
-    23.0.0 in rc2 (Dependabot PR #21). Under 26.2.0 the hardened container
+28. **Revisit the gunicorn 26 upgrade (next rc; originally targeted rc3 or
+    rc4, which passed without it).** Held at 23.0.0 since rc2 (Dependabot PR #21). Under 26.2.0 the hardened container
     logs `Control server error: Permission denied: '/home/appuser'` at
     startup; the app still served requests, but the root filesystem is
     read-only and the new control socket tries to write to the home
@@ -228,7 +234,7 @@ then 23 (edit/level-up mode), then 24 (Open5e-guided creation), then 25.
     notes for other breaking changes. Until then, close or ignore PR #21 so
     Dependabot stops reopening it.
 
-29. **Image scan follow-ups (same rc3/rc4 pass as item 28).** From the
+29. **Image scan follow-ups (same pass as item 28).** From the
     `v1.4.0-rc2` Trivy scan (non-blocking, exit-code 0): 48 HIGH on Debian
     13.7, 4 HIGH in Python, 0 CRITICAL.
     - **Remove pip from the final image** (e.g. `pip uninstall -y pip` as the
@@ -256,6 +262,37 @@ then 23 (edit/level-up mode), then 24 (Open5e-guided creation), then 25.
     template, `character_template.yaml.example`, `new_character.py` prompts
     and the docs; a schema addition like item 27, so the same upgrade path
     (optional, existing character files keep working).
+
+31. **DONE (1.4.0-rc2). Dependabot updates folded into the feature
+    branch** instead of bumping each PR (they fail the version-bump check by
+    design): base image digest, pyyaml 6.0.3, and the dev-tools group
+    (flake8 7.4.1, isort 9.0.2 and friends). Lock files regenerated with
+    `pip-compile` on Python 3.14 and the full gates re-run. gunicorn 26 was
+    deliberately skipped (item 28).
+32. **DONE (1.4.0-rc3). Uniform sheet text.** Traits rendered at 11px while
+    ideals, bonds and flaws inherited 16px. All running text (values,
+    features, tables, spell lists, inputs) now uses one `--text-size`
+    custom property (12pt, the APA body size); labels, section titles and
+    ability names stay deliberately smaller (an all-12pt trial of those was
+    rejected as too tall). A test checks the four personality boxes share
+    one markup.
+33. **DONE (1.4.0-rc4). Fixed 403 on Save Changes and the rest buttons on
+    the live site.** `Referrer-Policy: no-referrer` made Firefox and
+    Chromium send `Origin: null` on form POSTs, so the same-origin check
+    rejected every POST; it is now `same-origin` (still no referrer sent
+    cross-site). Reproduced in both browsers before and fixed after.
+    Deployment note found at the same time: the prod `state/` bind mount
+    must be writable by the container user (UID 1000), or saves fail with a
+    500.
+34. **DONE (1.4.0-rc5). Sheet fits phone-width screens (iPhone 14 Pro,
+    393px).** The single phone column was `1fr`, which grew to fit 12pt
+    content and pushed tiles past the margin; it is now `minmax(0, 1fr)`.
+    On phones the attack table shows Notes as a full-width line under each
+    attack instead of a clipped fifth column, and "Damage/Type" wraps at the
+    slash. Checked at 360, 375, 393 and 430px in Chromium emulation (real
+    Safari untested). Also removed the original hand-built
+    `characters/2014_marigold_kettlewick.{html,css}` and cleaned up the root
+    `.gitignore`.
 
 ## 1.5.0 — DM session tools
 
