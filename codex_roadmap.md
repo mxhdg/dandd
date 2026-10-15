@@ -294,12 +294,21 @@ not started; 28 to 30 are open follow-ups.
     `characters/2014_marigold_kettlewick.{html,css}` and cleaned up the root
     `.gitignore`.
 
-35. **DONE (1.4.0-rc6). Multiclass characters.** `new_character.py` accepts
-    `Fighter 3 / Ranger 1`, defaults total level (proficiency bonus) to the
-    sum, and prompts mention mixed hit dice (`3d10 + 1d8`) and multiple
-    spellcasting classes. The sheet already rendered these as free text.
+35. **DONE (1.4.0-rc6). Multiclass characters.** `new_character.py` prompts per
+    class (name, level, subclass, hit die defaulted from the class name) and
+    builds `class_level`, `hit_dice.total` (same-size dice merged) and the
+    proficiency bonus from total level; the spellcasting prompt mentions
+    multiple classes. The sheet already rendered these as free text.
     Not done: separate hit dice "Used" counts per die type, and per-class
     spell lists/slot tables (slots are entered by hand, one shared pool).
+
+36. **DONE (1.4.0-rc6). Friendlier `new_character.py` for non-coders.**
+    Welcome line and plain closing message; "quick or detailed" instead of
+    `skeleton`/`full` (flags unchanged); no file-id prompt (derived from the
+    name unless `--id`); case-insensitive and unique-prefix name matching;
+    bad numbers and unrecognized names re-prompt instead of silently
+    defaulting or dropping. Still a terminal script needing Python and
+    PyYAML; a web form (item 24-style) was considered and deferred.
 
 ## 1.5.0 — DM session tools
 
