@@ -81,45 +81,18 @@ jobs:
               fh.write(f"new_tag={new_tag}\n")
 
       - name: Create and push tag
-        shell: python3 {0}
         env:
           NEW_TAG: ${{ steps.version.outputs.new_tag }}
         run: |
-          import os
-          import subprocess
-
-          new_tag = os.environ["NEW_TAG"]
-
-          subprocess.run(["git", "config", "user.name", "github-actions[bot]"], check=True)
-          subprocess.run(
-              ["git", "config", "user.email", "github-actions[bot]@users.noreply.github.com"],
-              check=True,
-          )
-          subprocess.run(["git", "tag", new_tag], check=True)
-          subprocess.run(["git", "push", "origin", new_tag], check=True)
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "$NEW_TAG"
+          git push origin "$NEW_TAG"
 
       - name: Trigger image build for new tag
-        shell: python3 {0}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NEW_TAG: ${{ steps.version.outputs.new_tag }}
         run: |
-          import os
-          import subprocess
-
-          new_tag = os.environ["NEW_TAG"]
-          subprocess.run(
-              ["gh", "workflow", "run", "codex-image.yml", "--ref", new_tag],
-              check=True,
-          )
-
-      - name: Summary
-        shell: python3 {0}
-        env:
-          NEW_TAG: ${{ steps.version.outputs.new_tag }}
-        run: |
-          import os
-
-          new_tag = os.environ["NEW_TAG"]
-          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as fh:
-              fh.write(f"Released **{new_tag}** and triggered the image build.\n")
+          gh workflow run codex-image.yml --ref "$NEW_TAG"
+          echo "Released **$NEW_TAG** and triggered the image build." >> "$GITHUB_STEP_SUMMARY"
