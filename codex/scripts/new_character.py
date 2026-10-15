@@ -5,7 +5,11 @@ Run from anywhere with PyYAML installed (the codex venv already has it):
 
     python scripts/new_character.py
 
-Two modes:
+Answers are forgiving: Enter keeps the [default], names are matched without
+regard to case (and by unique first letters, e.g. "ath" for Athletics), and a
+typo is explained and asked again instead of being dropped.
+
+Two modes (asked as "quick" or "detailed"; --mode takes skeleton or full):
   skeleton  - prompts for identity fields only, fills the rest with valid
               defaults (10 in every ability, no proficiencies, empty lists)
               so the sheet renders immediately; hand-edit the rest afterward.
@@ -24,8 +28,23 @@ import yaml
 DATA_DIR = Path(__file__).parent.parent / "data"
 
 ID_RE = re.compile(r"^[A-Za-z0-9_-]+$")
-_SUBCLASS_RE = re.compile(r"\([^)]*\)")
-_CLASS_LEVEL_RE = re.compile(r"(\d+)\s*(?=[/,]|$)")
+
+# 2014 PHB (plus Artificer) hit die size per class, used as the prompt default.
+HIT_DIE = {
+    "barbarian": 12,
+    "bard": 8,
+    "cleric": 8,
+    "druid": 8,
+    "fighter": 10,
+    "monk": 8,
+    "paladin": 10,
+    "ranger": 10,
+    "rogue": 8,
+    "sorcerer": 6,
+    "warlock": 8,
+    "wizard": 6,
+    "artificer": 8,
+}
 
 ABILITIES = [
     "Strength",
@@ -64,6 +83,12 @@ SKILLS = [
     ("Survival", "Wisdom"),
 ]
 CURRENCY_KEYS = ["cp", "sp", "ep", "gp", "pp"]
+MODE_NAMES = {
+    "quick": "skeleton",
+    "detailed": "full",
+    "skeleton": "skeleton",
+    "full": "full",
+}
 
 
 def _slugify(name):
@@ -83,11 +108,8 @@ def _proficiency_bonus(level):
     return 2 + (max(level, 1) - 1) // 4
 
 
-def _total_level(class_level):
-    # "Fighter 3 / Ranger 1 (Hunter)" -> 4: the number that ends each
-    # "/"- or ","-separated class, once parenthesised subclasses are dropped.
-    classes = _SUBCLASS_RE.sub("", class_level)
-    return sum(int(level) for level in _CLASS_LEVEL_RE.findall(classes))
+def _section(title, hint):
+    print(f"\n=== {title} ===\n  {hint}")
 
 
 def _ask(prompt_text, default=""):
@@ -96,10 +118,11 @@ def _ask(prompt_text, default=""):
 
 
 def _ask_int(prompt_text, default=0):
-    try:
-        return int(_ask(prompt_text, str(default)))
-    except ValueError:
-        return default
+    while True:
+        try:
+            return int(_ask(prompt_text, str(default)))
+        except ValueError:
+            print("  please type a whole number, like 12")
 
 
 def _ask_yn(prompt_text, default=False):
@@ -108,16 +131,34 @@ def _ask_yn(prompt_text, default=False):
     return value.startswith("y") if value else default
 
 
+def _match_name(token, valid_names):
+    wanted = token.strip().lower()
+    for name in valid_names:
+        if name.lower() == wanted:
+            return name
+    starts = [n for n in valid_names if n.lower().startswith(wanted)]
+    return starts[0] if wanted and len(starts) == 1 else None
+
+
+def _parse_names(raw, valid_names):
+    tokens = [t.strip() for t in raw.split(",") if t.strip()]
+    matches = {t: _match_name(t, valid_names) for t in tokens}
+    unknown = [t for t, name in matches.items() if name is None]
+    return {name for name in matches.values() if name}, unknown
+
+
 def _ask_names(prompt_text, valid_names):
-    raw = _ask(f"{prompt_text} (comma-separated, blank for none)")
-    if not raw:
-        return set()
-    valid = set(valid_names)
-    chosen = {n.strip() for n in raw.split(",") if n.strip()}
-    unknown = chosen - valid
-    if unknown:
-        print(f"  ignoring unrecognized: {', '.join(sorted(unknown))}")
-    return chosen & valid
+    choices = sorted(valid_names)
+    example = ", ".join(choices[:2])
+    hint = f"comma-separated, e.g. {example}" if example else "comma-separated"
+    while True:
+        chosen, unknown = _parse_names(
+            _ask(f"{prompt_text} ({hint}; blank for none)"), choices
+        )
+        if not unknown:
+            return chosen
+        print(f"  not recognized: {', '.join(unknown)}")
+        print(f"  choices: {', '.join(choices)}")
 
 
 def _collect_simple_list(label):
@@ -131,8 +172,10 @@ def _collect_simple_list(label):
     return items
 
 
-def _collect_named_list(label, fields):
+def _collect_named_list(label, fields, example=""):
     print(f"{label} (blank name to finish):")
+    if example:
+        print(f"  e.g. {example}")
     items = []
     while True:
         name = input("  name: ").strip()
@@ -145,25 +188,24 @@ def _collect_named_list(label, fields):
     return items
 
 
-def _skeleton_abilities_saves_skills():
+def _skeleton_abilities_saves_skills(level=1):
     abilities = [{"name": a, "score": 10, "mod": "+0"} for a in ABILITIES]
     saves = [{"name": a, "mod": "+0", "prof": False} for a in ABILITIES]
     skills = [
         {"name": s, "ability": ABILITY_ABBR[a], "mod": "+0", "prof": False}
         for s, a in SKILLS
     ]
-    return abilities, saves, skills, 2, 10
+    return abilities, saves, skills, _proficiency_bonus(level), 10
 
 
-def _ask_ability_inputs(class_level=""):
-    print("\nAbility scores:")
+def _ask_ability_inputs(level):
+    _section("Ability scores", "Press Enter to keep 10.")
     scores = {a: _ask_int(f"  {a}", 10) for a in ABILITIES}
-    level = _ask_int(
-        "Character level (total across all classes, for proficiency bonus)",
-        _total_level(class_level) or 1,
-    )
     prof_bonus = _proficiency_bonus(level)
-    print(f"  proficiency bonus: {_fmt_mod(prof_bonus)}")
+    _section(
+        "Proficiencies",
+        f"Total level {level}, proficiency bonus {_fmt_mod(prof_bonus)}.",
+    )
     prof_saves = _ask_names("Proficient saving throws", ABILITIES)
     prof_skills = _ask_names("Proficient skills", [s for s, _ in SKILLS])
     expertise = _ask_names("Skills with expertise (must be proficient)", prof_skills)
@@ -210,15 +252,16 @@ def _compute_abilities_saves_skills(
     return abilities, saves, skills, prof_bonus, 10 + perception_mod
 
 
-def _full_abilities_saves_skills(class_level=""):
-    return _compute_abilities_saves_skills(*_ask_ability_inputs(class_level))
+def _full_abilities_saves_skills(level=1):
+    return _compute_abilities_saves_skills(*_ask_ability_inputs(level))
 
 
 def _ask_spell_slots():
     print("Spell slots (blank level to finish):")
+    print("  e.g. level 1st, then total slots 4")
     slots = []
     while True:
-        level = input("  level (e.g. 1st): ").strip()
+        level = input("  slot level: ").strip()
         if not level:
             break
         slots.append({"level": level, "total": _ask_int("    total slots", 1)})
@@ -267,10 +310,10 @@ def _resolve_name(args):
 
 def _resolve_character_id(args, name):
     default_id = _slugify(name)
-    char_id = args.id or _ask("Character id (used as filename)", default_id)
+    char_id = args.id or default_id
     while not ID_RE.fullmatch(char_id):
         print("  id must match ^[A-Za-z0-9_-]+$ (letters, numbers, underscore, hyphen)")
-        char_id = _ask("Character id (used as filename)", default_id)
+        char_id = _ask("File name for this character (no extension)", default_id)
     return char_id
 
 
@@ -281,14 +324,18 @@ def _confirm_overwrite(out_path):
 
 
 def _resolve_mode(args):
-    mode = args.mode
-    while mode not in ("skeleton", "full"):
-        mode = _ask(
-            "Mode ('skeleton' = core fields + defaults, "
-            "'full' = prompt for everything)",
-            "skeleton",
-        )
-    return mode
+    if args.mode:
+        return args.mode
+    _section(
+        "How much detail?",
+        "quick = basics now, fill in the rest later; "
+        "detailed = walk through scores, gear, spells and backstory.",
+    )
+    while True:
+        choice = _match_name(_ask("Quick or detailed", "quick"), list(MODE_NAMES))
+        if choice:
+            return MODE_NAMES[choice]
+        print("  please type quick or detailed")
 
 
 def _ask_edition():
@@ -299,13 +346,50 @@ def _ask_edition():
         print("  please enter 2014 or 2024")
 
 
+def _ask_class():
+    name = _ask("Class (blank to finish)")
+    if not name:
+        return None
+    return {
+        "name": name,
+        "level": max(_ask_int("  Level in this class", 1), 1),
+        "subclass": _ask("  Subclass (optional)"),
+        "die": _ask_int("  Hit die size (10 = d10)", HIT_DIE.get(name.lower(), 8)),
+    }
+
+
+def _ask_classes():
+    _section("Classes", "Add one class at a time; multiclass = add several.")
+    classes = []
+    while (entry := _ask_class()) or not classes:
+        if entry:
+            classes.append(entry)
+        else:
+            print("  at least one class is required")
+    return classes
+
+
+def _total_level(classes):
+    return sum(c["level"] for c in classes)
+
+
+def _format_class_level(classes):
+    return " / ".join(
+        f"{c['name']} {c['level']}" + (f" ({c['subclass']})" if c["subclass"] else "")
+        for c in classes
+    )
+
+
+def _format_hit_dice(classes):
+    counts = {}
+    for c in classes:
+        counts[c["die"]] = counts.get(c["die"], 0) + c["level"]
+    return " + ".join(f"{n}d{die}" for die, n in counts.items())
+
+
 def _ask_identity_fields():
     edition = _ask_edition()
     return {
-        "class_level": _ask(
-            "Class & level (e.g. 'Artificer 5 (Artillerist)'; "
-            "multiclass: 'Fighter 3 / Ranger 1')"
-        ),
         "background": _ask("Background"),
         "player_name": _ask("Player name"),
         "edition": edition,
@@ -315,6 +399,7 @@ def _ask_identity_fields():
 
 
 def _ask_other_proficiencies():
+    _section("Other proficiencies", "Free text, e.g. armor: Light, Medium, Shields.")
     return {
         "languages": _ask("Languages", "Common"),
         "armor": _ask("Armor proficiencies"),
@@ -324,6 +409,7 @@ def _ask_other_proficiencies():
 
 
 def _ask_combat(dex_mod):
+    _section("Combat", "Enter keeps the default shown in [brackets].")
     return {
         "ac": _ask_int("Armor Class", 10),
         "initiative": _ask("Initiative", dex_mod),
@@ -332,6 +418,7 @@ def _ask_combat(dex_mod):
 
 
 def _ask_personality():
+    _section("Personality", "One line each; blank to skip.")
     return {
         "traits": _ask("Personality traits"),
         "ideals": _ask("Ideals"),
@@ -341,6 +428,7 @@ def _ask_personality():
 
 
 def _ask_appearance():
+    _section("Appearance", "One line each; blank to skip.")
     return {
         f: _ask(f"Appearance: {f}")
         for f in ["age", "height", "weight", "eyes", "skin", "hair"]
@@ -354,29 +442,34 @@ def _ask_treasure():
     }
 
 
+def _ask_attacks():
+    return _collect_named_list(
+        "Attacks",
+        ["bonus", "damage", "range", "notes"],
+        "name Longsword, bonus +5, damage 1d8+3 slashing, range 5 ft",
+    )
+
+
 def _build_full_details(abilities):
     dex_mod = next(a["mod"] for a in abilities if a["name"] == "Dexterity")
     details = {
         "other_proficiencies": _ask_other_proficiencies(),
         "combat": _ask_combat(dex_mod),
         "hp": {"max": _ask_int("Max HP", 10), "current": "", "temp": ""},
-        "hit_dice": {
-            "total": _ask(
-                "Hit dice (e.g. 1d8; multiclass: '3d10 + 1d10' or '3d10 + 2d8')",
-                "1d8",
-            )
-        },
-        "attacks": _collect_named_list(
-            "Attacks", ["bonus", "damage", "range", "notes"]
-        ),
+        "hit_dice": {"total": "1d8"},
+        "attacks": _ask_attacks(),
         "attack_note": _ask("Attack note (optional)"),
         "equipment": _collect_simple_list("Equipment"),
         "currency": {k: _ask(f"Currency: {k}") for k in CURRENCY_KEYS},
         "personality": _ask_personality(),
-        "features": _collect_named_list("Features", ["text"]),
+        "features": _collect_named_list(
+            "Features", ["text"], "name Second Wind, text Heal 1d10+3 once per rest"
+        ),
         "appearance": _ask_appearance(),
         "backstory": _ask("Backstory"),
-        "allies": _collect_named_list("Allies", ["text"]),
+        "allies": _collect_named_list(
+            "Allies", ["text"], "name Marta, text Innkeeper who owes me a favor"
+        ),
         "treasure": _ask_treasure(),
         "additional_features": _ask("Additional features/notes (optional)"),
     }
@@ -416,7 +509,7 @@ def _build_skeleton_details():
 _MODE_HANDLERS = {
     "full": (_full_abilities_saves_skills, _build_full_details),
     "skeleton": (
-        lambda class_level: _skeleton_abilities_saves_skills(),
+        _skeleton_abilities_saves_skills,
         lambda abilities: _build_skeleton_details(),
     ),
 }
@@ -429,11 +522,18 @@ def _write_character(out_path, char):
 
 
 def _build_character(char_id, name, mode):
-    char = {"id": char_id, "name": name, **_ask_identity_fields(), "xp": ""}
+    classes = _ask_classes()
+    char = {
+        "id": char_id,
+        "name": name,
+        "class_level": _format_class_level(classes),
+        **_ask_identity_fields(),
+        "xp": "",
+    }
 
     stats_fn, details_fn = _MODE_HANDLERS[mode]
     abilities, saves, skills, prof_bonus, passive_perception = stats_fn(
-        char["class_level"]
+        _total_level(classes)
     )
 
     char.update(
@@ -445,11 +545,25 @@ def _build_character(char_id, name, mode):
         passive_perception=passive_perception,
     )
     char.update(details_fn(abilities))
+    char["hit_dice"]["total"] = _format_hit_dice(classes)
     return char
+
+
+def _print_welcome():
+    print("New character. Answer each question and press Enter.")
+    print("Enter on its own keeps the [default] or skips the question.")
+    print("Everything can be edited in the file afterward.")
+
+
+def _print_next_steps(out_path):
+    print(f"\nSaved your character to {out_path}")
+    print("Next: open that file in any text editor to fill in anything you skipped.")
+    print("Real characters are private; do not commit them to git.")
 
 
 def main():
     args = _parse_args()
+    _print_welcome()
 
     name = _resolve_name(args)
     char_id = _resolve_character_id(args, name)
@@ -460,7 +574,7 @@ def main():
     mode = _resolve_mode(args)
 
     _write_character(out_path, _build_character(char_id, name, mode))
-    print(f"\nWrote {out_path}")
+    _print_next_steps(out_path)
 
 
 if __name__ == "__main__":

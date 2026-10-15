@@ -208,7 +208,7 @@ def test_skeleton_character_generated_by_script_renders_and_saves(
 ):
     monkeypatch.setattr(nc, "DATA_DIR", data_dir)
     argv("--id", "gen_skel", "--name", "Generated Skeleton", "--mode", "skeleton")
-    respond({"Class & level": "Fighter 1"})
+    respond({"Class (": ["Fighter", ""]})
     nc.main()
 
     assert b"Generated Skeleton" in client.get("/").data
@@ -226,13 +226,12 @@ def test_full_character_with_spells_generated_by_script_renders(
     argv("--id", "gen_full", "--name", "Generated Wizard", "--mode", "full")
     respond(
         {
-            "Class & level": "Wizard 5",
+            "Class (": ["Wizard", ""],
+            "Level in": "5",
             "Intelligence": "18",
-            "Character level": "5",
             "Proficient saving throws": "Intelligence, Wisdom",
             "Proficient skills": "Arcana",
             "Max HP": "27",
-            "Hit dice": "5d6",
             "name:": ["Arcane Recovery", ""],
             "text:": "Recover slots",
             "Include spellcasting": "y",

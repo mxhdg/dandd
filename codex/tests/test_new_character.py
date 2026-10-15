@@ -79,9 +79,11 @@ def test_ask_uses_default_and_strips(nc, respond):
     assert prompts[1] == "Name [Bob]: "
 
 
-def test_ask_int_falls_back_to_default_on_bad_input(nc, respond):
-    respond({"Level": ["7", "seven", ""]})
+def test_ask_int_reprompts_on_bad_input_and_uses_default_on_blank(nc, respond, capsys):
+    respond({"Level": ["7", "seven", "8", "", ""]})
     assert nc._ask_int("Level", 1) == 7
+    assert nc._ask_int("Level", 1) == 8
+    assert "please type a whole number" in capsys.readouterr().out
     assert nc._ask_int("Level", 1) == 1
     assert nc._ask_int("Level", 4) == 4
 
@@ -93,12 +95,36 @@ def test_ask_yn(nc, respond):
     assert nc._ask_yn("Q", default=True) is True
 
 
-def test_ask_names_filters_to_valid_and_reports_unknown(nc, respond, capsys):
-    respond({"Pick": ["", "Strength, Dexterity", "Strength, Bogus"]})
+def test_match_name_ignores_case_and_accepts_unique_prefixes(nc):
+    valid = ["Strength", "Stealth", "Survival", "Athletics"]
+    cases = [
+        ("strength", "Strength"),
+        ("  ATH ", "Athletics"),
+        ("sur", "Survival"),
+        ("st", None),
+        ("s", None),
+        ("bogus", None),
+        ("", None),
+    ]
+    for token, expected in cases:
+        assert nc._match_name(token, valid) == expected, token
+
+
+def test_parse_names_splits_matches_and_unknown(nc):
+    chosen, unknown = nc._parse_names(" str, dex ,, nope", nc.ABILITIES)
+    assert chosen == {"Strength", "Dexterity"}
+    assert unknown == ["nope"]
+    assert nc._parse_names("", nc.ABILITIES) == (set(), [])
+
+
+def test_ask_names_matches_loosely_and_reprompts_on_unknown(nc, respond, capsys):
+    respond({"Pick": ["", "strength, dex", "Strength, Bogus", "Strength"]})
     assert nc._ask_names("Pick", nc.ABILITIES) == set()
     assert nc._ask_names("Pick", nc.ABILITIES) == {"Strength", "Dexterity"}
     assert nc._ask_names("Pick", nc.ABILITIES) == {"Strength"}
-    assert "ignoring unrecognized: Bogus" in capsys.readouterr().out
+    out = capsys.readouterr().out
+    assert "not recognized: Bogus" in out
+    assert "choices: Charisma, Constitution" in out
 
 
 def test_ask_comma_list_trims_and_drops_blanks(nc, respond):
@@ -125,40 +151,73 @@ def test_ask_ability_inputs_derives_proficiency_bonus_from_level(nc, respond):
     respond(
         {
             "Strength": "16",
-            "Character level": "5",
             "Proficient saving throws": "Strength",
             "Proficient skills": "Athletics",
-            "Skills with expertise": "Athletics, Stealth",
+            "Skills with expertise": ["Athletics, Stealth", "ath"],
         }
     )
-    scores, prof_bonus, prof_saves, prof_skills, expertise = nc._ask_ability_inputs()
+    scores, prof_bonus, prof_saves, prof_skills, expertise = nc._ask_ability_inputs(5)
     assert scores["Strength"] == 16 and scores["Dexterity"] == 10
     assert prof_bonus == 3
     assert prof_saves == {"Strength"} and prof_skills == {"Athletics"}
     assert expertise == {"Athletics"}
 
 
-def test_total_level_sums_every_class(nc):
-    cases = [
-        ("Fighter 3 / Ranger 1", 4),
-        ("Wizard 5 (Evoker), Cleric 2", 7),
-        ("Artificer 5 (Artillerist)", 5),
-        ("Fighter 3 / Ranger", 3),
-        ("", 0),
+def _classes(nc, *entries):
+    return [
+        {"name": n, "level": lv, "subclass": sub, "die": d} for n, lv, sub, d in entries
     ]
-    for class_level, total in cases:
-        assert nc._total_level(class_level) == total
 
 
-def test_ask_ability_inputs_defaults_level_to_multiclass_total(nc, respond):
+def test_total_level_sums_every_class(nc):
+    classes = _classes(nc, ("Fighter", 3, "", 10), ("Ranger", 1, "", 10))
+    assert nc._total_level(classes) == 4
+
+
+def test_format_class_level_joins_classes_and_subclasses(nc):
+    classes = _classes(nc, ("Fighter", 3, "Champion", 10), ("Ranger", 1, "", 10))
+    assert nc._format_class_level(classes) == "Fighter 3 (Champion) / Ranger 1"
+    assert nc._format_class_level(classes[1:]) == "Ranger 1"
+
+
+def test_format_hit_dice_merges_matching_die_sizes(nc):
+    same = _classes(nc, ("Fighter", 3, "", 10), ("Ranger", 1, "", 10))
+    mixed = _classes(nc, ("Fighter", 3, "", 10), ("Wizard", 2, "", 6))
+    assert nc._format_hit_dice(same) == "4d10"
+    assert nc._format_hit_dice(mixed) == "3d10 + 2d6"
+
+
+def test_ask_class_defaults_hit_die_from_class_name(nc, respond):
+    respond({"Class (": "Ranger", "Level in": "3", "Subclass": "Hunter"})
+    assert nc._ask_class() == {
+        "name": "Ranger",
+        "level": 3,
+        "subclass": "Hunter",
+        "die": 10,
+    }
+    respond({"Class (": "Homebrewer", "Level in": "0"})
+    assert nc._ask_class() == {
+        "name": "Homebrewer",
+        "level": 1,
+        "subclass": "",
+        "die": 8,
+    }
+
+
+def test_ask_class_returns_none_on_blank(nc, respond):
     respond({})
-    prof_bonus = nc._ask_ability_inputs("Fighter 3 / Ranger 2")[1]
-    assert prof_bonus == 3
+    assert nc._ask_class() is None
+
+
+def test_ask_classes_collects_until_blank_and_requires_one(nc, respond):
+    respond({"Class (": ["", "Fighter", "Ranger", ""], "Level in": ["3", "1"]})
+    classes = nc._ask_classes()
+    assert [(c["name"], c["level"]) for c in classes] == [("Fighter", 3), ("Ranger", 1)]
 
 
 def test_full_abilities_saves_skills_composes_prompt_and_compute(nc, respond):
     respond({"Strength": "16", "Proficient saving throws": "Strength"})
-    abilities, saves, skills, prof_bonus, passive = nc._full_abilities_saves_skills()
+    abilities, saves, skills, prof_bonus, passive = nc._full_abilities_saves_skills(1)
     assert abilities[0]["mod"] == "+3"
     assert next(s for s in saves if s["name"] == "Strength")["mod"] == "+5"
     assert (prof_bonus, passive) == (2, 10)
@@ -228,12 +287,11 @@ def test_section_prompt_helpers(nc, respond):
 
 
 def test_ask_identity_fields(nc, respond):
-    respond({"Class & level": "Wizard 3", "Race": "Elf"})
+    respond({"Race": "Elf"})
     identity = nc._ask_identity_fields()
-    assert identity["class_level"] == "Wizard 3" and identity["race"] == "Elf"
+    assert identity["race"] == "Elf"
     assert identity["edition"] == "2014"
     assert set(identity) == {
-        "class_level",
         "background",
         "player_name",
         "edition",
@@ -288,20 +346,21 @@ def test_resolve_name_prefers_flag_then_prompts_until_non_blank(nc, argv, respon
     assert nc._resolve_name(nc._parse_args()) == "Tess"
 
 
-def test_resolve_character_id_defaults_to_slug_and_rejects_bad_ids(
+def test_resolve_character_id_derives_from_name_and_rejects_bad_ids(
     nc, argv, respond, capsys
 ):
     argv("--id", "good_id")
     assert nc._resolve_character_id(nc._parse_args(), "Tess") == "good_id"
     argv("--id", "bad id!")
-    respond({"Character id": "fixed-id"})
+    respond({"File name": "fixed-id"})
     assert nc._resolve_character_id(nc._parse_args(), "Tess") == "fixed-id"
     assert "id must match" in capsys.readouterr().out
     argv()
-    respond({"Character id": ""})
+    prompts = respond({})
     assert (
         nc._resolve_character_id(nc._parse_args(), "Tess Marigold") == "Tess_Marigold"
     )
+    assert prompts == []
 
 
 def test_confirm_overwrite(nc, respond, tmp_path):
@@ -314,14 +373,17 @@ def test_confirm_overwrite(nc, respond, tmp_path):
     assert nc._confirm_overwrite(existing) is False
 
 
-def test_resolve_mode_uses_flag_or_prompts_until_valid(nc, argv, respond):
+def test_resolve_mode_uses_flag_or_prompts_until_valid(nc, argv, respond, capsys):
     argv("--mode", "full")
     assert nc._resolve_mode(nc._parse_args()) == "full"
     argv()
-    respond({"Mode": ["nonsense", "full"]})
+    respond({"Quick or detailed": ["nonsense", "Detailed"]})
     assert nc._resolve_mode(nc._parse_args()) == "full"
-    respond({"Mode": ""})
-    assert nc._resolve_mode(nc._parse_args()) == "skeleton"
+    assert "please type quick or detailed" in capsys.readouterr().out
+    cases = [("", "skeleton"), ("q", "skeleton"), ("d", "full"), ("full", "full")]
+    for reply, mode in cases:
+        respond({"Quick or detailed": reply})
+        assert nc._resolve_mode(nc._parse_args()) == mode, reply
 
 
 # --- assembly and output ----------------------------------------------------
@@ -340,7 +402,13 @@ def test_write_character_creates_data_dir_and_round_trips(nc, tmp_path, monkeypa
 
 
 def test_build_character_skeleton_and_full(nc, respond):
-    respond({"Class & level": "Rogue 1", "Max HP": "9", "Include spellcasting": "n"})
+    respond(
+        {
+            "Class (": ["Rogue", "", "Rogue", ""],
+            "Max HP": "9",
+            "Include spellcasting": "n",
+        }
+    )
     skeleton = nc._build_character("t", "Tess", "skeleton")
     assert skeleton["id"] == "t" and skeleton["class_level"] == "Rogue 1"
     assert skeleton["hp"]["max"] == 10 and skeleton["proficiency_bonus"] == "+2"
@@ -349,13 +417,40 @@ def test_build_character_skeleton_and_full(nc, respond):
     assert set(skeleton) == set(full)
 
 
-def test_main_writes_the_character_file(nc, argv, respond, tmp_path, monkeypatch):
+def test_build_character_multiclass_derives_level_and_hit_dice(nc, respond):
+    respond({"Class (": ["Fighter", "Ranger", ""], "Level in": ["3", "2"]})
+    char = nc._build_character("e", "Elowen", "skeleton")
+    assert char["class_level"] == "Fighter 3 / Ranger 2"
+    assert char["hit_dice"] == {"total": "5d10"}
+    assert char["proficiency_bonus"] == "+3"
+    assert list(char)[:3] == ["id", "name", "class_level"]
+
+
+def test_main_writes_the_character_file(
+    nc, argv, respond, tmp_path, monkeypatch, capsys
+):
     monkeypatch.setattr(nc, "DATA_DIR", tmp_path)
     argv("--id", "tess", "--name", "Tess", "--mode", "skeleton")
-    respond({"Class & level": "Rogue 1"})
+    respond({"Class (": ["Rogue", ""]})
     nc.main()
     saved = yaml.safe_load((tmp_path / "tess.yaml").read_text(encoding="utf-8"))
     assert saved["name"] == "Tess" and saved["class_level"] == "Rogue 1"
+    out = capsys.readouterr().out
+    assert "Answer each question" in out
+    assert f"Saved your character to {tmp_path / 'tess.yaml'}" in out
+    assert "do not commit" in out
+
+
+def test_main_with_no_flags_only_asks_name_mode_and_character_questions(
+    nc, argv, respond, tmp_path, monkeypatch
+):
+    monkeypatch.setattr(nc, "DATA_DIR", tmp_path)
+    argv()
+    prompts = respond({"Character name": "Tess Marigold", "Class (": ["Rogue", ""]})
+    nc.main()
+    assert (tmp_path / "Tess_Marigold.yaml").exists()
+    assert not any("id" in p.lower().split() for p in prompts)
+    assert any("Quick or detailed" in p for p in prompts)
 
 
 def test_main_aborts_without_overwriting_when_declined(
@@ -376,7 +471,7 @@ def test_main_overwrites_when_confirmed(nc, argv, respond, tmp_path, monkeypatch
     monkeypatch.setattr(nc, "DATA_DIR", tmp_path)
     (tmp_path / "tess.yaml").write_text("old")
     argv("--id", "tess", "--name", "Tess", "--mode", "skeleton")
-    respond({"overwrite": "y"})
+    respond({"overwrite": "y", "Class (": ["Rogue", ""]})
     nc.main()
     assert yaml.safe_load((tmp_path / "tess.yaml").read_text())["name"] == "Tess"
 
@@ -408,3 +503,11 @@ def test_ask_identity_fields_uses_species_label_for_2024(nc, respond):
     prompts = respond({"Rules edition": "2024", "Species": "Human"})
     assert nc._ask_identity_fields()["race"] == "Human"
     assert any("Species" in p for p in prompts)
+
+
+def test_ask_names_hint_shows_examples_only_when_names_exist(nc, respond):
+    prompts = respond({})
+    nc._ask_names("Pick", ["Strength", "Dexterity", "Wisdom"])
+    nc._ask_names("Pick", [])
+    assert "e.g. Dexterity, Strength" in prompts[0]
+    assert "e.g." not in prompts[1]
