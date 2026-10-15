@@ -76,7 +76,7 @@ jobs:
         run: docker run -d --name codex-ci -p 8890:5000 codex:ci
 
       - name: Wait for the app to come up
-        run: curl -sf --retry 15 --retry-connrefused --retry-delay 1 -o /dev/null http://localhost:8890/
+        run: curl -sf --retry 15 --retry-all-errors --retry-delay 1 -o /dev/null http://localhost:8890/
 
       - name: Smoke test index and a character sheet
         run: |
