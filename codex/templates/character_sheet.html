@@ -1,3 +1,12 @@
+{% macro rules_link(kind, name) -%}
+{%- if not pdf -%}
+{%- set url = rules_url(kind, name, c.edition) -%}
+{%- if url %} <a class="rules-link" href="{{ url }}" target="_blank" rel="noopener" title="Rules text for {{ name|capitalize }}" aria-label="Rules text for {{ name|capitalize }}">?</a>{% endif -%}
+{%- endif -%}
+{%- endmacro %}
+{% macro spell_name(name) -%}
+{{ name }}{{ rules_link('spells', name) }}
+{%- endmacro %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,7 +31,7 @@
     <div class="field"><span class="label">Class &amp; Level</span><span class="value">{{ c.class_level }}</span></div>
     <div class="field"><span class="label">Background</span><span class="value">{{ c.background }}</span></div>
     <div class="field"><span class="label">Player Name</span><span class="value">{{ c.player_name or '&nbsp;'|safe }}</span></div>
-    <div class="field"><span class="label">Race</span><span class="value">{{ c.race }}</span></div>
+    <div class="field"><span class="label">{{ 'Species' if c.edition == '2024' else 'Race' }}</span><span class="value">{{ c.race }}</span></div>
     <div class="field"><span class="label">Alignment</span><span class="value">{{ c.alignment }}</span></div>
     <div class="field"><span class="label">Experience Points</span><span class="value"><input type="text" class="sheet-input" name="xp" value="{{ c.xp }}"></span></div>
   </div>
@@ -59,7 +68,7 @@
         <div class="section-title">Skills</div>
         <div class="box">
           {% for sk in c.skills %}
-          <div class="skill-row {{ 'prof' if sk.prof else '' }}"><span class="chk {{ 'filled' if sk.prof else '' }}"></span><span class="mod-box">{{ sk.mod }}</span><span class="skill-name">{{ sk.name }} <span class="skill-ability">({{ sk.ability }})</span></span></div>
+          <div class="skill-row {{ 'prof' if sk.prof else '' }}"><span class="chk {{ 'filled' if sk.prof else '' }} {{ 'expertise' if sk.prof == 'expertise' else '' }}"></span><span class="mod-box">{{ sk.mod }}</span><span class="skill-name">{{ sk.name }} <span class="skill-ability">({{ sk.ability }})</span></span></div>
           {% endfor %}
         </div>
       </div>
@@ -132,9 +141,11 @@
         <div class="box">
           <div class="condition-chips">
             {% for cond in condition_keys %}
-            <label class="condition-chip">
-              <input type="checkbox" name="condition_{{ cond }}" {% if c.conditions[cond] %}checked{% endif %}>{{ cond|capitalize }}
-            </label>
+            <span class="condition-item">
+              <label class="condition-chip">
+                <input type="checkbox" name="condition_{{ cond }}" {% if c.conditions[cond] %}checked{% endif %}>{{ cond|capitalize }}
+              </label>{{ rules_link('conditions', cond) }}
+            </span>
             {% endfor %}
           </div>
           <div class="exhaustion">
@@ -144,7 +155,7 @@
                 <option value="{{ lvl }}" {% if lvl == c.exhaustion %}selected{% endif %}>{{ lvl }}</option>
                 {% endfor %}
               </select>
-            </label>
+            </label>{{ rules_link('conditions', 'exhaustion') }}
             {% if c.exhaustion %}
             <ol class="exhaustion-effects">
               {% for effect in exhaustion_effects[:c.exhaustion] %}
@@ -161,9 +172,10 @@
         <div class="box">
           <div class="table-wrap">
             <table class="attack-table">
-              <tr><th>Name</th><th>Atk Bonus</th><th>Damage/Type</th><th>Range</th></tr>
+              {% set has_notes = c.attacks | selectattr('notes') | list | length > 0 %}
+              <tr><th>Name</th><th>Atk Bonus</th><th>Damage/<wbr>Type</th><th>Range</th>{% if has_notes %}<th>Notes</th>{% endif %}</tr>
               {% for atk in c.attacks %}
-              <tr><td>{{ atk.name }}</td><td>{{ atk.bonus }}</td><td>{{ atk.damage }}</td><td>{{ atk.range }}</td></tr>
+              <tr><td>{{ atk.name }}</td><td>{{ atk.bonus }}</td><td>{{ atk.damage }}</td><td>{{ atk.range }}</td>{% if has_notes %}<td>{{ atk.notes }}</td>{% endif %}</tr>
               {% endfor %}
             </table>
           </div>
@@ -195,7 +207,7 @@
       <div class="boxed-section personality-box">
         <div class="section-title">Personality Traits</div>
         <div class="box">
-          <div class="field"><span class="value">{{ c.personality.traits }}</span></div>
+          <div class="value">{{ c.personality.traits }}</div>
         </div>
       </div>
       <div class="boxed-section personality-box">
@@ -234,6 +246,12 @@
     <div class="field"><span class="label">Eyes</span><span class="value">{{ c.appearance.eyes }}</span></div>
     <div class="field"><span class="label">Skin</span><span class="value">{{ c.appearance.skin }}</span></div>
     <div class="field"><span class="label">Hair</span><span class="value">{{ c.appearance.hair }}</span></div>
+    {% if c.appearance.gender %}
+    <div class="field"><span class="label">Gender</span><span class="value">{{ c.appearance.gender }}</span></div>
+    {% endif %}
+    {% if c.appearance.faith %}
+    <div class="field"><span class="label">Faith</span><span class="value">{{ c.appearance.faith }}</span></div>
+    {% endif %}
   </div>
 
   <div class="boxed-section">
@@ -253,9 +271,13 @@
   </div>
 
   <div class="boxed-section">
-    <div class="section-title">Treasure: {{ c.treasure.title }}</div>
+    <div class="section-title">Treasure</div>
     <div class="box prose">
-      {{ c.treasure.text }}
+      <ul class="plain">
+        {% for item in c.treasure %}
+        <li>{% if item.name %}<strong>{{ item.name }}</strong>{% if item.text %}: {% endif %}{% endif %}{{ item.text }}</li>
+        {% endfor %}
+      </ul>
     </div>
   </div>
 
@@ -280,7 +302,7 @@
 
   <div class="boxed-section">
     <div class="section-title">Cantrips Known</div>
-    <div class="box text-sm">{{ c.spellcasting.cantrips | join(' &nbsp;·&nbsp; '|safe) }}</div>
+    <div class="box text-sm">{% for spell in c.spellcasting.cantrips %}{{ spell_name(spell) }}{% if not loop.last %} &nbsp;·&nbsp; {% endif %}{% endfor %}</div>
   </div>
 
   <div class="boxed-section">
@@ -303,7 +325,7 @@
       <div class="spell-list-cols text-sm">
         <ul class="plain">
           {% for spell in c.spellcasting.prepared %}
-          <li>{{ spell }}</li>
+          <li>{{ spell_name(spell) }}</li>
           {% endfor %}
         </ul>
       </div>
@@ -313,7 +335,7 @@
   <div class="boxed-section">
     <div class="section-title">Always Prepared ({{ c.spellcasting.class }} subclass, does not count against total)</div>
     <div class="box text-sm">
-      {% for grp in c.spellcasting.always_prepared %}{{ grp.spells }} <span class="small-note">{{ grp.note }}</span>{% if not loop.last %} &nbsp;&middot;&nbsp; {% endif %}{% endfor %}
+      {% for grp in c.spellcasting.always_prepared %}{% for spell in (grp.spells|string).split(',') %}{{ spell_name(spell.strip()) }}{% if not loop.last %}, {% endif %}{% endfor %} <span class="small-note">{{ grp.note }}</span>{% if not loop.last %} &nbsp;&middot;&nbsp; {% endif %}{% endfor %}
     </div>
   </div>
 

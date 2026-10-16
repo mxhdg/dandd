@@ -36,24 +36,12 @@ jobs:
                   "gh",
                   "api",
                   "--paginate",
-                  f"/orgs/{os.environ['OWNER']}/packages/container/dandd%2Fcodex/versions",
+                  f"/users/{os.environ['OWNER']}/packages/container/dandd%2Fcodex/versions",
               ],
               capture_output=True,
               text=True,
+              check=True,
           )
-          if result.returncode != 0:
-              # Falls back to the user-owned endpoint if the package isn't org-owned.
-              result = subprocess.run(
-                  [
-                      "gh",
-                      "api",
-                      "--paginate",
-                      f"/users/{os.environ['OWNER']}/packages/container/dandd%2Fcodex/versions",
-                  ],
-                  capture_output=True,
-                  text=True,
-                  check=True,
-              )
 
           versions = json.loads(result.stdout)
           stale_ids = []

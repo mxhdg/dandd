@@ -10,7 +10,8 @@ ordered by actual-play pain within each group: how much a mistake or
 friction point it causes at the table right now, not by how easy it'd be to
 build. Group boundaries and version numbers are a rough planning aid, not a
 committed schedule; re-shuffle freely as actual play surfaces new pain
-points.
+points. One deliberate exception: character creation tooling (1.4.0) was
+moved ahead of the DM session tools, by choice rather than by play pain.
 
 ## 1.1.0 (shipped)
 
@@ -29,7 +30,7 @@ points.
   `|safe`. Found 2026-09 while verifying the print-layout fix below.
 - **DONE. Fixed print layout scattering content across pages** (the
   3-column CSS grid couldn't fragment across a print page break, and Hit
-  Points landed on page 2 instead of page 1). See item 17 under 1.6.0 for
+  Points landed on page 2 instead of page 1). See item 17 under 1.7.0 for
   the remaining page-density follow-up.
 
 ## Known bugs (fix before new features)
@@ -90,14 +91,14 @@ Also added while shipping this release, not originally scoped above:
 
 ## 1.3.1 (shipped) — Code standards, tests, efficiency, security
 
-No user-facing change. Brings `app.py` and `scripts/new_character.py` in line
+No user-facing change. Brings `app.py` and `scripts/character.py` in line
 with the project's code standards (one responsibility per function,
 `_`-prefixed private functions; see `CLAUDE.md`).
 
 - **DONE. `app.py`**: extracted shared route lookup/origin/render helpers,
   split form parsing into one helper per field group, split saved-state
   reading from merging, split the PDF static-file check from the fetcher.
-- **DONE. `new_character.py`**: split prompting from computation for
+- **DONE. `character.py`**: split prompting from computation for
   abilities/saves/skills, per-section prompt helpers, spell-slot and
   comma-list helpers, and extracted character assembly out of `main()`.
   Verified byte-identical output against the old code for skeleton, full,
@@ -123,15 +124,265 @@ with the project's code standards (one responsibility per function,
   Docker, and Actions. Still open (needs a human): branch protection on
   `main` (GitHub setting), and whether to rewrite git history to drop the
   gitignored-since "howto" files from the public repo.
-- **DONE. Top-to-bottom tests**: `new_character.py` unit tests (30% -> 100%
+- **DONE. Top-to-bottom tests**: `character.py` unit tests (30% -> 100%
   coverage), integration journeys (a full play session, spellcasters,
   script-generated characters rendering in the app, security sweep,
   gunicorn config), tests converted to in-body loops with shared fixtures in
   `conftest.py`, and a 100% line+branch coverage gate enforced in CI.
 - **DONE. Tests** for the newly testable pure helpers
-  (`tests/test_new_character.py`).
+  (`tests/test_character.py`).
 
-## 1.4.0 — DM session tools
+## 1.4.0 — Character creation tooling (complete; version set to 1.4.0, release pending)
+
+Separate from actual-play pain entirely; touches `character.py`, not
+the live sheet (item 25 is the one exception, a live-sheet lookup that shares
+item 24's content source). Prioritized ahead of the DM tools.
+
+**Suggested order:** 26 (schema validation) first, since 23 depends on it,
+then 23 (edit/level-up mode), then 24 (Open5e-guided creation), then 25.
+
+**Release candidates (items 23 to 37), then 1.4.0:** rc1 added
+the import-friendly sheet fields, rc2 folded in the Dependabot updates, rc3
+made sheet text uniform, rc4 fixed the 403 on Save/rest buttons, rc5 fit the
+sheet on phones, rc6 added multiclass support, a friendlier `character.py`
+and the treasure list, rc7 added schema validation (26), gunicorn 26 (28),
+pip removal from the image (29) and the gender/faith fields (30), and rc8 added
+`character.py` with level-up and the edit menu (23). rc9 added SRD-guided creation (24) and rules lookup on the sheet (25). The
+theme's items are done; the rest of 29 (Debian findings, Trivy
+version) is waiting on upstream.
+
+23. **DONE (1.4.0-rc8): level-up and the edit menu.** The script
+    is now `scripts/character.py` with `--new`, `--level-up [ID]` and an
+    action question when no flag is given, and `--edit [ID]`, a nine-section
+    menu (identity, abilities and proficiencies, combat, attacks, gear, features
+    and allies, spells, story, other proficiencies) with the current value shown
+    for every prompt, per-section validation (an invalid result is discarded),
+    numbered remove-and-add list editing, and the same preview, backup and
+    `state/` rules as level-up. Level-up: validates the file, picks the class (or a new one for
+    multiclass), HP by roll or average plus CON (with a retroactive adjustment
+    when the CON modifier changes), ASI or feat, new features, spell slots and
+    spells by hand (no slot tables; item 24 could supply them), derived values
+    shifted by the formula change so custom bonuses are kept, an old->new
+    preview, `<id>.yaml.bak`, re-validation before writing, `state/` never
+    touched. Not recalculated, only flagged: attack bonuses, damage, AC. Known
+    gaps: YAML comments are dropped on rewrite (warned); only the standard ASI
+    levels are suggested (4, 8, 12, 16, 19); list entries are edited by
+    removing and re-adding, not in place. Original spec for the whole item
+    follows.
+
+    **Edit-existing-character mode in `character.py`**, alongside the
+    current `skeleton`/`full` creation modes: point it at an existing
+    `data/<id>.yaml`, walk through the same prompts pre-filled with that
+    character's current values, and write the result back. Right now
+    leveling up or any other build change to a real character means
+    hand-editing the YAML directly; a guided edit mode would keep the same
+    validation/derived-value computation (modifiers, DC, passive
+    perception) that creation already gets, instead of that only applying
+    the first time a character is made.
+
+    **Level-up is the first-class flow within this mode**, not an
+    afterthought: a dedicated `level-up` path that bumps class level and
+    proficiency bonus, recomputes max HP (roll or average for the new hit
+    die plus CON modifier), adds the hit die, prompts for new class
+    features, ASI/feat at the right levels, and new spells known/prepared
+    and slot counts, then recomputes every derived value. General edit mode
+    (respec, new gear, backstory changes) builds on the same
+    load/prefill/validate/write-back machinery, so design that machinery
+    for level-up first and let the free-form edit mode reuse it. Level-up
+    must only touch `data/<id>.yaml` (the static build), never
+    `state/<id>.yaml`, though it should flag stale state (e.g. current HP
+    above the new max is fine, but spell slots used beyond a changed slot
+    count isn't). Multiclassing is the awkward case to decide up front
+    whether to support. Depends on the schema validation in item 26: edit
+    and level-up should validate before reading and before writing.
+24. **DONE (1.4.0-rc9). SRD-guided character creation.** Built as `srd_lookup.py`
+    plus `--online` / an opt-in question in `character.py`: class (hit die,
+    saving throws, subclass names, level 1 features), species and subspecies
+    (traits) and class-limited spell pickers, from the `srd-2014` / `srd-2024`
+    documents of the Open5e v2 API only. Findings that changed the plan:
+    Open5e v2 is not SRD-only (24 documents, mixed licenses), so the client
+    filters to those two; the SRD licence is CC BY 4.0 (plus OGL 1.0a for
+    2014), so the attribution is the CC text, in the guide and printed after a
+    lookup; the API 403s the default Python User-Agent; the SRD documents have
+    no conditions and only 1 (2014) or 4 (2024) backgrounds, so those are not
+    looked up. Level-up and edit do not use it yet. Original spec follows.
+
+    **API-guided character creation in `character.py`**, sourcing race/
+    class/background/equipment/spell lists from the Open5e API
+    (`api.open5e.com`) instead of the user typing everything freehand.
+    Must be opt-in (e.g. a prompt or flag before any network call), never
+    the default path, so `character.py` still works fully offline for
+    anyone who doesn't want it hitting an external API. Chosen over
+    broader-but-riskier sources (e.g. 5etools' data mirrors) because Open5e
+    only serves SRD/OGL-licensed content, keeping the app's licensing clean;
+    requires adding an OGL Section 15 attribution notice somewhere in the
+    app (footer or a `/license` page) as a condition of using that content.
+    Content outside the SRD (some subclasses/spells) would still need to be
+    hand-authored the way campaign repos already handle original stat
+    blocks (e.g. `TheChillBeneaththeCrust/arc-vanilla-vault/monsters.md`).
+25. **DONE (1.4.0-rc9). Rules lookup on the sheet.** A `?` beside each condition and
+    each SRD spell opens its text in a new tab, per the character's edition.
+    Conditions came from Open5e's `core` document, which carries per-edition
+    SRD wording (the plan's "no conditions in the SRD documents" worry only
+    applied to the srd-* documents themselves). Text is bundled as JSON in
+    `codex/rules/` (about 750 KB, built by `scripts/build_rules.py`) so the app
+    never touches the network; entries with no upstream text (2024 Greater
+    Invisibility) are skipped, so no dead links. Display only; features and
+    items are not looked up. Checked in Chromium at 360, 375, 393 and 430px
+    (no overflow), desktop, `/pdf` and the print rule. Original spec follows.
+
+    **Rules-content lookup** (note from item 24's research: Open5e v2 has no
+    conditions in the SRD documents, so a condition lookup would have to be
+    bundled static text; spells and class/species features are available
+    through `srd_lookup.py`) for spells/features/conditions on the live
+    sheet (e.g. tap "Poisoned" and see what it actually does, rather than
+    just a toggle label). Same SRD/OGL licensing path as item 24's Open5e
+    API idea above — could plausibly share that same content source
+    rather than being a separate integration. Display only; explicitly not
+    a step toward automated dice rolling, which stays out of scope per
+    "Explicitly not planned right now" below.
+26. **DONE (1.4.0-rc7). Schema validation for `data/<id>.yaml`**, a prerequisite for item 23.
+    Built as `codex/character_schema.py` (hand-written, table-driven, stdlib
+    only; the `jsonschema` option was weighed and declined to keep the image's
+    dependencies and scan surface small). Runs in the app (422 error page, list
+    flag, other characters unaffected, YAML syntax errors included) and in pytest
+    (sample, template, script output and constants cannot drift). Not yet wired
+    into `character.py` edit mode (item 23, which does not exist yet); `state/<id>.yaml`
+    validation is still unscheduled. Original spec follows.
+    Define one schema (required keys, types, allowed values, e.g. ability
+    scores as ints, proficiency lists as lists) and check every character
+    file against it. Today `data/character_template.yaml.example` is the
+    only definition of the format, and nothing enforces it. Where it runs:
+    - `character.py` edit/level-up: validate on load and again before
+      writing. On failure, list every problem (file, field path, expected
+      vs. found), not just the first, and refuse to write a file that
+      fails.
+    - `app.py`: validate when loading a character. A failure shows a clear
+      error naming the file and fields (on the index page and the sheet
+      route) rather than a 500 or a half-rendered sheet, and one bad file
+      must not break the other characters' listing.
+    - `pytest`: a test that validates `sample_character.yaml` and the
+      template, so schema and sample can't drift apart.
+    Open decision: a JSON Schema checked with `jsonschema` (standard,
+    declarative, but a new dependency) versus a small hand-rolled validator
+    (no new dependency, matches the repo's stdlib-leaning approach). The
+    same question applies to `state/<id>.yaml`, which is lower priority.
+
+27. **DONE (1.4.0-rc1). Import-friendliness schema additions**, found while
+    hand-converting a D&D Beyond (2024-rules) PDF sheet into
+    `data/<id>.yaml`: (a) skill `prof` accepts `"expertise"` (doubles the
+    proficiency bonus, shown as a ringed checkbox), (b) attacks take an
+    optional `notes` string (extra Notes column only when used), (c) an
+    optional `edition` field (`"2014"` default, `"2024"` labels "Race" as
+    "Species"). `character.py` prompts for all three. Deferred, not
+    done: per-spell details (time/range/components/duration/save) and
+    limited-use trackers (1/Long Rest features, Staff charges, Portent dice).
+
+28. **DONE (1.4.0-rc7). Revisit the gunicorn 26 upgrade.** Upgraded to 26.2.0 with
+    `control_socket_disable = True` in `gunicorn.conf.py`; verified under the
+    real restrictions (read-only root, `/tmp` noexec, all capabilities dropped,
+    no-new-privileges): no startup error, `/`, the sheet and `/pdf` return 200,
+    Save and the rest buttons succeed (302). The 26.x lock also drops the
+    `packaging` dependency. Original problem report: held at 23.0.0 since rc2 (Dependabot PR #21). Under 26.2.0 the hardened container
+    logs `Control server error: Permission denied: '/home/appuser'` at
+    startup; the app still served requests, but the root filesystem is
+    read-only and the new control socket tries to write to the home
+    directory. Candidate fix, untested: `control_socket_disable = True` in
+    `gunicorn.conf.py` (CLI `--no-control-socket`), or point the socket at
+    `/tmp`. Verify under the real compose files (read-only root, `/tmp`
+    `noexec`), not just a plain `docker run`, and check the 23 to 26 release
+    notes for other breaking changes. Until then, close or ignore PR #21 so
+    Dependabot stops reopening it.
+
+29. **Image scan follow-ups (same pass as item 28). pip removal DONE (1.4.0-rc7); the rest is open.** From the
+    `v1.4.0-rc2` Trivy scan (non-blocking, exit-code 0): 48 HIGH on Debian
+    13.7, 4 HIGH in Python, 0 CRITICAL.
+    - **DONE (1.4.0-rc7). Removed pip from the final image** (`pip uninstall -y pip` right after the
+      hashed install; the Dockerfile comment is updated; the image's Python findings went 4 -> 0;
+      verified: `/`, the sheet and `/pdf` return 200, the healthcheck is healthy; the local gate command
+      now bootstraps pip with `ensurepip --user`). Original plan: (`pip uninstall -y pip` as the
+      last build step, after the `--require-hashes` install). All 4 Python
+      findings (msgpack 1.1.2, setuptools 70.3.0, urllib3 2.7.0 x2) are
+      copies vendored inside the base image's pip 26.2.1, not the app's real
+      dependencies, which all scan clean. Untested: confirm the app and
+      `/pdf` still work, the smoke test passes, and the findings clear. Also
+      update the Dockerfile comment that says the vendored msgpack can't be
+      fixed.
+    - **Debian findings: nothing to do yet.** None has a fixed version
+      (util-linux's 4 CVEs repeat across about 11 sub-packages; also expat,
+      ncurses, systemd/udev, libacl1, perl-base). All need mount/namespace
+      privileges the non-root, cap-dropped container doesn't have. Re-scan
+      after each base-image digest bump (Dependabot) and re-check then.
+    - **Trivy is 5 minor versions behind** (0.70.0 vs 0.75.0 available). The
+      version comes from the pinned `trivy-action` default, so it moves when
+      Dependabot bumps the action; no manual change needed.
+
+30. **DONE (1.4.0-rc7). Gender and faith character fields.** Found importing a D&D Beyond
+    sheet, which has both in its header block; codex has neither, so for now
+    they live as plain text in `additional_features`. Added optional `gender`
+    and `faith` keys in the `appearance` block (page 2, so page 1's header and
+    phone fit are untouched), shown on the sheet only when set. Touches the
+    template, `character_template.yaml.example`, `character.py` prompts
+    and the docs; a schema addition like item 27, so the same upgrade path
+    (optional, existing character files keep working).
+
+31. **DONE (1.4.0-rc2). Dependabot updates folded into the feature
+    branch** instead of bumping each PR (they fail the version-bump check by
+    design): base image digest, pyyaml 6.0.3, and the dev-tools group
+    (flake8 7.4.1, isort 9.0.2 and friends). Lock files regenerated with
+    `pip-compile` on Python 3.14 and the full gates re-run. gunicorn 26 was
+    deliberately skipped (item 28).
+32. **DONE (1.4.0-rc3). Uniform sheet text.** Traits rendered at 11px while
+    ideals, bonds and flaws inherited 16px. All running text (values,
+    features, tables, spell lists, inputs) now uses one `--text-size`
+    custom property (12pt, the APA body size); labels, section titles and
+    ability names stay deliberately smaller (an all-12pt trial of those was
+    rejected as too tall). A test checks the four personality boxes share
+    one markup.
+33. **DONE (1.4.0-rc4). Fixed 403 on Save Changes and the rest buttons on
+    the live site.** `Referrer-Policy: no-referrer` made Firefox and
+    Chromium send `Origin: null` on form POSTs, so the same-origin check
+    rejected every POST; it is now `same-origin` (still no referrer sent
+    cross-site). Reproduced in both browsers before and fixed after.
+    Deployment note found at the same time: the prod `state/` bind mount
+    must be writable by the container user (UID 1000), or saves fail with a
+    500.
+34. **DONE (1.4.0-rc5). Sheet fits phone-width screens (iPhone 14 Pro,
+    393px).** The single phone column was `1fr`, which grew to fit 12pt
+    content and pushed tiles past the margin; it is now `minmax(0, 1fr)`.
+    On phones the attack table shows Notes as a full-width line under each
+    attack instead of a clipped fifth column, and "Damage/Type" wraps at the
+    slash. Checked at 360, 375, 393 and 430px in Chromium emulation (real
+    Safari untested). Also removed the original hand-built
+    `characters/2014_marigold_kettlewick.{html,css}` and cleaned up the root
+    `.gitignore`.
+
+35. **DONE (1.4.0-rc6). Multiclass characters.** `character.py` prompts per
+    class (name, level, subclass, hit die defaulted from the class name) and
+    builds `class_level`, `hit_dice.total` (same-size dice merged) and the
+    proficiency bonus from total level; the spellcasting prompt mentions
+    multiple classes. The sheet already rendered these as free text.
+    Not done: separate hit dice "Used" counts per die type, and per-class
+    spell lists/slot tables (slots are entered by hand, one shared pool).
+
+36. **DONE (1.4.0-rc6). Friendlier `character.py` for non-coders.** (Renamed from
+    `new_character.py` in rc8, when the script also became the place for
+    editing and levelling up; older items above keep the new name.)
+    Welcome line and plain closing message; "quick or detailed" instead of
+    `skeleton`/`full` (flags unchanged); no file-id prompt (derived from the
+    name unless `--id`); case-insensitive and unique-prefix name matching;
+    bad numbers and unrecognized names re-prompt instead of silently
+    defaulting or dropping. Still a terminal script needing Python and
+    PyYAML; a web form (item 24-style) was considered and deferred.
+
+37. **DONE (1.4.0-rc6). Treasure is a list.** The sheet's header is a fixed
+    "Treasure" and the box is a bulleted list of strings or `{name, text}`
+    items, replacing the single titled box. `_treasure_items` normalizes the
+    old `{title, text}` shape (title becomes the item name), so existing
+    character files need no edits; `character.py` asks for one item per
+    line.
+
+## 1.5.0 — DM session tools
 
 DM-facing prep/mid-session pain that exists right now regardless of party
 size, unlike the party-overview/initiative items below which explicitly
@@ -152,7 +403,7 @@ wait on more characters being in the app.
     order on paper is one of the most common things to fumble at the table,
     but like the party overview, the payoff scales with party size.
 
-## 1.5.0 — Multi-character & session history
+## 1.6.0 — Multi-character & session history
 
 13. **Character switcher** on the sheet page itself (dropdown or tab strip)
     instead of going back to the list. Useful once more than one or two
@@ -161,7 +412,7 @@ wait on more characters being in the app.
     at the end of a session, so there's an actual record of HP/inventory/XP
     over time instead of relying on memory of where things were left off.
 
-## 1.6.0 — Polish & convenience
+## 1.7.0 — Polish & convenience
 
 Lower urgency: preference-driven or already partially covered by an
 existing workaround.
@@ -212,76 +463,6 @@ existing workaround.
     `data/<id>.yaml`? a query param? something else? — and how it should
     interact with the existing `@media print` override, which already
     repurposes those same variables for black-on-white output.
-
-## 1.7.0 — Character creation tooling
-
-Separate from actual-play pain entirely; touches `new_character.py`, not
-the live sheet.
-
-23. **Edit-existing-character mode in `new_character.py`**, alongside the
-    current `skeleton`/`full` creation modes: point it at an existing
-    `data/<id>.yaml`, walk through the same prompts pre-filled with that
-    character's current values, and write the result back. Right now
-    leveling up or any other build change to a real character means
-    hand-editing the YAML directly; a guided edit mode would keep the same
-    validation/derived-value computation (modifiers, DC, passive
-    perception) that creation already gets, instead of that only applying
-    the first time a character is made.
-
-    **Level-up is the first-class flow within this mode**, not an
-    afterthought: a dedicated `level-up` path that bumps class level and
-    proficiency bonus, recomputes max HP (roll or average for the new hit
-    die plus CON modifier), adds the hit die, prompts for new class
-    features, ASI/feat at the right levels, and new spells known/prepared
-    and slot counts, then recomputes every derived value. General edit mode
-    (respec, new gear, backstory changes) builds on the same
-    load/prefill/validate/write-back machinery, so design that machinery
-    for level-up first and let the free-form edit mode reuse it. Level-up
-    must only touch `data/<id>.yaml` (the static build), never
-    `state/<id>.yaml`, though it should flag stale state (e.g. current HP
-    above the new max is fine, but spell slots used beyond a changed slot
-    count isn't). Multiclassing is the awkward case to decide up front
-    whether to support. Depends on the schema validation in item 26: edit
-    and level-up should validate before reading and before writing.
-24. **API-guided character creation in `new_character.py`**, sourcing race/
-    class/background/equipment/spell lists from the Open5e API
-    (`api.open5e.com`) instead of the user typing everything freehand.
-    Must be opt-in (e.g. a prompt or flag before any network call), never
-    the default path, so `new_character.py` still works fully offline for
-    anyone who doesn't want it hitting an external API. Chosen over
-    broader-but-riskier sources (e.g. 5etools' data mirrors) because Open5e
-    only serves SRD/OGL-licensed content, keeping the app's licensing clean;
-    requires adding an OGL Section 15 attribution notice somewhere in the
-    app (footer or a `/license` page) as a condition of using that content.
-    Content outside the SRD (some subclasses/spells) would still need to be
-    hand-authored the way campaign repos already handle original stat
-    blocks (e.g. `TheChillBeneaththeCrust/arc-vanilla-vault/monsters.md`).
-25. **Rules-content lookup** for spells/features/conditions on the live
-    sheet (e.g. tap "Poisoned" and see what it actually does, rather than
-    just a toggle label). Same SRD/OGL licensing path as item 24's Open5e
-    API idea above — could plausibly share that same content source
-    rather than being a separate integration. Display only; explicitly not
-    a step toward automated dice rolling, which stays out of scope per
-    "Explicitly not planned right now" below.
-26. **Schema validation for `data/<id>.yaml`**, a prerequisite for item 23.
-    Define one schema (required keys, types, allowed values, e.g. ability
-    scores as ints, proficiency lists as lists) and check every character
-    file against it. Today `data/character_template.yaml.example` is the
-    only definition of the format, and nothing enforces it. Where it runs:
-    - `new_character.py` edit/level-up: validate on load and again before
-      writing. On failure, list every problem (file, field path, expected
-      vs. found), not just the first, and refuse to write a file that
-      fails.
-    - `app.py`: validate when loading a character. A failure shows a clear
-      error naming the file and fields (on the index page and the sheet
-      route) rather than a 500 or a half-rendered sheet, and one bad file
-      must not break the other characters' listing.
-    - `pytest`: a test that validates `sample_character.yaml` and the
-      template, so schema and sample can't drift apart.
-    Open decision: a JSON Schema checked with `jsonschema` (standard,
-    declarative, but a new dependency) versus a small hand-rolled validator
-    (no new dependency, matches the repo's stdlib-leaning approach). The
-    same question applies to `state/<id>.yaml`, which is lower priority.
 
 ## Unscoped ideas
 

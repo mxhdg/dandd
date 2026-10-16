@@ -1,2 +1,12 @@
 .list-box { background: #f5ecd8; max-width: 500px; margin: 0 auto; padding: 24px; border: 2px solid #1c1a16; }
 ul { padding-left: 20px; }
+.flag { color: #7a1414; font-size: 0.85em; }
+.problems li { margin-bottom: 4px; font-size: 0.9em; }
+.rules-box { max-width: 640px; }
+.rules-meta { margin: 0 0 12px; color: #555; font-size: 0.9em; }
+.rules-facts { list-style: none; padding: 0; margin: 0 0 12px; font-size: 0.95em; }
+.rules-text { line-height: 1.45; }
+.rules-table { border-collapse: collapse; margin: 8px 0; font-size: 0.9em; }
+.rules-table td { border: 1px solid #1c1a16; padding: 2px 8px; }
+.rules-sub { font-size: 1em; margin: 14px 0 4px; }
+.rules-credit { margin-top: 18px; font-size: 0.75em; color: #555; }

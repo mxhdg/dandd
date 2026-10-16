@@ -8,17 +8,36 @@ import ast
 from pathlib import Path
 
 ROOT = Path(__file__).parent.parent
-SOURCE_FILES = [ROOT / "app.py", ROOT / "scripts" / "new_character.py"]
+SOURCE_FILES = [
+    ROOT / "app.py",
+    ROOT / "character_schema.py",
+    ROOT / "srd_lookup.py",
+    ROOT / "scripts" / "build_rules.py",
+    ROOT / "scripts" / "character.py",
+]
 
 # One job per function: if a function outgrows this, it is almost certainly
 # doing more than one thing. Pure data tables (e.g. a defaults dict) are the
 # only reason to be near the limit.
 MAX_FUNCTION_LINES = 30
 
-# Public by necessity: a script's entry point, and methods overriding a base
-# class (WeasyPrint's URLFetcher.fetch). Flask routes and hooks are public too
-# but are recognised by their decorator instead of being listed here.
-ALLOWED_PUBLIC = {"main", "fetch"}
+# Public by necessity: a script's entry point, the one function of a module that
+# other modules import (character_schema.validate_character and the srd_lookup
+# loaders), and methods
+# overriding a base class (WeasyPrint's URLFetcher.fetch). Flask routes and
+# hooks are public too but are recognised by their decorator instead of being
+# listed here.
+ALLOWED_PUBLIC = {
+    "main",
+    "fetch",
+    "validate_character",
+    "load_classes",
+    "load_species",
+    "load_spells",
+    "load_spell_details",
+    "load_conditions",
+    "slugify",
+}
 
 
 def _functions(path):
