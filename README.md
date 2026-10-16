@@ -59,30 +59,126 @@ To keep the domain out of git, instead write `CODEX_ALLOWED_HOSTS: ${CODEX_ALLOW
 
 **Put a login in front of it.** This app has none, so anyone who finds a publicly reachable URL can view and edit the sheets. For a tunnel, add a Cloudflare Access application for the hostname (Zero Trust, Access, Applications) with a policy allowing only your players' emails; it needs no code change.
 
-### Creating and levelling up a character
+### Characters: create, level up, edit
+
+One script does all three. Run it from `codex/` (it needs PyYAML, which `pip install -r requirements.txt` provides):
 
 ```bash
 cd codex
 python scripts/character.py
 ```
 
-With no flag the script asks whether to create a character, level one up, or edit one; `--new`, `--level-up [ID]` and `--edit [ID]` skip that question (see below). Creating interactively generates a new `data/<id>.yaml` file; the file name comes from the character's name (pass `--id` to choose another). Answers are forgiving: Enter keeps the `[default]`, names are matched without regard to case or by unique first letters (`ath` for Athletics), and a typo or non-number is explained and asked again instead of being dropped; Ctrl+C (or Ctrl+D) quits cleanly and saves nothing. It asks "quick or detailed" (`--mode skeleton|full`): `skeleton`/quick covers just the identity fields plus valid defaults you hand-fill afterward, and `full`/detailed also prompts for ability scores, proficiencies, equipment, backstory, etc., with derived stats (modifiers, proficiency bonus, passive perception) computed for you. Multiclass characters are supported: the script asks for each class in turn (name, level, optional subclass, hit die size, defaulting from the class name), then builds `Fighter 3 (Champion) / Ranger 1`, the combined hit dice (`4d10`, or `3d10 + 2d6` for mixed dice) and the proficiency bonus from total level; the sheet counts every die (one shared Used count). Both modes ask for the rules edition (2014 or 2024; 2024 relabels "Race" as "Species" on the sheet), and `full` mode asks which proficient skills have expertise. In a character file, a skill's `prof` is `true`, `false`, or `"expertise"`, `appearance` takes optional `gender` and `faith`, shown on page 2 only when set, `treasure` is a list (plain strings, or `{name, text}` for an item with a description; the older single `{title, text}` box still loads, with the title shown as the item name), and each attack can carry an optional `notes` string (the sheet only shows a Notes column when at least one attack has one). Needs PyYAML (`pip install -r requirements.txt`), no other setup required. Either mode's output is a starting point, expect to hand-edit the result the same way existing character sheets are maintained.
+With no flag it asks what you want to do. Flags skip that question:
 
-**Looking things up from the free SRD** (optional, creation only): add `--online`, or answer yes when asked "Look up classes, species and spells from the free SRD?". Nothing is requested from the network unless you do; if the lookup fails (offline, timeout) the script says so and you type everything yourself as before. With it on: the class you type is matched against the SRD (`wiz` finds Wizard; the hit die, saving-throw proficiencies and subclass names come along), the species and subspecies are matched the same way, the level 1 class features and species traits are offered to add to the sheet, and spell prompts accept part of a name (`fire` for Fire Bolt) limited to your class's list. Only the two System Reference Documents are used (`srd-2014` for 2014 rules, `srd-2024` for 2024), via the free [Open5e](https://open5e.com) API. Answers are cached for 30 days in `codex/.cache/srd/` (git-ignored). SRD text is licensed CC BY 4.0, so the credit line is printed after a lookup and kept in the Getting Started guide: *This work includes material from the System Reference Document (SRD) by Wizards of the Coast LLC, available at <https://dnd.wizards.com/resources/systems-reference-document>. The SRD is licensed under the Creative Commons Attribution 4.0 International License available at <https://creativecommons.org/licenses/by/4.0/legalcode>.*
+| Command | What it does |
+|---|---|
+| `python scripts/character.py --new` | Create a character (add `--online` to look things up from the free SRD) |
+| `python scripts/character.py --level-up [ID]` | Advance an existing character one level |
+| `python scripts/character.py --edit [ID]` | Change anything on an existing character |
 
-**Levelling up** (`python scripts/character.py --level-up [ID]`, or pick "level-up" when asked; without an ID it lists your characters): the file is validated first and every problem is listed if it fails. You then choose which class gains the level (or add a new one for multiclass), enter the hit die roll (Enter uses the average; a Constitution modifier change also adjusts earlier levels), take an ability score improvement or a feat when you want one (it suggests it at levels 4, 8, 12, 16 and 19), add new features, and, for spellcasters, update slots and spells (slots are typed in by hand; save DC and attack bonus are suggested from your ability and proficiency bonus). Ability modifiers, saves, skills, passive Perception and initiative are updated by the amount they change, so custom bonuses you added by hand are kept. Attack bonuses, damage and Armor Class are not recalculated; the script lists what to review. Everything changed is shown (old -> new) and you confirm before it saves. The previous file is kept as `<id>.yaml.bak` (git-ignored) and `state/<id>.yaml` is never touched. Saving rewrites the file, so any comments in it are not kept.
+Leave off `ID` and the script lists your characters so you can pick one.
 
-**Editing** (`python scripts/character.py --edit [ID]`, or answer "edit"): a menu of nine sections (identity and background, ability scores and proficiencies, combat stats, attacks, equipment/treasure/money, features and allies, spellcasting, personality/appearance/backstory, languages and other proficiencies). Pick a section, answer its prompts (the current value is shown in brackets: Enter keeps it, `-` clears it; lists show numbered items so you can remove some and add others), and repeat until you press Enter at the menu. A section whose result would make the file invalid is discarded with the reasons, so a slip never costs you the other edits. Changing ability scores or proficiencies shifts the derived values by the change, the same way level-up does. As with level-up you see every change (old -> new) before confirming, `<id>.yaml.bak` is written first, and `state/` is untouched. Gaining a level goes through `--level-up`, which also handles hit points and features.
+Every prompt follows the same rules, so you never have to guess:
 
-New to D&D and not sure what to pick for race/class/background before running the script? D&D Beyond's free [2014 Step-by-Step Characters](https://www.dndbeyond.com/sources/dnd/basic-rules-2014/step-by-step-characters) guide (or, for 2024 rules, [Creating a Character](https://www.dndbeyond.com/sources/dnd/br-2024/creating-a-character)) walks through those decisions. The script prints the one matching your chosen edition when it starts.
+- **Enter** keeps the value shown in `[brackets]`, or skips the question.
+- **Names are forgiving.** Upper or lower case both work, and so does the start of a name (`ath` finds Athletics).
+- **A typo is explained and asked again,** and so is a non-number where a number is expected. Nothing is silently dropped.
+- **Ctrl+C** (or Ctrl+D) quits at any point and saves nothing.
+
+If you are new to D&D and unsure what to pick for race, class or background, D&D Beyond's free [2014 Step-by-Step Characters](https://www.dndbeyond.com/sources/dnd/basic-rules-2014/step-by-step-characters) guide (or, for 2024 rules, [Creating a Character](https://www.dndbeyond.com/sources/dnd/br-2024/creating-a-character)) walks through those decisions. The script prints the link that matches your chosen edition when it starts.
+
+#### Creating a character
+
+The script writes a new `data/<id>.yaml`. The id comes from the character's name; pass `--id` to choose another.
+
+1. **Rules edition** is asked first (2014 or 2024). 2024 relabels "Race" as "Species" on the sheet.
+2. **Quick or detailed** (`--mode skeleton|full`):
+   - *Quick* asks for the identity fields and fills in valid defaults for everything else, so the sheet works straight away.
+   - *Detailed* also asks for ability scores, proficiencies (and which skills have expertise), equipment, backstory and more, and computes the derived numbers for you (modifiers, proficiency bonus, passive Perception).
+3. **Classes** are asked one at a time, so multiclass works: name, level, optional subclass, and hit die (suggested from the class name). The script builds the class line (`Fighter 3 (Champion) / Ranger 1`), the combined hit dice (`4d10`, or `3d10 + 2d6` for mixed dice) and the proficiency bonus from your total level. The sheet counts every die, with one shared Used count.
+
+Treat the result as a first draft: open the file and hand-edit anything you skipped, the same way the existing sheets are maintained.
+
+##### Looking things up from the free SRD (optional)
+
+Add `--online`, or answer yes when asked "Look up classes, species and spells from the free SRD?". It is off unless you ask for it, and nothing is requested from the network otherwise. If the lookup fails (offline, timeout) the script says so and you type everything yourself, as usual.
+
+With it on:
+
+- Your class is matched against the SRD (`wiz` finds Wizard). The hit die, saving-throw proficiencies and subclass names come along.
+- Species and subspecies are matched the same way.
+- Level 1 class features and species traits are offered for you to add to the sheet.
+- Spell prompts accept part of a name (`fire` finds Fire Bolt), limited to your class's spell list.
+
+Only the two System Reference Documents are used (`srd-2014` for 2014 rules, `srd-2024` for 2024), through the free [Open5e](https://open5e.com) API. Answers are cached for 30 days in `codex/.cache/srd/` (git-ignored).
+
+SRD text is licensed CC BY 4.0, so the credit is printed after a lookup and kept in the Getting Started guide: *This work includes material from the System Reference Document (SRD) by Wizards of the Coast LLC, available at <https://dnd.wizards.com/resources/systems-reference-document>. The SRD is licensed under the Creative Commons Attribution 4.0 International License available at <https://creativecommons.org/licenses/by/4.0/legalcode>.*
+
+#### Levelling up
+
+`python scripts/character.py --level-up [ID]`, or answer "level-up" when asked.
+
+1. The file is checked first. If it has problems, every one is listed and nothing changes.
+2. Pick the class that gains the level, or add a new class for multiclass.
+3. Enter your hit die roll. Enter uses the average, and a change in your Constitution modifier also adjusts hit points for earlier levels.
+4. Take an ability score improvement or a feat if you want one. It is suggested at levels 4, 8, 12, 16 and 19.
+5. Add any new features.
+6. Spellcasters update slots and spells. Slots are typed in by hand; the save DC and attack bonus are suggested from your ability and proficiency bonus.
+7. Review the changes (old -> new) and confirm before anything is saved.
+
+Ability modifiers, saves, skills, passive Perception and initiative move by the amount they change, so bonuses you added by hand are kept. Attack bonuses, damage and Armor Class are **not** recalculated; the script lists what to review.
+
+#### Editing
+
+`python scripts/character.py --edit [ID]`, or answer "edit". You get a menu of nine sections:
+
+1. Identity and background
+2. Ability scores and proficiencies
+3. Combat stats
+4. Attacks
+5. Equipment, treasure and money
+6. Features and allies
+7. Spellcasting
+8. Personality, appearance and backstory
+9. Languages and other proficiencies
+
+Pick a section, answer its prompts, and repeat until you press Enter at the menu. The current value shows in brackets: Enter keeps it and `-` clears it. Lists show numbered items so you can remove some and add others. A section whose result would make the file invalid is discarded with the reasons, so one slip never costs you your other edits. Changing ability scores or proficiencies shifts the derived values by the change, the same as level-up. To gain a level, use `--level-up`, which also handles hit points and features.
+
+#### Level-up and edit safety
+
+- You see every change (old -> new) and confirm before saving.
+- The previous file is kept as `<id>.yaml.bak` (git-ignored).
+- `state/<id>.yaml` (current HP, slots used and so on) is never touched.
+- Saving rewrites the file, so any comments in it are not kept.
+
+#### What goes in a character file
+
+`data/character_template.yaml.example` is the blank starting point. A few things worth knowing:
+
+- A skill's `prof` is `true`, `false` or `"expertise"`.
+- `appearance` takes optional `gender` and `faith`, shown on page 2 only when set.
+- `treasure` is a list: plain strings, or `{name, text}` for an item with a description. The older single `{title, text}` box still loads, with the title shown as the item name.
+- Each attack can carry an optional `notes` string; the sheet only shows a Notes column when at least one attack has one.
+
+#### Character file checks
+
+Every `data/<id>.yaml` is validated when it is opened (`codex/character_schema.py`, a small stdlib-only checker driven by one `SCHEMA` table).
+
+- A file with problems shows an error page listing each wrong field (path, what was expected, what was found) instead of a 500.
+- The character list marks that file "needs fixing", and every other character keeps working.
+- Unknown extra fields are allowed. Wrong types, missing required sections and YAML syntax errors are not.
+- To support a new field, add one line to `SCHEMA`, to `data/character_template.yaml.example` and to `scripts/character.py`. The tests fail if these drift apart.
 
 ### Rules text on the sheet
 
-Each condition on a character sheet, and each spell in the spellcasting section that is in the free SRD, has a small **?** beside it. Tapping it opens the rules text in a new tab (so unsaved edits on the sheet are never lost), worded for the character's own rules edition (2014 or 2024, from the `edition` field). The links are not part of the printed sheet or the PDF, and a spell the SRD does not contain simply has no link. The text is bundled in `codex/rules/*.json` (conditions and spells for both editions; about 750 KB) and read by the app from disk, so the running app never calls the network. Refresh it with `python scripts/build_rules.py` (needs internet; `--refresh` skips the 30-day download cache), review the diff, and commit. Entries the SRD leaves blank are skipped. Display only: there is no dice rolling or automation. The CC BY 4.0 credit is on every rules page and in the Getting Started guide.
+Each condition on a character sheet, and each spell in the spellcasting section that is in the free SRD, has a small **?** beside it.
 
-### Character file checks
+- Tapping it opens the rules text in a **new tab**, so unsaved edits on the sheet are never lost.
+- The wording matches the character's own rules edition (2014 or 2024, from the `edition` field).
+- The links do not appear on the printed sheet or the PDF, and a spell the SRD does not contain simply has no link.
+- It is display only: there is no dice rolling or automation.
 
-Every `data/<id>.yaml` is validated when it is opened (`codex/character_schema.py`, a small stdlib-only checker driven by one `SCHEMA` table). A file with problems shows an error page listing each wrong field (path, what was expected, what was found) instead of a 500, the character list marks it "needs fixing", and every other character keeps working. Unknown extra fields are allowed; wrong types, missing required sections, and a YAML syntax error are not. To support a new field, add one line to `SCHEMA`, to `data/character_template.yaml.example`, and to `scripts/character.py`; the tests fail if these drift apart.
+The text is bundled in `codex/rules/*.json` (conditions and spells for both editions, about 750 KB) and read from disk, so the running app never calls the network. To refresh it, run `python scripts/build_rules.py` (needs internet; `--refresh` skips the 30-day download cache), review the diff and commit. Entries the SRD leaves blank are skipped. The CC BY 4.0 credit is on every rules page and in the Getting Started guide.
 
 ### Testing
 
