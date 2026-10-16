@@ -6,13 +6,13 @@ cannot: how it looks and feels on your real devices, your real character files,
 and the live deploy. Tick each box; write what you saw under **Notes** if it
 differs from **Expect**. About 50 minutes in total.
 
-Version under test: `1.4.0-rc9` (check `codex/pyproject.toml`).
+Version under test: `1.4.0` (check `codex/pyproject.toml`; the dev stack footer shows `dev`).
 
 ## 0. Setup (5 min)
 
 - [ ] Back up your real data: `cp -r ~/source/dandd/codex/data /tmp/data-backup`
 - [ ] Rebuild and start the dev stack: `cd ~/source/dandd/codex && docker compose -f docker-compose.dev.yml up -d --build`
-- [ ] Open `http://192.168.40.31:8890`. The footer shows `dev` or the rc9 version and the list loads.
+- [ ] Open `http://192.168.40.31:8890`. The footer shows `dev` and the list loads.
 - [ ] For every script test below, use throwaway names starting with `zz_` and delete them at the end (section 7). Never run the script's level-up or edit against a real character without a copy.
 
 ## 1. Sheet, list and PDF (10 min)

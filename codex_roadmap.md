@@ -132,7 +132,7 @@ with the project's code standards (one responsibility per function,
 - **DONE. Tests** for the newly testable pure helpers
   (`tests/test_character.py`).
 
-## 1.4.0 — Character creation tooling (in progress, at 1.4.0-rc9)
+## 1.4.0 — Character creation tooling (complete; version set to 1.4.0, release pending)
 
 Separate from actual-play pain entirely; touches `character.py`, not
 the live sheet (item 25 is the one exception, a live-sheet lookup that shares
@@ -141,7 +141,7 @@ item 24's content source). Prioritized ahead of the DM tools.
 **Suggested order:** 26 (schema validation) first, since 23 depends on it,
 then 23 (edit/level-up mode), then 24 (Open5e-guided creation), then 25.
 
-**Release candidates so far (items 23 to 37):** rc1 added
+**Release candidates (items 23 to 37), then 1.4.0:** rc1 added
 the import-friendly sheet fields, rc2 folded in the Dependabot updates, rc3
 made sheet text uniform, rc4 fixed the 403 on Save/rest buttons, rc5 fit the
 sheet on phones, rc6 added multiclass support, a friendlier `character.py`
