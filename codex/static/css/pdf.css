@@ -13,3 +13,8 @@ input[type="checkbox"] {
   border: 1.3px solid var(--ink); margin-right: 4px;
 }
 input[type="checkbox"]:checked { background: var(--ink); }
+
+/* Keep the AC / Initiative / Speed row whole: WeasyPrint will otherwise split
+   it across a page break, leaving the labels on one page and values on the next. */
+.combat-grid { break-inside: avoid; page-break-inside: avoid; }
+.combat-grid .field { break-inside: avoid; page-break-inside: avoid; }
