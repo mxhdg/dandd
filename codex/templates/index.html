@@ -13,7 +13,7 @@
     <p><a href="{{ url_for('guide') }}">Getting Started</a></p>
     <ul>
       {% for char in characters %}
-      <li><a href="/characters/{{ char.id }}">{{ char.name }}</a></li>
+      <li><a href="/characters/{{ char.id }}">{{ char.name }}</a>{% if char.problems %} <span class="flag">needs fixing ({{ char.problems }})</span>{% endif %}</li>
       {% endfor %}
     </ul>
     {% include "_footer.html" %}

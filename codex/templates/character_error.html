@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Character file needs fixing</title>
+<link rel="stylesheet" href="{{ static_url('css/base.css') }}">
+<link rel="stylesheet" href="{{ static_url('css/index.css') }}">
+</head>
+<body>
+  <div class="list-box">
+    <h1>This character can't be shown</h1>
+    <p>The file <code>{{ character_id }}.yaml</code> has {{ problems|length }} problem{{ 's' if problems|length != 1 }}. Fix {{ 'them' if problems|length != 1 else 'it' }} in the file (see <code>data/character_template.yaml.example</code> for the format) and refresh.</p>
+    <ul class="problems">
+      {% for problem in problems %}
+      <li><code>{{ problem }}</code></li>
+      {% endfor %}
+    </ul>
+    <p><a href="{{ url_for('index') }}">Back to characters</a></p>
+    {% include "_footer.html" %}
+  </div>
+</body>
+</html>

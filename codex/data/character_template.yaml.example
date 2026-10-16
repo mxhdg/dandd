@@ -1,8 +1,9 @@
 id: ''
 name: ''
-class_level: ''
+class_level: ''  # multiclass: "Fighter 3 / Ranger 1"
 background: ''
 player_name: ''
+edition: '2014'
 race: ''
 alignment: ''
 xp: ''
@@ -134,7 +135,7 @@ hp:
   current: ''
   temp: ''
 hit_dice:
-  total: 1d8
+  total: 1d8  # multiclass: "3d10 + 1d8"
 attacks: []
 attack_note: ''
 equipment: []
@@ -157,9 +158,9 @@ appearance:
   eyes: ''
   skin: ''
   hair: ''
+  gender: ''  # optional; shown on the sheet only when set
+  faith: ''  # optional; shown on the sheet only when set
 backstory: ''
 allies: []
-treasure:
-  title: ''
-  text: ''
+treasure: []  # list of "Jade ring" or {name: Staff of Frost, text: 5 charges}
 additional_features: ''

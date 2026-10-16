@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ entry.name }}</title>
+<link rel="stylesheet" href="{{ static_url('css/base.css') }}">
+<link rel="stylesheet" href="{{ static_url('css/index.css') }}">
+</head>
+<body>
+  <div class="list-box rules-box">
+    <h1>{{ entry.name }}</h1>
+    {% if kind == 'spells' %}
+    <p class="rules-meta">{{ 'Cantrip' if entry.level == 0 else 'Level ' ~ entry.level }}{% if entry.school %} &middot; {{ entry.school }}{% endif %}{% if entry.ritual %} &middot; Ritual{% endif %}{% if entry.concentration %} &middot; Concentration{% endif %}</p>
+    <ul class="rules-facts">
+      <li><strong>Casting time:</strong> {{ entry.casting_time }}</li>
+      <li><strong>Range:</strong> {{ entry.range }}</li>
+      <li><strong>Components:</strong> {{ entry.components }}</li>
+      <li><strong>Duration:</strong> {{ entry.duration }}</li>
+      {% if entry.classes %}<li><strong>Classes:</strong> {{ entry.classes|join(', ') }}</li>{% endif %}
+    </ul>
+    {% else %}
+    <p class="rules-meta">Condition &middot; {{ edition }} rules</p>
+    {% endif %}
+    {% macro show(blocks) %}
+    {% for block in blocks %}
+    {% if block.kind == 'ul' %}
+    <ul class="rules-text">{% for line in block.lines %}<li>{{ line }}</li>{% endfor %}</ul>
+    {% elif block.kind == 'table' %}
+    <table class="rules-table">{% for row in block.rows %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}</table>
+    {% else %}
+    <p class="rules-text">{{ block.lines|join(' ') }}</p>
+    {% endif %}
+    {% endfor %}
+    {% endmacro %}
+    {{ show(blocks) }}
+    {% if higher %}
+    <h2 class="rules-sub">At higher levels</h2>
+    {{ show(higher) }}
+    {% endif %}
+    <p class="rules-credit">{{ attribution }}</p>
+    <p><a href="{{ url_for('index') }}">Back to characters</a></p>
+    {% include "_footer.html" %}
+  </div>
+</body>
+</html>
