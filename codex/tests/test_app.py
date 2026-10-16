@@ -491,3 +491,69 @@ def test_legacy_treasure_box_still_renders_with_title_as_item_name(
 def test_empty_character_file_is_not_found(client, data_dir):
     (data_dir / "empty.yaml").write_text("")
     assert client.get("/characters/empty").status_code == 404
+
+
+def test_gender_and_faith_show_on_the_sheet_only_when_set(client, write_character):
+    char = yaml.safe_load(
+        (Path(__file__).parent.parent / "data" / "sample_character.yaml").read_text()
+    )
+    unset = client.get("/characters/sample_character").data.decode()
+    assert "Gender" not in unset and "Faith" not in unset
+    write_character("devout", appearance={**char["appearance"], "faith": "Pelor"})
+    only_faith = client.get("/characters/devout").data.decode()
+    assert 'Faith</span><span class="value">Pelor' in only_faith
+    assert "Gender" not in only_faith
+    both = {**char["appearance"], "gender": "Female", "faith": "Pelor"}
+    write_character("both", appearance=both)
+    sheet = client.get("/characters/both").data.decode()
+    assert 'Gender</span><span class="value">Female' in sheet
+    assert client.get("/characters/both/pdf").status_code == 200
+
+
+# --- schema validation in the app -------------------------------------------
+
+
+def test_invalid_character_file_shows_a_clear_error_page(
+    client, write_character, data_dir
+):
+    path = write_character("broken")
+    data = yaml.safe_load(path.read_text())
+    data["hp"]["max"] = "ten"
+    data["edition"] = 2024
+    path.write_text(yaml.safe_dump(data))
+    for url in ("/characters/broken", "/characters/broken/pdf"):
+        resp = client.get(url)
+        page = resp.data.decode()
+        assert resp.status_code == 422, url
+        assert "broken.yaml" in page and "file.hp.max" in page
+        assert "found str &#39;ten&#39;" in page and "file.edition" in page
+    assert client.post("/characters/broken/update", data={}).status_code == 422
+
+
+def test_one_bad_file_never_breaks_the_listing_or_other_characters(
+    client, write_character, data_dir
+):
+    write_character("good")
+    (data_dir / "garbled.yaml").write_text("name: [unclosed\n  - oops: :")
+    (data_dir / "noname.yaml").write_text("id: noname\n")
+    page = client.get("/").data.decode()
+    assert client.get("/").status_code == 200
+    assert "Sample Character" in page and "garbled" in page and "noname" in page
+    assert page.count("needs fixing") == 2
+    assert client.get("/characters/good").status_code == 200
+    garbled = client.get("/characters/garbled")
+    assert garbled.status_code == 422 and "not valid YAML" in garbled.data.decode()
+
+
+def test_display_name_falls_back_to_the_file_name(client):
+    cases = [({"name": "Tess"}, "Tess"), ({"name": ""}, "fb"), ({}, "fb"), (None, "fb")]
+    for data, expected in cases:
+        assert app_module._display_name(data, "fb") == expected, data
+    assert app_module._one_line("a\n  b\tc") == "a b c"
+
+
+def test_valid_and_empty_files_keep_their_old_behavior(client, data_dir):
+    assert client.get("/characters/sample_character").status_code == 200
+    assert "needs fixing" not in client.get("/").data.decode()
+    (data_dir / "empty.yaml").write_text("")
+    assert client.get("/characters/empty").status_code == 404

@@ -17,3 +17,7 @@ preload_app = True
 accesslog = "-"
 errorlog = "-"
 loglevel = "info"
+
+# gunicorn 26 starts a control socket under $HOME, which the read-only root
+# filesystem refuses (it logged "Control server error"); nothing here uses it.
+control_socket_disable = True

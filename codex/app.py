@@ -19,6 +19,8 @@ from flask import (
 from weasyprint import HTML, URLFetcher
 from weasyprint.urls import URLFetcherResponse
 
+from character_schema import validate_character
+
 app = Flask(__name__)
 # Drop the newline/indent around {% %} lines from rendered HTML.
 app.jinja_env.trim_blocks = True
@@ -222,11 +224,32 @@ def _load_character(character_id):
     return character
 
 
+def _one_line(text):
+    return " ".join(str(text).split())[:200]
+
+
+def _check_character(character_id):
+    """Returns (data, problems); data is None when there is no such character."""
+    try:
+        data = _load_character(character_id)
+    except yaml.YAMLError as err:
+        return None, [f"file: not valid YAML ({_one_line(err)})"]
+    if data is None:
+        return None, []
+    return data, validate_character(data)
+
+
+def _display_name(data, fallback):
+    name = data.get("name") if isinstance(data, dict) else None
+    return name if isinstance(name, str) and name.strip() else fallback
+
+
 def _list_characters():
     characters = []
     for path in sorted(DATA_DIR.glob("*.yaml")):
-        data = _load_character(path.stem)
-        characters.append({"id": path.stem, "name": data["name"]})
+        data, problems = _check_character(path.stem)
+        name = _display_name(data, path.stem)
+        characters.append({"id": path.stem, "name": name, "problems": len(problems)})
     return characters
 
 
@@ -304,10 +327,19 @@ def guide():
     return render_template("guide.html")
 
 
+def _problem_page(character_id, problems):
+    page = render_template(
+        "character_error.html", character_id=character_id, problems=problems
+    )
+    return Response(page, status=422)
+
+
 def _character_or_404(character_id):
     if not _valid_character_id(character_id):
         abort(404)
-    data = _load_character(character_id)
+    data, problems = _check_character(character_id)
+    if problems:
+        abort(_problem_page(character_id, problems))
     if data is None:
         abort(404)
     return data

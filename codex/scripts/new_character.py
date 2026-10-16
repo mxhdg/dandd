@@ -83,6 +83,16 @@ SKILLS = [
     ("Survival", "Wisdom"),
 ]
 CURRENCY_KEYS = ["cp", "sp", "ep", "gp", "pp"]
+APPEARANCE_PROMPTS = {
+    "age": "Age",
+    "height": "Height",
+    "weight": "Weight",
+    "eyes": "Eyes",
+    "skin": "Skin",
+    "hair": "Hair",
+    "gender": "Gender (optional, shown on the sheet only if set)",
+    "faith": "Faith (optional, shown on the sheet only if set)",
+}
 GUIDE_URLS = {
     "2014": (
         "https://www.dndbeyond.com/sources/dnd/basic-rules-2014/"
@@ -445,8 +455,7 @@ def _ask_personality():
 def _ask_appearance():
     _section("Appearance", "One line each; blank to skip.")
     return {
-        f: _ask(f"Appearance: {f}")
-        for f in ["age", "height", "weight", "eyes", "skin", "hair"]
+        key: _ask(f"Appearance: {text}") for key, text in APPEARANCE_PROMPTS.items()
     }
 
 
@@ -521,9 +530,7 @@ def _build_skeleton_details():
         "currency": {k: "" for k in CURRENCY_KEYS},
         "personality": {"traits": "", "ideals": "", "bonds": "", "flaws": ""},
         "features": [],
-        "appearance": {
-            f: "" for f in ["age", "height", "weight", "eyes", "skin", "hair"]
-        },
+        "appearance": {key: "" for key in APPEARANCE_PROMPTS},
         "backstory": "",
         "allies": [],
         "treasure": [],

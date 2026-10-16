@@ -235,6 +235,12 @@
     <div class="field"><span class="label">Eyes</span><span class="value">{{ c.appearance.eyes }}</span></div>
     <div class="field"><span class="label">Skin</span><span class="value">{{ c.appearance.skin }}</span></div>
     <div class="field"><span class="label">Hair</span><span class="value">{{ c.appearance.hair }}</span></div>
+    {% if c.appearance.gender %}
+    <div class="field"><span class="label">Gender</span><span class="value">{{ c.appearance.gender }}</span></div>
+    {% endif %}
+    {% if c.appearance.faith %}
+    <div class="field"><span class="label">Faith</span><span class="value">{{ c.appearance.faith }}</span></div>
+    {% endif %}
   </div>
 
   <div class="boxed-section">

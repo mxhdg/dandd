@@ -21,9 +21,9 @@ RUN apt-get update \
 
 # setuptools ships pre-installed with the base image at a version behind
 # the latest CVE fix; upgrade it directly rather than waiting on a new
-# base tag. (pip itself vendors a vulnerable msgpack copy too, but that's
-# not fixable here - upstream pip hasn't released a build with a patched
-# vendored copy yet, so this upgrade doesn't touch it.)
+# base tag. (pip itself vendors vulnerable copies of msgpack, setuptools and
+# urllib3 that can't be patched from here, so pip is removed again below,
+# once the app's dependencies are installed.)
 RUN pip install --no-cache-dir --upgrade pip setuptools
 
 RUN groupadd --gid "${APP_GID}" appuser \
@@ -32,7 +32,8 @@ RUN groupadd --gid "${APP_GID}" appuser \
 WORKDIR /app
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir --require-hashes -r requirements.txt
+RUN pip install --no-cache-dir --require-hashes -r requirements.txt \
+    && pip uninstall -y pip
 
 # Declared after the pip install layer so a version bump doesn't bust the
 # dependency-install cache; CI passes the real values as build-args.
@@ -42,6 +43,7 @@ ENV APP_VERSION=${APP_VERSION} \
     APP_COMMIT_SHA=${APP_COMMIT_SHA}
 
 COPY app.py .
+COPY character_schema.py .
 COPY gunicorn.conf.py .
 COPY templates/ templates/
 COPY static/ static/
