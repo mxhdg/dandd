@@ -483,3 +483,12 @@ def test_as_int_coerces_data_file_values():
     assert app_module._as_int("") == 0
     assert app_module._as_int(None, 7) == 7
     assert app_module._as_int("x") == 0
+
+
+def test_pdf_css_keeps_the_combat_row_from_splitting_across_pages():
+    # Found on a long sheet: WeasyPrint put AC/Initiative/Speed labels at the
+    # bottom of one page and their values at the top of the next.
+    css = (ROOT / "static" / "css" / "pdf.css").read_text()
+    for selector in (".combat-grid {", ".combat-grid .field {"):
+        rule = css[css.index(selector) :].split("}")[0]
+        assert "break-inside: avoid" in rule, selector
