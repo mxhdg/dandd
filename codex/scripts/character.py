@@ -5,6 +5,8 @@ Run from anywhere with PyYAML installed (the codex venv already has it):
 
     python scripts/character.py               asks what you want to do
     python scripts/character.py --new         create a character
+    python scripts/character.py --new --online    ...looking up classes, species
+                                              and spells from the free SRD
     python scripts/character.py --level-up [ID]   advance an existing character
     python scripts/character.py --edit [ID]       change anything on one
                                               (ID is asked for if omitted)
@@ -39,6 +41,13 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).parent.parent))  # character_schema.py
 from character_schema import validate_character  # noqa: E402
+from srd_lookup import (  # noqa: E402
+    ATTRIBUTION,
+    SrdUnavailable,
+    load_classes,
+    load_species,
+    load_spells,
+)
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 STATE_DIR = Path(__file__).parent.parent / "state"
@@ -167,13 +176,18 @@ def _ask_yn(prompt_text, default=False):
     return value.startswith("y") if value else default
 
 
-def _match_name(token, valid_names):
+def _match_name(token, valid_names, loose=False):
+    """A valid name for what was typed: exact, else a unique prefix; with
+    loose=True also a unique part of a longer name ("evoc" for School of Evocation)."""
     wanted = token.strip().lower()
     for name in valid_names:
         if name.lower() == wanted:
             return name
     starts = [n for n in valid_names if n.lower().startswith(wanted)]
-    return starts[0] if wanted and len(starts) == 1 else None
+    if wanted and len(starts) == 1:
+        return starts[0]
+    contains = [n for n in valid_names if wanted in n.lower()]
+    return contains[0] if loose and wanted and len(contains) == 1 else None
 
 
 def _parse_names(raw, valid_names):
@@ -203,7 +217,10 @@ def _ask_names(prompt_text, valid_names, current=None):
         if not unknown:
             return chosen
         print(f"  not recognized: {', '.join(unknown)}")
-        print(f"  choices: {', '.join(choices)}")
+        if len(choices) > 40:
+            print("  (type part of a name, e.g. 'fire' for Fire Bolt)")
+        else:
+            print(f"  choices: {', '.join(choices)}")
 
 
 def _collect_simple_list(label):
@@ -242,9 +259,17 @@ def _collect_named_list(label, fields, example=(), explain=""):
     return items
 
 
-def _skeleton_abilities_saves_skills(level=1):
+def _skeleton_abilities_saves_skills(level=1, save_profs=frozenset()):
+    bonus = _proficiency_bonus(level)
     abilities = [{"name": a, "score": 10, "mod": "+0"} for a in ABILITIES]
-    saves = [{"name": a, "mod": "+0", "prof": False} for a in ABILITIES]
+    saves = [
+        {
+            "name": a,
+            "mod": _fmt_mod(bonus if a in save_profs else 0),
+            "prof": a in save_profs,
+        }
+        for a in ABILITIES
+    ]
     skills = [
         {"name": s, "ability": ABILITY_ABBR[a], "mod": "+0", "prof": False}
         for s, a in SKILLS
@@ -252,7 +277,7 @@ def _skeleton_abilities_saves_skills(level=1):
     return abilities, saves, skills, _proficiency_bonus(level), 10
 
 
-def _ask_ability_inputs(level):
+def _ask_ability_inputs(level, save_profs=frozenset()):
     _section("Ability scores", "Press Enter to keep 10.")
     scores = {a: _ask_int(f"  {a}", 10) for a in ABILITIES}
     prof_bonus = _proficiency_bonus(level)
@@ -260,7 +285,9 @@ def _ask_ability_inputs(level):
         "Proficiencies",
         f"Total level {level}, proficiency bonus {_fmt_mod(prof_bonus)}.",
     )
-    prof_saves = _ask_names("Proficient saving throws", ABILITIES)
+    prof_saves = _ask_names(
+        "Proficient saving throws", ABILITIES, current=save_profs or None
+    )
     prof_skills = _ask_names("Proficient skills", [s for s, _ in SKILLS])
     expertise = _ask_names("Skills with expertise (must be proficient)", prof_skills)
     return scores, prof_bonus, prof_saves, prof_skills, expertise
@@ -306,8 +333,8 @@ def _compute_abilities_saves_skills(
     return abilities, saves, skills, prof_bonus, 10 + perception_mod
 
 
-def _full_abilities_saves_skills(level=1):
-    return _compute_abilities_saves_skills(*_ask_ability_inputs(level))
+def _full_abilities_saves_skills(level=1, save_profs=frozenset()):
+    return _compute_abilities_saves_skills(*_ask_ability_inputs(level, save_profs))
 
 
 def _ask_spell_slots():
@@ -326,43 +353,70 @@ def _ask_comma_list(prompt_text):
     return [i.strip() for i in _ask(prompt_text).split(",") if i.strip()]
 
 
-def _build_spellcasting():
+def _spell_choices(srd, class_names, cantrips):
+    if not srd:
+        return []
+    return sorted(
+        {
+            s["name"]
+            for s in srd["spells"]
+            if (s["level"] == 0) == cantrips and set(s["classes"]) & set(class_names)
+        }
+    )
+
+
+def _ask_spell_list(label, srd, class_names, cantrips):
+    choices = _spell_choices(srd, class_names, cantrips)
+    if not choices:
+        return _ask_comma_list(f"{label} (comma-separated)")
+    return sorted(_ask_names(label, choices))
+
+
+def _build_spellcasting(srd=None, classes=()):
     if not _ask_yn("Include spellcasting section?", False):
         return None
     slots = _ask_spell_slots()
+    names = [c["name"] for c in classes]
+    default_class = names[0] if srd and names else ""
     return {
-        "class": _ask("Spellcasting class (or classes, e.g. 'Wizard / Cleric')"),
+        "class": _ask(
+            "Spellcasting class (or classes, e.g. 'Wizard / Cleric')", default_class
+        ),
         "ability": _ask("Spellcasting ability (e.g. Intelligence)"),
         "save_dc": _ask_int("Spell save DC", 10),
         "attack_bonus": _ask("Spell attack bonus (e.g. +5)", "+0"),
         "note": _ask("Note (optional)"),
-        "cantrips": _ask_comma_list("Cantrips (comma-separated)"),
+        "cantrips": _ask_spell_list("Cantrips", srd, names, True),
         "slots": slots,
-        "prepared": _ask_comma_list("Prepared spells (comma-separated)"),
+        "prepared": _ask_spell_list("Prepared spells", srd, names, False),
         "always_prepared": [],
     }
+
+
+def _add_action_flags(parser):
+    actions = parser.add_mutually_exclusive_group()
+    actions.add_argument("--new", action="store_true", help="create a new character")
+    for flag, what in (("--level-up", "level up"), ("--edit", "change anything on")):
+        actions.add_argument(
+            flag,
+            nargs="?",
+            const="",
+            metavar="ID",
+            help=f"{what} an existing character (asks which if ID is omitted)",
+        )
 
 
 def _parse_args():
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    actions = parser.add_mutually_exclusive_group()
-    actions.add_argument("--new", action="store_true", help="create a new character")
-    actions.add_argument(
-        "--level-up",
-        nargs="?",
-        const="",
-        metavar="ID",
-        help="level up an existing character (asks which one if ID is omitted)",
+    parser.add_argument(
+        "--online",
+        action="store_true",
+        help="when creating, look up classes, species and spells from the free "
+        "SRD (needs internet; nothing is requested without this or a yes)",
     )
-    actions.add_argument(
-        "--edit",
-        nargs="?",
-        const="",
-        metavar="ID",
-        help="change anything on an existing character (asks which if ID is omitted)",
-    )
+    _add_action_flags(parser)
     parser.add_argument("--id", help="character id / filename (data/<id>.yaml)")
     parser.add_argument("--name", help="character name")
     parser.add_argument(
@@ -416,22 +470,45 @@ def _ask_edition(default="2014"):
         print("  please enter 2014 or 2024")
 
 
-def _ask_class():
-    name = _ask("Class (blank to finish)")
-    if not name:
+def _by_name(entries, typed):
+    """The entry whose name matches what was typed (any case, unique prefix)."""
+    name = _match_name(typed, [entry["name"] for entry in entries], loose=True)
+    return next((entry for entry in entries if entry["name"] == name), None)
+
+
+def _srd_class(srd, typed):
+    return _by_name(srd["classes"], typed) if srd else None
+
+
+def _ask_subclass(known):
+    options = known["subclasses"] if known else []
+    if options:
+        print(f"  SRD subclasses: {', '.join(options)}")
+    typed = _ask("  Subclass (optional)")
+    return _match_name(typed, options, loose=True) or typed
+
+
+def _ask_class(srd=None):
+    typed = _ask("Class (blank to finish)")
+    if not typed:
         return None
+    known = _srd_class(srd, typed)
+    name = known["name"] if known else typed
+    die = (known and known["die"]) or HIT_DIE.get(name.lower(), 8)
+    if known:
+        print(f"  From the SRD: {name}, hit die d{die}")
     return {
         "name": name,
         "level": max(_ask_int("  Level in this class", 1), 1),
-        "subclass": _ask("  Subclass (optional)"),
-        "die": _ask_int("  Hit die size (10 = d10)", HIT_DIE.get(name.lower(), 8)),
+        "subclass": _ask_subclass(known),
+        "die": _ask_int("  Hit die size (10 = d10)", die),
     }
 
 
-def _ask_classes():
+def _ask_classes(srd=None):
     _section("Classes", "Add one class at a time; multiclass = add several.")
     classes = []
-    while (entry := _ask_class()) or not classes:
+    while (entry := _ask_class(srd)) or not classes:
         if entry:
             classes.append(entry)
         else:
@@ -457,12 +534,27 @@ def _format_hit_dice(classes):
     return " + ".join(f"{n}d{die}" for die, n in counts.items())
 
 
-def _ask_identity_fields(edition):
+def _ask_race(edition, srd):
+    typed = _ask("Species" if edition == "2024" else "Race")
+    species = _by_name(srd["species"], typed) if srd else None
+    if species is None:
+        return typed
+    if not species["subspecies"]:
+        return species["name"]
+    names = [s["name"] for s in species["subspecies"]]
+    sub = _ask(f"  Subspecies (optional: {', '.join(names)})")
+    match = _match_name(sub, names)
+    if sub and not match:
+        print(f"  Not recognized; using {species['name']}")
+    return match or species["name"]
+
+
+def _ask_identity_fields(edition, srd=None):
     return {
         "background": _ask("Background"),
         "player_name": _ask("Player name"),
         "edition": edition,
-        "race": _ask("Species" if edition == "2024" else "Race"),
+        "race": _ask_race(edition, srd),
         "alignment": _ask("Alignment"),
     }
 
@@ -532,7 +624,7 @@ def _ask_allies():
     )
 
 
-def _build_full_details(abilities):
+def _build_full_details(abilities, srd=None, classes=()):
     dex_mod = next(a["mod"] for a in abilities if a["name"] == "Dexterity")
     details = {
         "other_proficiencies": _ask_other_proficiencies(),
@@ -551,7 +643,7 @@ def _build_full_details(abilities):
         "treasure": _collect_simple_list("Treasure, one item per line"),
         "additional_features": _ask("Additional features/notes (optional)"),
     }
-    spellcasting = _build_spellcasting()
+    spellcasting = _build_spellcasting(srd, classes)
     if spellcasting is not None:
         details["spellcasting"] = spellcasting
     return details
@@ -586,7 +678,7 @@ _MODE_HANDLERS = {
     "full": (_full_abilities_saves_skills, _build_full_details),
     "skeleton": (
         _skeleton_abilities_saves_skills,
-        lambda abilities: _build_skeleton_details(),
+        lambda abilities, srd, classes: _build_skeleton_details(),
     ),
 }
 
@@ -597,19 +689,74 @@ def _write_character(out_path, char):
         yaml.safe_dump(char, f, sort_keys=False, allow_unicode=True)
 
 
-def _build_character(char_id, name, mode, edition):
-    classes = _ask_classes()
+def _race_traits(srd, race):
+    for species in srd["species"] if srd else []:
+        if species["name"] == race:
+            return species["traits"]
+        for sub in species["subspecies"]:
+            if sub["name"] == race:
+                return species["traits"] + sub["traits"]
+    return []
+
+
+def _srd_feature_candidates(srd, classes, race):
+    entry = _srd_class(srd, classes[0]["name"])
+    class_features = [f for f in entry["features"] if 1 in f["levels"]] if entry else []
+    candidates = [{"name": f["name"], "text": f["text"]} for f in class_features]
+    candidates += _race_traits(srd, race)
+    return list({c["name"]: c for c in candidates}.values())
+
+
+def _choose_features(candidates):
+    if not candidates:
+        return []
+    _section("Features from the SRD", "Level 1 class features and species traits.")
+    for candidate in candidates:
+        print(f"  - {candidate['name']}: {candidate['text']}")
+    if _ask_yn(f"Add all {len(candidates)} to your sheet?", True):
+        return candidates
+    return [c for c in candidates if _ask_yn(f"  Add {c['name']}?", True)]
+
+
+def _srd_saves(srd, classes):
+    entry = _srd_class(srd, classes[0]["name"])
+    return frozenset(entry["saves"]) if entry else frozenset()
+
+
+def _load_srd(edition):
+    """Classes, species and spells from the free SRD, or None when unavailable."""
+    try:
+        return {
+            "classes": load_classes(edition),
+            "species": load_species(edition),
+            "spells": load_spells(edition),
+        }
+    except SrdUnavailable as err:
+        print(f"  Could not use the SRD ({err}); type things in yourself instead.")
+        return None
+
+
+def _resolve_srd(args, edition):
+    question = "Look up classes, species and spells from the free SRD? (needs internet)"
+    if args.online or _ask_yn(question, False):
+        return _load_srd(edition)
+    return None
+
+
+def _build_character(char_id, name, mode, edition, srd=None):
+    classes = _ask_classes(srd)
+    identity = _ask_identity_fields(edition, srd)
     char = {
         "id": char_id,
         "name": name,
         "class_level": _format_class_level(classes),
-        **_ask_identity_fields(edition),
+        **identity,
         "xp": "",
     }
 
     stats_fn, details_fn = _MODE_HANDLERS[mode]
     abilities, saves, skills, prof_bonus, passive_perception = stats_fn(
-        _total_level(classes)
+        _total_level(classes), _srd_saves(srd, classes)
     )
 
     char.update(
@@ -620,8 +767,10 @@ def _build_character(char_id, name, mode, edition):
         skills=skills,
         passive_perception=passive_perception,
     )
-    char.update(details_fn(abilities))
+    char.update(details_fn(abilities, srd, classes))
     char["hit_dice"]["total"] = _format_hit_dice(classes)
+    offered = _srd_feature_candidates(srd, classes, identity["race"])
+    char["features"] = _choose_features(offered) + char["features"]
     return char
 
 
@@ -1348,6 +1497,7 @@ def _print_next_steps(out_path):
 def _run_new(args):
     edition = _ask_edition()
     _print_guide(edition)
+    srd = _resolve_srd(args, edition)
     mode = _resolve_mode(args)
     name = _resolve_name(args)
     char_id = _resolve_character_id(args, name)
@@ -1356,8 +1506,10 @@ def _run_new(args):
         print("Aborted.")
         sys.exit(1)
 
-    _write_character(out_path, _build_character(char_id, name, mode, edition))
+    _write_character(out_path, _build_character(char_id, name, mode, edition, srd))
     _print_next_steps(out_path)
+    if srd:
+        print(f"\n{ATTRIBUTION}")
 
 
 def _run():

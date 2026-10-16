@@ -1,5 +1,7 @@
 import contextlib
+import functools
 import ipaddress
+import json
 import os
 import re
 import threading
@@ -20,6 +22,7 @@ from weasyprint import HTML, URLFetcher
 from weasyprint.urls import URLFetcherResponse
 
 from character_schema import validate_character
+from srd_lookup import ATTRIBUTION, slugify
 
 app = Flask(__name__)
 # Drop the newline/indent around {% %} lines from rendered HTML.
@@ -32,6 +35,9 @@ app.config["MAX_CONTENT_LENGTH"] = (
 DATA_DIR = Path(__file__).parent / "data"
 STATE_DIR = Path(__file__).parent / "state"
 STATIC_DIR = Path(__file__).parent / "static"
+RULES_DIR = Path(__file__).parent / "rules"
+RULES_KINDS = ("conditions", "spells")
+RULES_EDITIONS = ("2014", "2024")
 STATE_DIR.mkdir(exist_ok=True)
 
 CURRENCY_KEYS = ["cp", "sp", "ep", "gp", "pp"]
@@ -100,6 +106,78 @@ def _same_origin_request(req):
     return urlsplit(source).netloc == req.host
 
 
+@functools.lru_cache(maxsize=None)
+def _rules_index(kind, edition):
+    """Bundled SRD rules text (see scripts/build_rules.py) as {slug: entry}."""
+    path = RULES_DIR / f"{kind}-{edition}.json"
+    if not path.is_file():
+        return {}
+    entries = json.loads(path.read_text(encoding="utf-8"))["entries"]
+    return {entry["slug"]: entry for entry in entries}
+
+
+def _rules_edition(raw):
+    return "2024" if str(raw) == "2024" else "2014"
+
+
+def _rules_url(kind, name, edition):
+    """Link to the rules text for a condition or spell, or None if there is none."""
+    edition, slug = _rules_edition(edition), slugify(name)
+    if slug not in _rules_index(kind, edition):
+        return None
+    return url_for("rules_page", edition=edition, kind=kind, slug=slug)
+
+
+_BULLET = re.compile(r"^[*-]\s+")
+
+
+def _clean_inline(text):
+    return re.sub(r"(?<!\w)_|_(?!\w)", "", text.replace("**", "")).strip()
+
+
+def _table_rows(lines):
+    rows = [[c.strip() for c in line.strip("| ").split("|")] for line in lines]
+    return [r for r in rows if not all(re.fullmatch(r":?-+:?", c) for c in r)]
+
+
+def _line_kind(line):
+    if _BULLET.match(line):
+        return "ul"
+    return "table" if line.startswith("|") else "p"
+
+
+def _add_line(blocks, kind, line, new_paragraph):
+    last = blocks[-1] if blocks else None
+    if last and last["kind"] == kind and not (kind == "p" and new_paragraph):
+        last["lines"].append(line)
+    else:
+        blocks.append({"kind": kind, "lines": [line]})
+
+
+def _text_blocks(text):
+    """Split SRD markdown-ish text into paragraphs, bullet lists and tables."""
+    blocks, new_paragraph = [], True
+    for raw in (text or "").splitlines():
+        line = raw.strip()
+        if not line:
+            new_paragraph = True
+            continue
+        kind = _line_kind(line)
+        _add_line(blocks, kind, _BULLET.sub("", line), new_paragraph)
+        new_paragraph = False
+    for block in blocks:
+        block["lines"] = [_clean_inline(line) for line in block["lines"]]
+        if block["kind"] == "table":
+            block["rows"] = _table_rows(block["lines"])
+    return blocks
+
+
+def _rules_entry(edition, kind, slug):
+    if edition not in RULES_EDITIONS or kind not in RULES_KINDS:
+        return None
+    return _rules_index(kind, edition).get(slug) if slug.isascii() else None
+
+
 def _static_url(filename):
     # The file's mtime in the query string makes each edit a new URL, so the
     # asset can be cached "forever" (see cache_versioned_static) and still
@@ -114,6 +192,7 @@ def inject_template_globals():
         "app_version": os.environ.get("APP_VERSION", "dev"),
         "app_commit_sha": os.environ.get("APP_COMMIT_SHA", "unknown"),
         "static_url": _static_url,
+        "rules_url": _rules_url,
     }
 
 
@@ -358,6 +437,22 @@ def _render_sheet(character_id, data, pdf=False):
         condition_keys=CONDITION_KEYS,
         exhaustion_effects=EXHAUSTION_EFFECTS,
         pdf=pdf,
+    )
+
+
+@app.route("/rules/<edition>/<kind>/<slug>")
+def rules_page(edition, kind, slug):
+    entry = _rules_entry(edition, kind, slug)
+    if entry is None:
+        abort(404)
+    return render_template(
+        "rules_page.html",
+        entry=entry,
+        kind=kind,
+        edition=edition,
+        blocks=_text_blocks(entry["text"]),
+        higher=_text_blocks(entry.get("higher", "")),
+        attribution=ATTRIBUTION,
     )
 
 

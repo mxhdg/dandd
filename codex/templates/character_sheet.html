@@ -1,3 +1,12 @@
+{% macro rules_link(kind, name) -%}
+{%- if not pdf -%}
+{%- set url = rules_url(kind, name, c.edition) -%}
+{%- if url %} <a class="rules-link" href="{{ url }}" target="_blank" rel="noopener" title="Rules text for {{ name|capitalize }}" aria-label="Rules text for {{ name|capitalize }}">?</a>{% endif -%}
+{%- endif -%}
+{%- endmacro %}
+{% macro spell_name(name) -%}
+{{ name }}{{ rules_link('spells', name) }}
+{%- endmacro %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -132,9 +141,11 @@
         <div class="box">
           <div class="condition-chips">
             {% for cond in condition_keys %}
-            <label class="condition-chip">
-              <input type="checkbox" name="condition_{{ cond }}" {% if c.conditions[cond] %}checked{% endif %}>{{ cond|capitalize }}
-            </label>
+            <span class="condition-item">
+              <label class="condition-chip">
+                <input type="checkbox" name="condition_{{ cond }}" {% if c.conditions[cond] %}checked{% endif %}>{{ cond|capitalize }}
+              </label>{{ rules_link('conditions', cond) }}
+            </span>
             {% endfor %}
           </div>
           <div class="exhaustion">
@@ -144,7 +155,7 @@
                 <option value="{{ lvl }}" {% if lvl == c.exhaustion %}selected{% endif %}>{{ lvl }}</option>
                 {% endfor %}
               </select>
-            </label>
+            </label>{{ rules_link('conditions', 'exhaustion') }}
             {% if c.exhaustion %}
             <ol class="exhaustion-effects">
               {% for effect in exhaustion_effects[:c.exhaustion] %}
@@ -291,7 +302,7 @@
 
   <div class="boxed-section">
     <div class="section-title">Cantrips Known</div>
-    <div class="box text-sm">{{ c.spellcasting.cantrips | join(' &nbsp;·&nbsp; '|safe) }}</div>
+    <div class="box text-sm">{% for spell in c.spellcasting.cantrips %}{{ spell_name(spell) }}{% if not loop.last %} &nbsp;·&nbsp; {% endif %}{% endfor %}</div>
   </div>
 
   <div class="boxed-section">
@@ -314,7 +325,7 @@
       <div class="spell-list-cols text-sm">
         <ul class="plain">
           {% for spell in c.spellcasting.prepared %}
-          <li>{{ spell }}</li>
+          <li>{{ spell_name(spell) }}</li>
           {% endfor %}
         </ul>
       </div>
@@ -324,7 +335,7 @@
   <div class="boxed-section">
     <div class="section-title">Always Prepared ({{ c.spellcasting.class }} subclass, does not count against total)</div>
     <div class="box text-sm">
-      {% for grp in c.spellcasting.always_prepared %}{{ grp.spells }} <span class="small-note">{{ grp.note }}</span>{% if not loop.last %} &nbsp;&middot;&nbsp; {% endif %}{% endfor %}
+      {% for grp in c.spellcasting.always_prepared %}{% for spell in (grp.spells|string).split(',') %}{{ spell_name(spell.strip()) }}{% if not loop.last %}, {% endif %}{% endfor %} <span class="small-note">{{ grp.note }}</span>{% if not loop.last %} &nbsp;&middot;&nbsp; {% endif %}{% endfor %}
     </div>
   </div>
 

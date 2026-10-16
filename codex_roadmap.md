@@ -132,7 +132,7 @@ with the project's code standards (one responsibility per function,
 - **DONE. Tests** for the newly testable pure helpers
   (`tests/test_character.py`).
 
-## 1.4.0 — Character creation tooling (in progress, at 1.4.0-rc8)
+## 1.4.0 — Character creation tooling (in progress, at 1.4.0-rc9)
 
 Separate from actual-play pain entirely; touches `character.py`, not
 the live sheet (item 25 is the one exception, a live-sheet lookup that shares
@@ -141,14 +141,14 @@ item 24's content source). Prioritized ahead of the DM tools.
 **Suggested order:** 26 (schema validation) first, since 23 depends on it,
 then 23 (edit/level-up mode), then 24 (Open5e-guided creation), then 25.
 
-**Release candidates so far (items 26 to 37 except 23 to 25):** rc1 added
+**Release candidates so far (items 23 to 37):** rc1 added
 the import-friendly sheet fields, rc2 folded in the Dependabot updates, rc3
 made sheet text uniform, rc4 fixed the 403 on Save/rest buttons, rc5 fit the
 sheet on phones, rc6 added multiclass support, a friendlier `character.py`
-and the treasure list, and rc7 added schema validation (26), gunicorn 26 (28),
-pip removal from the image (29) and the gender/faith fields (30). Still open
-in this theme: 23 (edit and level-up mode), 24 (Open5e-guided creation) and
-25 (rules lookup on the sheet); the rest of 29 (Debian findings, Trivy
+and the treasure list, rc7 added schema validation (26), gunicorn 26 (28),
+pip removal from the image (29) and the gender/faith fields (30), and rc8 added
+`character.py` with level-up and the edit menu (23). rc9 added SRD-guided creation (24) and rules lookup on the sheet (25). The
+theme's items are done; the rest of 29 (Debian findings, Trivy
 version) is waiting on upstream.
 
 23. **DONE (1.4.0-rc8): level-up and the edit menu.** The script
@@ -195,7 +195,19 @@ version) is waiting on upstream.
     count isn't). Multiclassing is the awkward case to decide up front
     whether to support. Depends on the schema validation in item 26: edit
     and level-up should validate before reading and before writing.
-24. **API-guided character creation in `character.py`**, sourcing race/
+24. **DONE (1.4.0-rc9). SRD-guided character creation.** Built as `srd_lookup.py`
+    plus `--online` / an opt-in question in `character.py`: class (hit die,
+    saving throws, subclass names, level 1 features), species and subspecies
+    (traits) and class-limited spell pickers, from the `srd-2014` / `srd-2024`
+    documents of the Open5e v2 API only. Findings that changed the plan:
+    Open5e v2 is not SRD-only (24 documents, mixed licenses), so the client
+    filters to those two; the SRD licence is CC BY 4.0 (plus OGL 1.0a for
+    2014), so the attribution is the CC text, in the guide and printed after a
+    lookup; the API 403s the default Python User-Agent; the SRD documents have
+    no conditions and only 1 (2014) or 4 (2024) backgrounds, so those are not
+    looked up. Level-up and edit do not use it yet. Original spec follows.
+
+    **API-guided character creation in `character.py`**, sourcing race/
     class/background/equipment/spell lists from the Open5e API
     (`api.open5e.com`) instead of the user typing everything freehand.
     Must be opt-in (e.g. a prompt or flag before any network call), never
@@ -208,7 +220,21 @@ version) is waiting on upstream.
     Content outside the SRD (some subclasses/spells) would still need to be
     hand-authored the way campaign repos already handle original stat
     blocks (e.g. `TheChillBeneaththeCrust/arc-vanilla-vault/monsters.md`).
-25. **Rules-content lookup** for spells/features/conditions on the live
+25. **DONE (1.4.0-rc9). Rules lookup on the sheet.** A `?` beside each condition and
+    each SRD spell opens its text in a new tab, per the character's edition.
+    Conditions came from Open5e's `core` document, which carries per-edition
+    SRD wording (the plan's "no conditions in the SRD documents" worry only
+    applied to the srd-* documents themselves). Text is bundled as JSON in
+    `codex/rules/` (about 750 KB, built by `scripts/build_rules.py`) so the app
+    never touches the network; entries with no upstream text (2024 Greater
+    Invisibility) are skipped, so no dead links. Display only; features and
+    items are not looked up. Checked in Chromium at 360, 375, 393 and 430px
+    (no overflow), desktop, `/pdf` and the print rule. Original spec follows.
+
+    **Rules-content lookup** (note from item 24's research: Open5e v2 has no
+    conditions in the SRD documents, so a condition lookup would have to be
+    bundled static text; spells and class/species features are available
+    through `srd_lookup.py`) for spells/features/conditions on the live
     sheet (e.g. tap "Poisoned" and see what it actually does, rather than
     just a toggle label). Same SRD/OGL licensing path as item 24's Open5e
     API idea above — could plausibly share that same content source

@@ -44,9 +44,11 @@ ENV APP_VERSION=${APP_VERSION} \
 
 COPY app.py .
 COPY character_schema.py .
+COPY srd_lookup.py .
 COPY gunicorn.conf.py .
 COPY templates/ templates/
 COPY static/ static/
+COPY rules/ rules/
 COPY data/ data/
 
 RUN mkdir -p /app/state \
