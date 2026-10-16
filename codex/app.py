@@ -189,6 +189,25 @@ def _character_path(directory, character_id):
     return Path(full)
 
 
+def _treasure_item(entry):
+    if isinstance(entry, dict):
+        name, text = entry.get("name"), entry.get("text")
+    else:
+        name, text = "", entry
+    return {"name": str(name or ""), "text": str(text or "")}
+
+
+def _treasure_items(raw):
+    """Treasure as a list of {name, text}; also accepts text, a list of text or
+    {name, text}, and the old single {title, text} box (title becomes the name)."""
+    if isinstance(raw, dict):
+        raw = [{"name": raw.get("title"), "text": raw.get("text")}]
+    elif isinstance(raw, str):
+        raw = [raw]
+    items = [_treasure_item(entry) for entry in raw or []]
+    return [item for item in items if item["name"] or item["text"]]
+
+
 def _load_character(character_id):
     try:
         path = _character_path(DATA_DIR, character_id)
@@ -197,7 +216,10 @@ def _load_character(character_id):
     if not path.is_file():
         return None
     with path.open(encoding="utf-8") as f:
-        return yaml.safe_load(f)
+        character = yaml.safe_load(f)
+    if isinstance(character, dict):
+        character["treasure"] = _treasure_items(character.get("treasure"))
+    return character
 
 
 def _list_characters():

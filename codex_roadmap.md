@@ -310,6 +310,13 @@ not started; 28 to 30 are open follow-ups.
     defaulting or dropping. Still a terminal script needing Python and
     PyYAML; a web form (item 24-style) was considered and deferred.
 
+37. **DONE (1.4.0-rc6). Treasure is a list.** The sheet's header is a fixed
+    "Treasure" and the box is a bulleted list of strings or `{name, text}`
+    items, replacing the single titled box. `_treasure_items` normalizes the
+    old `{title, text}` shape (title becomes the item name), so existing
+    character files need no edits; `new_character.py` asks for one item per
+    line.
+
 ## 1.5.0 — DM session tools
 
 DM-facing prep/mid-session pain that exists right now regardless of party

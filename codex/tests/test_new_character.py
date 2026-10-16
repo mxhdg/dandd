@@ -137,6 +137,22 @@ def test_collect_simple_list_stops_on_blank(nc, respond):
     assert nc._collect_simple_list("Equipment") == ["Rope", "Torch"]
 
 
+def test_collect_named_list_shows_example_in_prompt_format(nc, respond, capsys):
+    respond({})
+    nc._collect_named_list("Features", ["text"], ("Second Wind", "Heal a bit"))
+    out = capsys.readouterr().out
+    assert "    name: Second Wind\n    text: Heal a bit\n  Your entries:" in out
+
+
+def test_collect_named_list_prints_the_explanation_before_the_example(
+    nc, respond, capsys
+):
+    respond({})
+    nc._collect_named_list("Allies", ["text"], ("Marta", "Friend"), "Who helps you.")
+    out = capsys.readouterr().out
+    assert out.index("Who helps you.") < out.index("Example entry")
+
+
 def test_collect_named_list_collects_fields(nc, respond):
     respond({"name:": ["Second Wind", ""], "text:": "Heal a bit"})
     assert nc._collect_named_list("Features", ["text"]) == [
@@ -268,7 +284,6 @@ def test_section_prompt_helpers(nc, respond):
             "Initiative": "",
             "Personality traits": "Curious",
             "Appearance: age": "30",
-            "Treasure title": "Hoard",
         }
     )
     assert nc._ask_other_proficiencies()["languages"] == "Common, Elvish"
@@ -283,12 +298,11 @@ def test_section_prompt_helpers(nc, respond):
         "skin",
         "hair",
     }
-    assert nc._ask_treasure() == {"title": "Hoard", "text": ""}
 
 
 def test_ask_identity_fields(nc, respond):
     respond({"Race": "Elf"})
-    identity = nc._ask_identity_fields()
+    identity = nc._ask_identity_fields("2014")
     assert identity["race"] == "Elf"
     assert identity["edition"] == "2014"
     assert set(identity) == {
@@ -306,8 +320,17 @@ def test_build_full_details_covers_every_skeleton_field(nc, respond):
     full = nc._build_full_details(abilities)
     assert set(full) == set(nc._build_skeleton_details())
     assert full["hp"]["max"] == 31
+    assert full["treasure"] == []
     assert full["combat"]["initiative"] == "+0"
     assert "spellcasting" not in full
+
+
+def test_build_full_details_collects_treasure_as_a_list(nc, respond):
+    # Equipment is asked first and shares the "  - " prompt: skip it, then add one.
+    respond({"  - ": ["", "Jade ring", ""]})
+    abilities = nc._skeleton_abilities_saves_skills()[0]
+    full = nc._build_full_details(abilities)
+    assert full["equipment"] == [] and full["treasure"] == ["Jade ring"]
 
 
 def test_build_full_details_adds_spellcasting_when_requested(nc, respond):
@@ -320,6 +343,7 @@ def test_skeleton_details_are_valid_blank_defaults(nc):
     details = nc._build_skeleton_details()
     assert details["hp"]["max"] == 10 and details["hit_dice"] == {"total": "1d8"}
     assert details["attacks"] == [] and details["equipment"] == []
+    assert details["treasure"] == []
     assert set(details["currency"]) == set(nc.CURRENCY_KEYS)
 
 
@@ -380,7 +404,13 @@ def test_resolve_mode_uses_flag_or_prompts_until_valid(nc, argv, respond, capsys
     respond({"Quick or detailed": ["nonsense", "Detailed"]})
     assert nc._resolve_mode(nc._parse_args()) == "full"
     assert "please type quick or detailed" in capsys.readouterr().out
-    cases = [("", "skeleton"), ("q", "skeleton"), ("d", "full"), ("full", "full")]
+    cases = [
+        ("", "skeleton"),
+        ("q", "skeleton"),
+        ("Q", "skeleton"),
+        ("D", "full"),
+        ("full", "full"),
+    ]
     for reply, mode in cases:
         respond({"Quick or detailed": reply})
         assert nc._resolve_mode(nc._parse_args()) == mode, reply
@@ -409,17 +439,17 @@ def test_build_character_skeleton_and_full(nc, respond):
             "Include spellcasting": "n",
         }
     )
-    skeleton = nc._build_character("t", "Tess", "skeleton")
+    skeleton = nc._build_character("t", "Tess", "skeleton", "2014")
     assert skeleton["id"] == "t" and skeleton["class_level"] == "Rogue 1"
     assert skeleton["hp"]["max"] == 10 and skeleton["proficiency_bonus"] == "+2"
-    full = nc._build_character("t", "Tess", "full")
+    full = nc._build_character("t", "Tess", "full", "2014")
     assert full["hp"]["max"] == 9
     assert set(skeleton) == set(full)
 
 
 def test_build_character_multiclass_derives_level_and_hit_dice(nc, respond):
     respond({"Class (": ["Fighter", "Ranger", ""], "Level in": ["3", "2"]})
-    char = nc._build_character("e", "Elowen", "skeleton")
+    char = nc._build_character("e", "Elowen", "skeleton", "2014")
     assert char["class_level"] == "Fighter 3 / Ranger 2"
     assert char["hit_dice"] == {"total": "5d10"}
     assert char["proficiency_bonus"] == "+3"
@@ -437,6 +467,7 @@ def test_main_writes_the_character_file(
     assert saved["name"] == "Tess" and saved["class_level"] == "Rogue 1"
     out = capsys.readouterr().out
     assert "Answer each question" in out
+    assert nc.GUIDE_URLS["2014"] in out and nc.GUIDE_URLS["2024"] not in out
     assert f"Saved your character to {tmp_path / 'tess.yaml'}" in out
     assert "do not commit" in out
 
@@ -449,6 +480,9 @@ def test_main_with_no_flags_only_asks_name_mode_and_character_questions(
     prompts = respond({"Character name": "Tess Marigold", "Class (": ["Rogue", ""]})
     nc.main()
     assert (tmp_path / "Tess_Marigold.yaml").exists()
+    keys = ("Rules edition", "Quick or detailed", "Character name")
+    asked = [k for p in prompts for k in keys if k in p]
+    assert asked == list(keys)
     assert not any("id" in p.lower().split() for p in prompts)
     assert any("Quick or detailed" in p for p in prompts)
 
@@ -500,8 +534,8 @@ def test_ask_edition_reprompts_until_valid(nc, respond):
 
 
 def test_ask_identity_fields_uses_species_label_for_2024(nc, respond):
-    prompts = respond({"Rules edition": "2024", "Species": "Human"})
-    assert nc._ask_identity_fields()["race"] == "Human"
+    prompts = respond({"Species": "Human"})
+    assert nc._ask_identity_fields("2024")["race"] == "Human"
     assert any("Species" in p for p in prompts)
 
 
@@ -511,3 +545,34 @@ def test_ask_names_hint_shows_examples_only_when_names_exist(nc, respond):
     nc._ask_names("Pick", [])
     assert "e.g. Dexterity, Strength" in prompts[0]
     assert "e.g." not in prompts[1]
+
+
+def test_main_exits_gracefully_on_ctrl_c_or_ctrl_d(
+    nc, argv, tmp_path, monkeypatch, capsys
+):
+    monkeypatch.setattr(nc, "DATA_DIR", tmp_path)
+    argv("--mode", "skeleton")
+    for error in (KeyboardInterrupt, EOFError):
+
+        def interrupted(prompt="", error=error):
+            raise error
+
+        monkeypatch.setattr("builtins.input", interrupted)
+        with pytest.raises(SystemExit) as exit_info:
+            nc.main()
+        assert exit_info.value.code == 130
+        assert "Cancelled. Nothing was saved." in capsys.readouterr().out
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_main_shows_the_guide_for_the_chosen_edition(
+    nc, argv, respond, tmp_path, monkeypatch, capsys
+):
+    monkeypatch.setattr(nc, "DATA_DIR", tmp_path)
+    argv("--id", "tess", "--name", "Tess", "--mode", "skeleton")
+    respond({"Rules edition": "2024", "Class (": ["Rogue", ""]})
+    nc.main()
+    out = capsys.readouterr().out
+    assert nc.GUIDE_URLS["2024"] in out and nc.GUIDE_URLS["2014"] not in out
+    saved = yaml.safe_load((tmp_path / "tess.yaml").read_text(encoding="utf-8"))
+    assert saved["edition"] == "2024"

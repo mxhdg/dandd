@@ -160,7 +160,5 @@ appearance:
   hair: ''
 backstory: ''
 allies: []
-treasure:
-  title: ''
-  text: ''
+treasure: []  # list of "Jade ring" or {name: Staff of Frost, text: 5 charges}
 additional_features: ''

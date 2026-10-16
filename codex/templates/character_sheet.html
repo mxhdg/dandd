@@ -254,9 +254,13 @@
   </div>
 
   <div class="boxed-section">
-    <div class="section-title">Treasure: {{ c.treasure.title }}</div>
+    <div class="section-title">Treasure</div>
     <div class="box prose">
-      {{ c.treasure.text }}
+      <ul class="plain">
+        {% for item in c.treasure %}
+        <li>{% if item.name %}<strong>{{ item.name }}</strong>{% if item.text %}: {% endif %}{% endif %}{{ item.text }}</li>
+        {% endfor %}
+      </ul>
     </div>
   </div>
 
