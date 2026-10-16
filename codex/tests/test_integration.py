@@ -204,12 +204,12 @@ def test_blank_template_file_renders_everywhere(client, data_dir):
 
 
 def test_skeleton_character_generated_by_script_renders_and_saves(
-    client, data_dir, nc, argv, respond, monkeypatch, tmp_path
+    client, data_dir, cli, argv, respond, monkeypatch, tmp_path
 ):
-    monkeypatch.setattr(nc, "DATA_DIR", data_dir)
+    monkeypatch.setattr(cli, "DATA_DIR", data_dir)
     argv("--id", "gen_skel", "--name", "Generated Skeleton", "--mode", "skeleton")
     respond({"Class (": ["Fighter", ""]})
-    nc.main()
+    cli.main()
 
     assert b"Generated Skeleton" in client.get("/").data
     sheet = client.get("/characters/gen_skel").data.decode()
@@ -220,9 +220,9 @@ def test_skeleton_character_generated_by_script_renders_and_saves(
 
 
 def test_full_character_with_spells_generated_by_script_renders(
-    client, data_dir, nc, argv, respond, monkeypatch
+    client, data_dir, cli, argv, respond, monkeypatch
 ):
-    monkeypatch.setattr(nc, "DATA_DIR", data_dir)
+    monkeypatch.setattr(cli, "DATA_DIR", data_dir)
     argv("--id", "gen_full", "--name", "Generated Wizard", "--mode", "full")
     respond(
         {
@@ -235,13 +235,13 @@ def test_full_character_with_spells_generated_by_script_renders(
             "name:": ["Arcane Recovery", ""],
             "text:": "Recover slots",
             "Include spellcasting": "y",
-            "level": ["1st", ""],
+            "slot level": ["1st", ""],
             "total slots": "4",
             "Spellcasting class": "Wizard",
             "Cantrips": "Light",
         }
     )
-    nc.main()
+    cli.main()
 
     sheet = client.get("/characters/gen_full").data.decode()
     assert "Arcane Recovery" in sheet and "Wizard" in sheet
@@ -492,3 +492,47 @@ def test_pdf_css_keeps_the_combat_row_from_splitting_across_pages():
     for selector in (".combat-grid {", ".combat-grid .field {"):
         rule = css[css.index(selector) :].split("}")[0]
         assert "break-inside: avoid" in rule, selector
+
+
+def test_a_script_created_character_can_level_up_and_still_render(
+    client, data_dir, cli, argv, respond, monkeypatch, tmp_path
+):
+    monkeypatch.setattr(cli, "DATA_DIR", data_dir)
+    monkeypatch.setattr(cli, "STATE_DIR", tmp_path)
+    argv("--new", "--id", "grow", "--name", "Grow", "--mode", "skeleton")
+    respond({"Class (": ["Rogue", ""]})
+    cli.main()
+    argv("--level-up", "grow")
+    respond({"Choice": "1", "Save these changes": "y"})
+    cli.main()
+
+    sheet = client.get("/characters/grow").data.decode()
+    assert "Rogue 2" in sheet and "2d8" in sheet
+    assert client.get("/characters/grow/pdf").data.startswith(b"%PDF")
+    assert (data_dir / "grow.yaml.bak").exists()
+    assert client.get("/").data.decode().count("needs fixing") == 0
+
+
+def test_an_edited_character_still_renders_and_validates(
+    client, data_dir, cli, argv, respond, monkeypatch, tmp_path
+):
+    monkeypatch.setattr(cli, "DATA_DIR", data_dir)
+    monkeypatch.setattr(cli, "STATE_DIR", tmp_path)
+    argv("--new", "--id", "tweak", "--name", "Tweak", "--mode", "skeleton")
+    respond({"Class (": ["Rogue", ""]})
+    cli.main()
+    argv("--edit", "tweak")
+    respond(
+        {
+            "Section": ["5", ""],
+            "Remove which": "",
+            "  - ": ["Thieves' tools", "", "Gold coin", ""],
+            "Save these changes": "y",
+        }
+    )
+    cli.main()
+
+    sheet = client.get("/characters/tweak").data.decode()
+    assert "Thieves&#39; tools" in sheet and "Gold coin" in sheet
+    assert client.get("/characters/tweak/pdf").data.startswith(b"%PDF")
+    assert client.get("/").data.decode().count("needs fixing") == 0

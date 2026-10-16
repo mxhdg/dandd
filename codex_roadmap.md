@@ -91,14 +91,14 @@ Also added while shipping this release, not originally scoped above:
 
 ## 1.3.1 (shipped) — Code standards, tests, efficiency, security
 
-No user-facing change. Brings `app.py` and `scripts/new_character.py` in line
+No user-facing change. Brings `app.py` and `scripts/character.py` in line
 with the project's code standards (one responsibility per function,
 `_`-prefixed private functions; see `CLAUDE.md`).
 
 - **DONE. `app.py`**: extracted shared route lookup/origin/render helpers,
   split form parsing into one helper per field group, split saved-state
   reading from merging, split the PDF static-file check from the fetcher.
-- **DONE. `new_character.py`**: split prompting from computation for
+- **DONE. `character.py`**: split prompting from computation for
   abilities/saves/skills, per-section prompt helpers, spell-slot and
   comma-list helpers, and extracted character assembly out of `main()`.
   Verified byte-identical output against the old code for skeleton, full,
@@ -124,31 +124,53 @@ with the project's code standards (one responsibility per function,
   Docker, and Actions. Still open (needs a human): branch protection on
   `main` (GitHub setting), and whether to rewrite git history to drop the
   gitignored-since "howto" files from the public repo.
-- **DONE. Top-to-bottom tests**: `new_character.py` unit tests (30% -> 100%
+- **DONE. Top-to-bottom tests**: `character.py` unit tests (30% -> 100%
   coverage), integration journeys (a full play session, spellcasters,
   script-generated characters rendering in the app, security sweep,
   gunicorn config), tests converted to in-body loops with shared fixtures in
   `conftest.py`, and a 100% line+branch coverage gate enforced in CI.
 - **DONE. Tests** for the newly testable pure helpers
-  (`tests/test_new_character.py`).
+  (`tests/test_character.py`).
 
-## 1.4.0 — Character creation tooling (in progress, at 1.4.0-rc7)
+## 1.4.0 — Character creation tooling (in progress, at 1.4.0-rc8)
 
-Separate from actual-play pain entirely; touches `new_character.py`, not
+Separate from actual-play pain entirely; touches `character.py`, not
 the live sheet (item 25 is the one exception, a live-sheet lookup that shares
 item 24's content source). Prioritized ahead of the DM tools.
 
 **Suggested order:** 26 (schema validation) first, since 23 depends on it,
 then 23 (edit/level-up mode), then 24 (Open5e-guided creation), then 25.
 
-**Release candidates so far (items 27 and 31 to 37):** rc1 added the
-import-friendly sheet fields, rc2 folded in the Dependabot updates, rc3
-made sheet text uniform, rc4 fixed the 403 on Save/rest buttons, rc5
-fit the sheet on phones, and rc6 added multiclass support, a friendlier
-`new_character.py` and the treasure list. Items 23 to 26 (the larger
-creation-tooling items) are not started; 28 to 30 are open follow-ups.
+**Release candidates so far (items 26 to 37 except 23 to 25):** rc1 added
+the import-friendly sheet fields, rc2 folded in the Dependabot updates, rc3
+made sheet text uniform, rc4 fixed the 403 on Save/rest buttons, rc5 fit the
+sheet on phones, rc6 added multiclass support, a friendlier `character.py`
+and the treasure list, and rc7 added schema validation (26), gunicorn 26 (28),
+pip removal from the image (29) and the gender/faith fields (30). Still open
+in this theme: 23 (edit and level-up mode), 24 (Open5e-guided creation) and
+25 (rules lookup on the sheet); the rest of 29 (Debian findings, Trivy
+version) is waiting on upstream.
 
-23. **Edit-existing-character mode in `new_character.py`**, alongside the
+23. **DONE (1.4.0-rc8): level-up and the edit menu.** The script
+    is now `scripts/character.py` with `--new`, `--level-up [ID]` and an
+    action question when no flag is given, and `--edit [ID]`, a nine-section
+    menu (identity, abilities and proficiencies, combat, attacks, gear, features
+    and allies, spells, story, other proficiencies) with the current value shown
+    for every prompt, per-section validation (an invalid result is discarded),
+    numbered remove-and-add list editing, and the same preview, backup and
+    `state/` rules as level-up. Level-up: validates the file, picks the class (or a new one for
+    multiclass), HP by roll or average plus CON (with a retroactive adjustment
+    when the CON modifier changes), ASI or feat, new features, spell slots and
+    spells by hand (no slot tables; item 24 could supply them), derived values
+    shifted by the formula change so custom bonuses are kept, an old->new
+    preview, `<id>.yaml.bak`, re-validation before writing, `state/` never
+    touched. Not recalculated, only flagged: attack bonuses, damage, AC. Known
+    gaps: YAML comments are dropped on rewrite (warned); only the standard ASI
+    levels are suggested (4, 8, 12, 16, 19); list entries are edited by
+    removing and re-adding, not in place. Original spec for the whole item
+    follows.
+
+    **Edit-existing-character mode in `character.py`**, alongside the
     current `skeleton`/`full` creation modes: point it at an existing
     `data/<id>.yaml`, walk through the same prompts pre-filled with that
     character's current values, and write the result back. Right now
@@ -173,11 +195,11 @@ creation-tooling items) are not started; 28 to 30 are open follow-ups.
     count isn't). Multiclassing is the awkward case to decide up front
     whether to support. Depends on the schema validation in item 26: edit
     and level-up should validate before reading and before writing.
-24. **API-guided character creation in `new_character.py`**, sourcing race/
+24. **API-guided character creation in `character.py`**, sourcing race/
     class/background/equipment/spell lists from the Open5e API
     (`api.open5e.com`) instead of the user typing everything freehand.
     Must be opt-in (e.g. a prompt or flag before any network call), never
-    the default path, so `new_character.py` still works fully offline for
+    the default path, so `character.py` still works fully offline for
     anyone who doesn't want it hitting an external API. Chosen over
     broader-but-riskier sources (e.g. 5etools' data mirrors) because Open5e
     only serves SRD/OGL-licensed content, keeping the app's licensing clean;
@@ -199,13 +221,13 @@ creation-tooling items) are not started; 28 to 30 are open follow-ups.
     dependencies and scan surface small). Runs in the app (422 error page, list
     flag, other characters unaffected, YAML syntax errors included) and in pytest
     (sample, template, script output and constants cannot drift). Not yet wired
-    into `new_character.py` edit mode (item 23, which does not exist yet); `state/<id>.yaml`
+    into `character.py` edit mode (item 23, which does not exist yet); `state/<id>.yaml`
     validation is still unscheduled. Original spec follows.
     Define one schema (required keys, types, allowed values, e.g. ability
     scores as ints, proficiency lists as lists) and check every character
     file against it. Today `data/character_template.yaml.example` is the
     only definition of the format, and nothing enforces it. Where it runs:
-    - `new_character.py` edit/level-up: validate on load and again before
+    - `character.py` edit/level-up: validate on load and again before
       writing. On failure, list every problem (file, field path, expected
       vs. found), not just the first, and refuse to write a file that
       fails.
@@ -226,7 +248,7 @@ creation-tooling items) are not started; 28 to 30 are open follow-ups.
     proficiency bonus, shown as a ringed checkbox), (b) attacks take an
     optional `notes` string (extra Notes column only when used), (c) an
     optional `edition` field (`"2014"` default, `"2024"` labels "Race" as
-    "Species"). `new_character.py` prompts for all three. Deferred, not
+    "Species"). `character.py` prompts for all three. Deferred, not
     done: per-spell details (time/range/components/duration/save) and
     limited-use trackers (1/Long Rest features, Staff charges, Portent dice).
 
@@ -274,7 +296,7 @@ creation-tooling items) are not started; 28 to 30 are open follow-ups.
     they live as plain text in `additional_features`. Added optional `gender`
     and `faith` keys in the `appearance` block (page 2, so page 1's header and
     phone fit are untouched), shown on the sheet only when set. Touches the
-    template, `character_template.yaml.example`, `new_character.py` prompts
+    template, `character_template.yaml.example`, `character.py` prompts
     and the docs; a schema addition like item 27, so the same upgrade path
     (optional, existing character files keep working).
 
@@ -309,7 +331,7 @@ creation-tooling items) are not started; 28 to 30 are open follow-ups.
     `characters/2014_marigold_kettlewick.{html,css}` and cleaned up the root
     `.gitignore`.
 
-35. **DONE (1.4.0-rc6). Multiclass characters.** `new_character.py` prompts per
+35. **DONE (1.4.0-rc6). Multiclass characters.** `character.py` prompts per
     class (name, level, subclass, hit die defaulted from the class name) and
     builds `class_level`, `hit_dice.total` (same-size dice merged) and the
     proficiency bonus from total level; the spellcasting prompt mentions
@@ -317,7 +339,9 @@ creation-tooling items) are not started; 28 to 30 are open follow-ups.
     Not done: separate hit dice "Used" counts per die type, and per-class
     spell lists/slot tables (slots are entered by hand, one shared pool).
 
-36. **DONE (1.4.0-rc6). Friendlier `new_character.py` for non-coders.**
+36. **DONE (1.4.0-rc6). Friendlier `character.py` for non-coders.** (Renamed from
+    `new_character.py` in rc8, when the script also became the place for
+    editing and levelling up; older items above keep the new name.)
     Welcome line and plain closing message; "quick or detailed" instead of
     `skeleton`/`full` (flags unchanged); no file-id prompt (derived from the
     name unless `--id`); case-insensitive and unique-prefix name matching;
@@ -329,7 +353,7 @@ creation-tooling items) are not started; 28 to 30 are open follow-ups.
     "Treasure" and the box is a bulleted list of strings or `{name, text}`
     items, replacing the single titled box. `_treasure_items` normalizes the
     old `{title, text}` shape (title becomes the item name), so existing
-    character files need no edits; `new_character.py` asks for one item per
+    character files need no edits; `character.py` asks for one item per
     line.
 
 ## 1.5.0 — DM session tools
