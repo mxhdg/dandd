@@ -10,7 +10,7 @@ makes the change, and set the date when the version is released. A test fails
 if the current version has no entry here. The longer reasoning behind each
 change lives in `../codex_roadmap.md`.
 
-## [1.4.1] - unreleased
+## [1.4.1] - 2026-10-16
 
 ### Added
 - This changelog, with a test that keeps an entry for the current version.
