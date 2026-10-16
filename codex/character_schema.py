@@ -65,6 +65,15 @@ _SCALARS = {
 _PROF = ("any_of", ["bool", ("enum", ["expertise"])])
 _ENTRY_NAME_TEXT = ("dict", {"name": ("filled", _REQ), "text": ("str", _OPT)})
 _TREASURE_ENTRY = ("dict", {"name": ("str", _OPT), "text": ("str", _OPT)})
+# Treasure as written in a file: a list of text or {name, text} items, or the
+# older single {title, text} box (the app normalizes either to a list).
+_TREASURE_RAW = (
+    "any_of",
+    [
+        ("list", ("any_of", ["str", _TREASURE_ENTRY])),
+        ("dict", {"title": ("text_or_int", _OPT), "text": ("text_or_int", _OPT)}),
+    ],
+)
 _SPELL_GROUP = ("dict", {"spells": ("text_or_int", _REQ), "note": ("str", _OPT)})
 _SPELL_LIST = ("list", ("any_of", ["text_or_int", _SPELL_GROUP]))
 
@@ -188,7 +197,7 @@ _SCHEMA_FIELDS = {
     ),
     "backstory": _TEXT_FIELDS,
     "allies": (("list", _ENTRY_NAME_TEXT), _REQ),
-    "treasure": (("list", _TREASURE_ENTRY), _OPT),
+    "treasure": (_TREASURE_RAW, _OPT),
     "additional_features": _TEXT_FIELDS,
 }
 

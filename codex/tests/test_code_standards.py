@@ -11,7 +11,7 @@ ROOT = Path(__file__).parent.parent
 SOURCE_FILES = [
     ROOT / "app.py",
     ROOT / "character_schema.py",
-    ROOT / "scripts" / "new_character.py",
+    ROOT / "scripts" / "character.py",
 ]
 
 # One job per function: if a function outgrows this, it is almost certainly

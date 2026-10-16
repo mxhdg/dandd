@@ -23,7 +23,7 @@ def _problems(data):
 # --- the checker ------------------------------------------------------------
 
 
-def test_scalar_kinds_accept_and_reject_the_right_values(nc):
+def test_scalar_kinds_accept_and_reject_the_right_values(cli):
     cases = [
         ("str", "x", True),
         ("str", 3, False),
@@ -44,14 +44,14 @@ def test_scalar_kinds_accept_and_reject_the_right_values(nc):
         assert (schema._check(kind, value, "f") == []) is ok, (kind, value)
 
 
-def test_problem_messages_name_the_path_expected_and_found(nc):
+def test_problem_messages_name_the_path_expected_and_found(cli):
     [message] = schema._check("int", "ten", "file.hp.max")
     assert message == "file.hp.max: expected a whole number, found str 'ten'"
     [long_found] = schema._check("int", "x" * 90, "f")
     assert "..." in long_found and len(long_found) < 100
 
 
-def test_list_dict_and_nesting_report_every_problem_with_paths(nc):
+def test_list_dict_and_nesting_report_every_problem_with_paths(cli):
     spec = ("list", ("dict", {"n": ("filled", True), "v": ("int", False)}))
     problems = schema._check(spec, [{"n": "a"}, {"v": "x"}, "no", {"n": "ok"}], "L")
     assert problems == [
@@ -64,12 +64,12 @@ def test_list_dict_and_nesting_report_every_problem_with_paths(nc):
     ]
 
 
-def test_dict_ignores_unknown_keys_and_skips_missing_optional_keys(nc):
+def test_dict_ignores_unknown_keys_and_skips_missing_optional_keys(cli):
     spec = ("dict", {"a": ("int", False)})
     assert schema._check(spec, {"extra": object()}, "d") == []
 
 
-def test_enum_and_any_of(nc):
+def test_enum_and_any_of(cli):
     enum = ("enum", ["2014", "2024"])
     assert schema._check(enum, "2024", "e") == []
     [problem] = schema._check(enum, 2024, "e")
@@ -81,7 +81,7 @@ def test_enum_and_any_of(nc):
     assert "expected true or false or one of 'expertise'" in problem
 
 
-def test_named_list_requires_each_name_exactly_once(nc):
+def test_named_list_requires_each_name_exactly_once(cli):
     spec = ("named_list", "any", ["A", "B", "C"])
     assert schema._check(spec, [{"name": "A"}, {"name": "B"}, {"name": "C"}], "x") == []
     problems = schema._check(spec, [{"name": "A"}, {"name": "A"}, "stray"], "x")
@@ -121,6 +121,23 @@ def test_real_world_spell_group_entries_are_valid():
     assert _problems(data) == []
 
 
+def test_every_raw_treasure_shape_in_real_files_is_valid():
+    shapes = [
+        [],
+        ["Jade ring", {"name": "Mug", "text": "Tin"}],
+        {"title": "Staff of Frost", "text": "5 charges"},
+        {"title": "", "text": ""},
+    ]
+    for treasure in shapes:
+        data = _sample()
+        data["treasure"] = treasure
+        assert _problems(data) == [], treasure
+    data = _sample()
+    data["treasure"] = 5
+    [problem] = _problems(data)
+    assert problem.startswith("file.treasure: expected a list or a mapping")
+
+
 def test_a_bad_spell_entry_says_what_shapes_are_accepted():
     data = _sample()
     data["spellcasting"] = {"prepared": [True], "always_prepared": [["nested"]]}
@@ -133,7 +150,7 @@ def test_a_bad_spell_entry_says_what_shapes_are_accepted():
     ]
 
 
-def test_every_problem_in_a_broken_file_is_reported_at_once(nc):
+def test_every_problem_in_a_broken_file_is_reported_at_once(cli):
     data = _sample()
     data["edition"] = 2024
     data["hp"]["max"] = "ten"
@@ -169,14 +186,14 @@ def test_extra_fields_never_make_a_character_invalid():
 # --- drift guards -----------------------------------------------------------
 
 
-def test_schema_constants_match_the_script(nc):
-    assert schema.ABILITIES == nc.ABILITIES
-    assert schema.SKILL_NAMES == [name for name, _ in nc.SKILLS]
+def test_schema_constants_match_the_script(cli):
+    assert schema.ABILITIES == cli.ABILITIES
+    assert schema.SKILL_NAMES == [name for name, _ in cli.SKILLS]
 
 
-def test_script_output_always_passes_the_schema(nc, respond):
+def test_script_output_always_passes_the_schema(cli, respond):
     for mode in ("skeleton", "full"):
         respond({"Class (": ["Rogue", ""], "Max HP": "9", "Spellcasting": "n"})
-        char = nc._build_character("t", "Tess", mode, "2014")
+        char = cli._build_character("t", "Tess", mode, "2014")
         assert _problems(copy.deepcopy(char)) == [], mode
         assert yaml.safe_load(yaml.safe_dump(char)) == char

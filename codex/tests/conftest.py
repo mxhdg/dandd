@@ -15,7 +15,7 @@ import yaml
 import app as app_module
 
 ROOT = Path(__file__).parent.parent
-SCRIPT = ROOT / "scripts" / "new_character.py"
+SCRIPT = ROOT / "scripts" / "character.py"
 SAMPLE = ROOT / "data" / "sample_character.yaml"
 
 
@@ -56,9 +56,9 @@ def write_character(data_dir):
 
 
 @pytest.fixture
-def nc():
-    """scripts/new_character.py loaded as a module (it is not a package)."""
-    spec = importlib.util.spec_from_file_location("new_character", SCRIPT)
+def cli():
+    """scripts/character.py loaded as a module (it is not a package)."""
+    spec = importlib.util.spec_from_file_location("character", SCRIPT)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -96,6 +96,6 @@ def respond(monkeypatch):
 @pytest.fixture
 def argv(monkeypatch):
     def set_argv(*args):
-        monkeypatch.setattr(sys, "argv", ["new_character.py", *args])
+        monkeypatch.setattr(sys, "argv", ["character.py", *args])
 
     return set_argv
