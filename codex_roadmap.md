@@ -193,7 +193,14 @@ creation-tooling items) are not started; 28 to 30 are open follow-ups.
     rather than being a separate integration. Display only; explicitly not
     a step toward automated dice rolling, which stays out of scope per
     "Explicitly not planned right now" below.
-26. **Schema validation for `data/<id>.yaml`**, a prerequisite for item 23.
+26. **DONE (1.4.0-rc7). Schema validation for `data/<id>.yaml`**, a prerequisite for item 23.
+    Built as `codex/character_schema.py` (hand-written, table-driven, stdlib
+    only; the `jsonschema` option was weighed and declined to keep the image's
+    dependencies and scan surface small). Runs in the app (422 error page, list
+    flag, other characters unaffected, YAML syntax errors included) and in pytest
+    (sample, template, script output and constants cannot drift). Not yet wired
+    into `new_character.py` edit mode (item 23, which does not exist yet); `state/<id>.yaml`
+    validation is still unscheduled. Original spec follows.
     Define one schema (required keys, types, allowed values, e.g. ability
     scores as ints, proficiency lists as lists) and check every character
     file against it. Today `data/character_template.yaml.example` is the
@@ -223,8 +230,12 @@ creation-tooling items) are not started; 28 to 30 are open follow-ups.
     done: per-spell details (time/range/components/duration/save) and
     limited-use trackers (1/Long Rest features, Staff charges, Portent dice).
 
-28. **Revisit the gunicorn 26 upgrade (next rc; originally targeted rc3 or
-    rc4, which passed without it).** Held at 23.0.0 since rc2 (Dependabot PR #21). Under 26.2.0 the hardened container
+28. **DONE (1.4.0-rc7). Revisit the gunicorn 26 upgrade.** Upgraded to 26.2.0 with
+    `control_socket_disable = True` in `gunicorn.conf.py`; verified under the
+    real restrictions (read-only root, `/tmp` noexec, all capabilities dropped,
+    no-new-privileges): no startup error, `/`, the sheet and `/pdf` return 200,
+    Save and the rest buttons succeed (302). The 26.x lock also drops the
+    `packaging` dependency. Original problem report: held at 23.0.0 since rc2 (Dependabot PR #21). Under 26.2.0 the hardened container
     logs `Control server error: Permission denied: '/home/appuser'` at
     startup; the app still served requests, but the root filesystem is
     read-only and the new control socket tries to write to the home
@@ -235,10 +246,13 @@ creation-tooling items) are not started; 28 to 30 are open follow-ups.
     notes for other breaking changes. Until then, close or ignore PR #21 so
     Dependabot stops reopening it.
 
-29. **Image scan follow-ups (same pass as item 28).** From the
+29. **Image scan follow-ups (same pass as item 28). pip removal DONE (1.4.0-rc7); the rest is open.** From the
     `v1.4.0-rc2` Trivy scan (non-blocking, exit-code 0): 48 HIGH on Debian
     13.7, 4 HIGH in Python, 0 CRITICAL.
-    - **Remove pip from the final image** (e.g. `pip uninstall -y pip` as the
+    - **DONE (1.4.0-rc7). Removed pip from the final image** (`pip uninstall -y pip` right after the
+      hashed install; the Dockerfile comment is updated; the image's Python findings went 4 -> 0;
+      verified: `/`, the sheet and `/pdf` return 200, the healthcheck is healthy; the local gate command
+      now bootstraps pip with `ensurepip --user`). Original plan: (`pip uninstall -y pip` as the
       last build step, after the `--require-hashes` install). All 4 Python
       findings (msgpack 1.1.2, setuptools 70.3.0, urllib3 2.7.0 x2) are
       copies vendored inside the base image's pip 26.2.1, not the app's real
@@ -255,11 +269,11 @@ creation-tooling items) are not started; 28 to 30 are open follow-ups.
       version comes from the pinned `trivy-action` default, so it moves when
       Dependabot bumps the action; no manual change needed.
 
-30. **Gender and faith character fields.** Found importing a D&D Beyond
+30. **DONE (1.4.0-rc7). Gender and faith character fields.** Found importing a D&D Beyond
     sheet, which has both in its header block; codex has neither, so for now
-    they live as plain text in `additional_features`. Add optional `gender`
-    and `faith` keys (alongside `alignment` in the header, or in the
-    appearance block), shown on the sheet only when set. Touches the
+    they live as plain text in `additional_features`. Added optional `gender`
+    and `faith` keys in the `appearance` block (page 2, so page 1's header and
+    phone fit are untouched), shown on the sheet only when set. Touches the
     template, `character_template.yaml.example`, `new_character.py` prompts
     and the docs; a schema addition like item 27, so the same upgrade path
     (optional, existing character files keep working).

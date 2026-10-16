@@ -283,21 +283,15 @@ def test_section_prompt_helpers(nc, respond):
             "Armor Class": "15",
             "Initiative": "",
             "Personality traits": "Curious",
-            "Appearance: age": "30",
+            "Appearance: Age": "30",
         }
     )
     assert nc._ask_other_proficiencies()["languages"] == "Common, Elvish"
     assert nc._ask_combat("+2") == {"ac": 15, "initiative": "+2", "speed": "30 ft"}
     assert nc._ask_personality()["traits"] == "Curious"
     assert nc._ask_appearance()["age"] == "30"
-    assert set(nc._ask_appearance()) == {
-        "age",
-        "height",
-        "weight",
-        "eyes",
-        "skin",
-        "hair",
-    }
+    assert set(nc._ask_appearance()) == set(nc.APPEARANCE_PROMPTS)
+    assert {"gender", "faith"} <= set(nc.APPEARANCE_PROMPTS)
 
 
 def test_ask_identity_fields(nc, respond):

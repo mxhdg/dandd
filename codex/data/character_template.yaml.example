@@ -158,6 +158,8 @@ appearance:
   eyes: ''
   skin: ''
   hair: ''
+  gender: ''  # optional; shown on the sheet only when set
+  faith: ''  # optional; shown on the sheet only when set
 backstory: ''
 allies: []
 treasure: []  # list of "Jade ring" or {name: Staff of Frost, text: 5 charges}
