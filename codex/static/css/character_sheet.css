@@ -189,6 +189,7 @@ input[type="checkbox"] { width: 14px; height: 14px; vertical-align: middle; }
 .page-footer .github-link svg { display: block; fill: currentColor; }
 
 .condition-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.condition-item { display: inline-flex; align-items: center; }
 .condition-chip {
   display: inline-flex; align-items: center; gap: 4px;
   border: 1.5px solid var(--ink); border-radius: 12px;
@@ -233,7 +234,15 @@ input[type="checkbox"] { width: 14px; height: 14px; vertical-align: middle; }
 .passive-box strong { font-size: 16px; }
 h1.charname.charname-sm { font-size: 20px; }
 
+.rules-link {
+  display: inline-block; min-width: 14px; margin-left: 4px; padding: 0 4px;
+  border: 1px solid var(--ink); border-radius: 9px; color: var(--ink);
+  font-size: 9px; font-weight: bold; line-height: 14px; text-align: center; text-decoration: none;
+}
+.rules-link:hover { background: var(--ink); color: var(--paper); text-decoration: none; }
+
 @media (max-width: 700px) {
+  .rules-link { min-width: 22px; margin-left: 6px; font-size: 12px; line-height: 20px; border-radius: 11px; }
   .save-btn, .back-link, .pdf-link { top: 6px; font-size: 11px; padding: 6px 10px; }
   .save-btn { right: 6px; }
   .back-link { left: 6px; }
@@ -274,6 +283,7 @@ h1.charname.charname-sm { font-size: 20px; }
 /* Keep this block LAST: a print override placed before the base rule it
    overrides loses the cascade regardless of the @media condition. */
 @media print {
+  .rules-link { display: none; }
   @page {
     size: letter;
     margin: 1in 0.5in;

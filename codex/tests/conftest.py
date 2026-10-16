@@ -65,6 +65,16 @@ def cli():
 
 
 @pytest.fixture
+def build_rules():
+    """scripts/build_rules.py loaded as a module."""
+    path = ROOT / "scripts" / "build_rules.py"
+    spec = importlib.util.spec_from_file_location("build_rules", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+@pytest.fixture
 def respond(monkeypatch):
     """Script input(): respond({"substring of prompt": reply_or_list_of_replies}).
 

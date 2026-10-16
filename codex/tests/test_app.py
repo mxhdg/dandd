@@ -1,3 +1,4 @@
+import json
 import re
 from html import unescape
 from pathlib import Path
@@ -557,3 +558,209 @@ def test_valid_and_empty_files_keep_their_old_behavior(client, data_dir):
     assert "needs fixing" not in client.get("/").data.decode()
     (data_dir / "empty.yaml").write_text("")
     assert client.get("/characters/empty").status_code == 404
+
+
+def test_guide_carries_the_srd_attribution_that_creation_prints(client):
+    import srd_lookup
+
+    guide = client.get("/guide").data.decode()
+    for needle in (
+        "System Reference Document",
+        "Wizards of the Coast LLC",
+        "https://dnd.wizards.com/resources/systems-reference-document",
+        "Creative Commons Attribution 4.0",
+        "https://creativecommons.org/licenses/by/4.0/legalcode",
+    ):
+        assert needle in guide and needle in srd_lookup.ATTRIBUTION, needle
+
+
+# --- rules text: formatter, links, pages ------------------------------------
+
+
+def test_text_blocks_split_paragraphs_bullets_and_tables():
+    text = (
+        "While you have the **Poisoned** condition:\n"
+        "\n"
+        "* _Ability Checks_. Disadvantage on checks.\n"
+        "- Attacks too.\n"
+        "\n"
+        "A second paragraph\n"
+        "on two lines.\n"
+        "| Level | Effect |\n"
+        "| --- | --- |\n"
+        "| 1 | Slow |"
+    )
+    blocks = app_module._text_blocks(text)
+    assert [b["kind"] for b in blocks] == ["p", "ul", "p", "table"]
+    assert blocks[0]["lines"] == ["While you have the Poisoned condition:"]
+    assert blocks[1]["lines"] == [
+        "Ability Checks. Disadvantage on checks.",
+        "Attacks too.",
+    ]
+    assert blocks[2]["lines"] == ["A second paragraph", "on two lines."]
+    assert blocks[3]["rows"] == [["Level", "Effect"], ["1", "Slow"]]
+    assert app_module._text_blocks(None) == [] and app_module._text_blocks("\n\n") == []
+
+
+@pytest.fixture
+def rules(tmp_path, monkeypatch):
+    """A tiny bundled rules directory instead of the real one."""
+    directory = tmp_path / "rules"
+    directory.mkdir()
+    bundles = {
+        "conditions-2014.json": [
+            {"slug": "poisoned", "name": "Poisoned", "text": "Old <b>text</b>."},
+            {"slug": "exhaustion", "name": "Exhaustion", "text": "Six levels."},
+        ],
+        "conditions-2024.json": [
+            {"slug": "poisoned", "name": "Poisoned", "text": "New text."}
+        ],
+        "spells-2014.json": [
+            {
+                "slug": "hunters-mark",
+                "name": "Hunter's Mark",
+                "level": 1,
+                "school": "Divination",
+                "casting_time": "Bonus action",
+                "range": "90 feet",
+                "components": "V",
+                "duration": "1 hour",
+                "concentration": True,
+                "ritual": False,
+                "classes": ["Ranger"],
+                "text": "You mark a creature.\n\n* It glows.",
+                "higher": "Longer at higher levels.",
+            },
+            {
+                "slug": "light",
+                "name": "Light",
+                "level": 0,
+                "school": "Evocation",
+                "casting_time": "Action",
+                "range": "Touch",
+                "components": "V, M",
+                "duration": "1 hour",
+                "concentration": False,
+                "ritual": True,
+                "classes": [],
+                "text": "A glow.",
+                "higher": "",
+            },
+        ],
+    }
+    for name, entries in bundles.items():
+        (directory / name).write_text(json.dumps({"entries": entries}))
+    monkeypatch.setattr(app_module, "RULES_DIR", directory)
+    app_module._rules_index.cache_clear()
+    yield directory
+    app_module._rules_index.cache_clear()
+
+
+def test_rules_url_exists_only_for_bundled_names_and_follows_the_edition(client, rules):
+    with app_module.app.test_request_context():
+        url = app_module._rules_url
+        assert (
+            url("conditions", "poisoned", "2014") == "/rules/2014/conditions/poisoned"
+        )
+        assert (
+            url("conditions", "Poisoned", "2024") == "/rules/2024/conditions/poisoned"
+        )
+        assert url("conditions", "exhaustion", "2024") is None  # not in that bundle
+        assert url("spells", "Hunter's Mark", None) == "/rules/2014/spells/hunters-mark"
+        assert url("spells", "Mage Hand", "2014") is None
+        assert url("spells", "Light", "weird") == "/rules/2014/spells/light"
+    assert app_module._rules_edition(2024) == "2024"
+
+
+def test_rules_pages_show_conditions_and_spells_and_escape_the_text(client, rules):
+    page = client.get("/rules/2014/conditions/poisoned").data.decode()
+    assert "<h1>Poisoned</h1>" in page and "2014 rules" in page
+    assert "Old &lt;b&gt;text&lt;/b&gt;." in page and "<b>text</b>" not in page
+    assert "Creative Commons Attribution 4.0" in page
+    spell = client.get("/rules/2014/spells/hunters-mark").data.decode()
+    for needle in (
+        "Level 1 &middot; Divination &middot; Concentration",
+        "<strong>Casting time:</strong> Bonus action",
+        "<strong>Classes:</strong> Ranger",
+        "<li>It glows.</li>",
+        "At higher levels",
+        "Longer at higher levels.",
+    ):
+        assert needle in spell, needle
+    assert (
+        "Cantrip &middot; Evocation &middot; Ritual"
+        in client.get("/rules/2014/spells/light").data.decode()
+    )
+
+
+def test_rules_pages_refuse_anything_that_is_not_bundled(client, rules):
+    urls = [
+        "/rules/2014/conditions/nope",
+        "/rules/2014/monsters/poisoned",
+        "/rules/2019/conditions/poisoned",
+        "/rules/2024/spells/hunters-mark",
+        "/rules/2014/conditions/p\u00f6isoned",
+        "/rules/2014/conditions/..%2f..%2fapp",
+    ]
+    for url in urls:
+        assert client.get(url).status_code == 404, url
+
+
+def test_sheet_links_conditions_and_spells_to_their_rules_text(
+    client, rules, write_character
+):
+    spellcasting = {
+        "class": "Ranger",
+        "ability": "Wisdom",
+        "cantrips": ["Light", "Mage Hand"],
+        "slots": [{"level": "1st", "total": 2}],
+        "prepared": ["Hunter's Mark"],
+        "always_prepared": [{"spells": "Light, Unknown Spell", "note": "(racial)"}],
+    }
+    write_character("ranger", spellcasting=spellcasting)
+    sheet = client.get("/characters/ranger").data.decode()
+    assert 'href="/rules/2014/conditions/poisoned"' in sheet
+    assert 'href="/rules/2014/conditions/exhaustion"' in sheet
+    assert (
+        'href="/rules/2014/conditions/blinded"' not in sheet
+    )  # not in the test bundle
+    assert sheet.count('href="/rules/2014/spells/light"') == 2
+    assert 'href="/rules/2014/spells/hunters-mark"' in sheet
+    assert "Mage Hand</div>" in sheet or "Mage Hand " in sheet
+    assert "mage-hand" not in sheet
+    for link in re.findall(r'<a class="rules-link"[^>]*>', sheet):
+        assert 'target="_blank"' in link and 'rel="noopener"' in link
+    pdf_html = app_module._render_sheet(
+        "ranger", app_module._load_character("ranger"), pdf=True
+    )
+    assert "rules-link" not in pdf_html
+
+
+def test_rules_links_are_hidden_when_printing():
+    css = (
+        Path(app_module.__file__).parent / "static" / "css" / "character_sheet.css"
+    ).read_text()
+    print_block = css[css.index("@media print") :]
+    assert ".rules-link { display: none; }" in print_block
+
+
+def test_the_bundled_rules_cover_every_condition_the_sheet_offers():
+    for edition in ("2014", "2024"):
+        index = app_module._rules_index("conditions", edition)
+        wanted = [*app_module.CONDITION_KEYS, "exhaustion"]
+        assert [k for k in wanted if k not in index] == [], edition
+        assert len(app_module._rules_index("spells", edition)) > 300, edition
+
+
+def test_bundled_rules_files_are_complete_and_carry_the_credit():
+    import srd_lookup
+
+    for kind in ("conditions", "spells"):
+        for edition in ("2014", "2024"):
+            path = app_module.RULES_DIR / f"{kind}-{edition}.json"
+            bundle = json.loads(path.read_text(encoding="utf-8"))
+            assert bundle["edition"] == edition
+            assert bundle["attribution"] == srd_lookup.ATTRIBUTION
+            for entry in bundle["entries"]:
+                assert entry["slug"] == srd_lookup.slugify(entry["name"]), entry["name"]
+                assert entry["text"].strip(), entry["name"]

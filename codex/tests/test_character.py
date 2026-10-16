@@ -110,6 +110,16 @@ def test_match_name_ignores_case_and_accepts_unique_prefixes(cli):
         assert cli._match_name(token, valid) == expected, token
 
 
+def test_match_name_loose_finds_a_unique_part_of_a_longer_name(cli):
+    valid = ["School of Evocation", "School of Necromancy", "Champion"]
+    assert cli._match_name("evoc", valid) is None
+    assert cli._match_name("evoc", valid, loose=True) == "School of Evocation"
+    assert cli._match_name("school", valid, loose=True) is None
+    assert cli._match_name("champ", valid, loose=True) == "Champion"
+    assert cli._match_name("", valid, loose=True) is None
+    assert cli._match_name("zzz", valid, loose=True) is None
+
+
 def test_parse_names_splits_matches_and_unknown(cli):
     chosen, unknown = cli._parse_names(" str, dex ,, nope", cli.ABILITIES)
     assert chosen == {"Strength", "Dexterity"}

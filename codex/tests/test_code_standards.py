@@ -11,6 +11,8 @@ ROOT = Path(__file__).parent.parent
 SOURCE_FILES = [
     ROOT / "app.py",
     ROOT / "character_schema.py",
+    ROOT / "srd_lookup.py",
+    ROOT / "scripts" / "build_rules.py",
     ROOT / "scripts" / "character.py",
 ]
 
@@ -20,11 +22,22 @@ SOURCE_FILES = [
 MAX_FUNCTION_LINES = 30
 
 # Public by necessity: a script's entry point, the one function of a module that
-# other modules import (character_schema.validate_character), and methods
+# other modules import (character_schema.validate_character and the srd_lookup
+# loaders), and methods
 # overriding a base class (WeasyPrint's URLFetcher.fetch). Flask routes and
 # hooks are public too but are recognised by their decorator instead of being
 # listed here.
-ALLOWED_PUBLIC = {"main", "fetch", "validate_character"}
+ALLOWED_PUBLIC = {
+    "main",
+    "fetch",
+    "validate_character",
+    "load_classes",
+    "load_species",
+    "load_spells",
+    "load_spell_details",
+    "load_conditions",
+    "slugify",
+}
 
 
 def _functions(path):
