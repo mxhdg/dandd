@@ -5,7 +5,7 @@ perspective rather than a generic software backlog. It's not a commitment or
 a schedule, just a place to park ideas between sessions and pull from
 opportunistically.
 
-Grouped below into candidate minor releases (current released version: 1.4.0),
+Grouped below into candidate minor releases (current released version: 1.4.1),
 ordered by actual-play pain within each group: how much a mistake or
 friction point it causes at the table right now, not by how easy it'd be to
 build. Group boundaries and version numbers are a rough planning aid, not a
@@ -383,7 +383,7 @@ version) is waiting on upstream.
     character files need no edits; `character.py` asks for one item per
     line.
 
-## 1.4.1 — Changelog (complete; version set to 1.4.1, release pending)
+## 1.4.1 (shipped) — Changelog
 
 38. **DONE (1.4.1). `codex/CHANGELOG.md`.** A Keep a Changelog file
     back-filled from the git tags and this roadmap (1.0.0 to 1.4.0), with an
