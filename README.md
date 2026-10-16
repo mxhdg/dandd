@@ -31,6 +31,8 @@ docker compose -f docker-compose.prod.yml up -d
 
 Pulls the published image from `ghcr.io/mxhdg/dandd/codex` and uses standard `/opt/codex/...` bind-mount paths. Set `CODEX_TAG` to pin a specific version instead of `latest`.
 
+Every release's changes are listed in [codex/CHANGELOG.md](codex/CHANGELOG.md).
+
 #### Upgrading to 1.4.0
 
 Nothing to configure: `CODEX_ALLOWED_HOSTS`, the Host guard and the same-origin check are unchanged, and the new files the app needs (`srd_lookup.py`, `rules/`) are inside the image. What changes:

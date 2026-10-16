@@ -383,6 +383,15 @@ version) is waiting on upstream.
     character files need no edits; `character.py` asks for one item per
     line.
 
+## 1.4.1 — Changelog (complete; version set to 1.4.1, release pending)
+
+38. **DONE (1.4.1). `codex/CHANGELOG.md`.** A Keep a Changelog file
+    back-filled from the git tags and this roadmap (1.0.0 to 1.4.0), with an
+    entry for each new version added in the same change that makes it. A
+    test (`tests/test_changelog.py`) fails if the current version has no
+    entry, if entries are out of order, or if a section name is non-standard.
+    Not done: showing the changelog inside the app (a `/changelog` page).
+
 ## 1.5.0 — DM session tools
 
 DM-facing prep/mid-session pain that exists right now regardless of party
