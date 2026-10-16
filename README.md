@@ -31,6 +31,17 @@ docker compose -f docker-compose.prod.yml up -d
 
 Pulls the published image from `ghcr.io/mxhdg/dandd/codex` and uses standard `/opt/codex/...` bind-mount paths. Set `CODEX_TAG` to pin a specific version instead of `latest`.
 
+#### Upgrading to 1.4.0
+
+Nothing to configure: `CODEX_ALLOWED_HOSTS`, the Host guard and the same-origin check are unchanged, and the new files the app needs (`srd_lookup.py`, `rules/`) are inside the image. What changes:
+
+- **No arm64 image.** Only `linux/amd64` is published. On Apple silicon build locally with `docker-compose.dev.yml` (native arm64).
+- **The script was renamed** from `scripts/new_character.py` to `scripts/character.py`; it now also levels up and edits characters (`--new`, `--level-up`, `--edit`).
+- **Character files are checked when opened.** A file with a wrong type or a missing section shows a "needs fixing" page naming the fields instead of a half-drawn sheet; the other characters keep working. Files that opened before still do.
+- **`treasure` is now a list** on the sheet (the old single `{title, text}` box still loads).
+- **New `?` links** beside conditions and SRD spells open rule text from bundled files; the app makes no network calls. Character pages are sent `Cache-Control: no-store`.
+- gunicorn is 26.2.0 and the image no longer contains pip.
+
 #### Allowed hostnames (DNS-rebinding guard)
 
 The app has no login, so it refuses any request whose `Host` header is a public-looking hostname (a defense against DNS-rebinding attacks). These work out of the box: `localhost`, IP addresses, single-label names (`codex`), and `*.local`, `*.lan`, `*.localdomain`, `*.home.arpa`, `*.internal`. Anything else gets a `400`.
