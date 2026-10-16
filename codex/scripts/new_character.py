@@ -83,6 +83,13 @@ SKILLS = [
     ("Survival", "Wisdom"),
 ]
 CURRENCY_KEYS = ["cp", "sp", "ep", "gp", "pp"]
+GUIDE_URLS = {
+    "2014": (
+        "https://www.dndbeyond.com/sources/dnd/basic-rules-2014/"
+        "step-by-step-characters"
+    ),
+    "2024": "https://www.dndbeyond.com/sources/dnd/br-2024/creating-a-character",
+}
 MODE_NAMES = {
     "quick": "skeleton",
     "detailed": "full",
@@ -172,10 +179,19 @@ def _collect_simple_list(label):
     return items
 
 
-def _collect_named_list(label, fields, example=""):
+def _print_example(fields, example):
+    print("  Example entry, as the prompts will ask:")
+    for field, value in zip(["name", *fields], example):
+        print(f"    {field}: {value}")
+    print("  Your entries:")
+
+
+def _collect_named_list(label, fields, example=(), explain=""):
     print(f"{label} (blank name to finish):")
+    if explain:
+        print(f"  {explain}")
     if example:
-        print(f"  e.g. {example}")
+        _print_example(fields, example)
     items = []
     while True:
         name = input("  name: ").strip()
@@ -332,7 +348,7 @@ def _resolve_mode(args):
         "detailed = walk through scores, gear, spells and backstory.",
     )
     while True:
-        choice = _match_name(_ask("Quick or detailed", "quick"), list(MODE_NAMES))
+        choice = _match_name(_ask("Quick or detailed (Q/D)", "quick"), list(MODE_NAMES))
         if choice:
             return MODE_NAMES[choice]
         print("  please type quick or detailed")
@@ -387,8 +403,7 @@ def _format_hit_dice(classes):
     return " + ".join(f"{n}d{die}" for die, n in counts.items())
 
 
-def _ask_identity_fields():
-    edition = _ask_edition()
+def _ask_identity_fields(edition):
     return {
         "background": _ask("Background"),
         "player_name": _ask("Player name"),
@@ -435,18 +450,32 @@ def _ask_appearance():
     }
 
 
-def _ask_treasure():
-    return {
-        "title": _ask("Treasure title (optional)"),
-        "text": _ask("Treasure text (optional)"),
-    }
-
-
 def _ask_attacks():
     return _collect_named_list(
         "Attacks",
         ["bonus", "damage", "range", "notes"],
-        "name Longsword, bonus +5, damage 1d8+3 slashing, range 5 ft",
+        ("Longsword", "+5", "1d8+3 slashing", "5 ft"),
+        "Weapons and other attacks. Bonus is your to-hit number; notes are optional.",
+    )
+
+
+def _ask_features():
+    return _collect_named_list(
+        "Features and traits",
+        ["text"],
+        ("Second Wind", "Heal 1d10+3 once per rest"),
+        "Special abilities from your class, race or species, background or "
+        "feats that aren't attacks or spells.\n  Look them up in your "
+        "character's book pages.",
+    )
+
+
+def _ask_allies():
+    return _collect_named_list(
+        "Allies",
+        ["text"],
+        ("Marta", "Innkeeper who owes me a favor"),
+        "Friends, companions or groups you can call on.",
     )
 
 
@@ -462,15 +491,11 @@ def _build_full_details(abilities):
         "equipment": _collect_simple_list("Equipment"),
         "currency": {k: _ask(f"Currency: {k}") for k in CURRENCY_KEYS},
         "personality": _ask_personality(),
-        "features": _collect_named_list(
-            "Features", ["text"], "name Second Wind, text Heal 1d10+3 once per rest"
-        ),
+        "features": _ask_features(),
         "appearance": _ask_appearance(),
         "backstory": _ask("Backstory"),
-        "allies": _collect_named_list(
-            "Allies", ["text"], "name Marta, text Innkeeper who owes me a favor"
-        ),
-        "treasure": _ask_treasure(),
+        "allies": _ask_allies(),
+        "treasure": _collect_simple_list("Treasure, one item per line"),
         "additional_features": _ask("Additional features/notes (optional)"),
     }
     spellcasting = _build_spellcasting()
@@ -501,7 +526,7 @@ def _build_skeleton_details():
         },
         "backstory": "",
         "allies": [],
-        "treasure": {"title": "", "text": ""},
+        "treasure": [],
         "additional_features": "",
     }
 
@@ -521,13 +546,13 @@ def _write_character(out_path, char):
         yaml.safe_dump(char, f, sort_keys=False, allow_unicode=True)
 
 
-def _build_character(char_id, name, mode):
+def _build_character(char_id, name, mode, edition):
     classes = _ask_classes()
     char = {
         "id": char_id,
         "name": name,
         "class_level": _format_class_level(classes),
-        **_ask_identity_fields(),
+        **_ask_identity_fields(edition),
         "xp": "",
     }
 
@@ -555,26 +580,49 @@ def _print_welcome():
     print("Everything can be edited in the file afterward.")
 
 
+def _print_guide(edition):
+    print(f"New to D&D? Step-by-step guide for the {edition} rules:")
+    print(f"  {GUIDE_URLS[edition]}")
+
+
 def _print_next_steps(out_path):
     print(f"\nSaved your character to {out_path}")
     print("Next: open that file in any text editor to fill in anything you skipped.")
     print("Real characters are private; do not commit them to git.")
 
 
-def main():
+def _run():
     args = _parse_args()
     _print_welcome()
 
+    edition = _ask_edition()
+    _print_guide(edition)
+    mode = _resolve_mode(args)
     name = _resolve_name(args)
     char_id = _resolve_character_id(args, name)
     out_path = DATA_DIR / f"{char_id}.yaml"
     if not _confirm_overwrite(out_path):
         print("Aborted.")
         sys.exit(1)
-    mode = _resolve_mode(args)
 
-    _write_character(out_path, _build_character(char_id, name, mode))
+    _write_character(out_path, _build_character(char_id, name, mode, edition))
     _print_next_steps(out_path)
+
+
+def _cancel():
+    print("\n\nCancelled. Nothing was saved.")
+    sys.exit(130)
+
+
+def main():
+    # Separate clauses: Black targets py314 and would rewrite a tuple except
+    # into syntax that older Pythons (friends running the script) cannot parse.
+    try:
+        _run()
+    except KeyboardInterrupt:
+        _cancel()
+    except EOFError:
+        _cancel()
 
 
 if __name__ == "__main__":

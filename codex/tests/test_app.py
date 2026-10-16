@@ -449,3 +449,45 @@ def test_personality_boxes_share_one_markup(client):
     personality = yaml.safe_load(sample.read_text(encoding="utf-8"))["personality"]
     for field in ("traits", "ideals", "bonds", "flaws"):
         assert f'<div class="value">{personality[field]}</div>' in page
+
+
+def test_treasure_items_accepts_every_supported_shape():
+    cases = [
+        (None, []),
+        ("", []),
+        ("A yoyo", [{"name": "", "text": "A yoyo"}]),
+        (
+            ["Ring", "Gems"],
+            [{"name": "", "text": "Ring"}, {"name": "", "text": "Gems"}],
+        ),
+        ([{"name": "Mug", "text": "Tin"}], [{"name": "Mug", "text": "Tin"}]),
+        ([{"name": "Mug"}, "", {}], [{"name": "Mug", "text": ""}]),
+        ({"title": "Staff", "text": "Frost"}, [{"name": "Staff", "text": "Frost"}]),
+        ({"title": "", "text": ""}, []),
+    ]
+    for raw, expected in cases:
+        assert app_module._treasure_items(raw) == expected, raw
+
+
+def test_treasure_renders_as_a_bulleted_list_under_a_plain_header(
+    client, write_character
+):
+    write_character("loot", treasure=["Jade ring", {"name": "Mug", "text": "Tin cup"}])
+    sheet = client.get("/characters/loot").data.decode()
+    assert '<div class="section-title">Treasure</div>' in sheet
+    assert "<li>Jade ring</li>" in sheet
+    assert "<li><strong>Mug</strong>: Tin cup</li>" in sheet
+
+
+def test_legacy_treasure_box_still_renders_with_title_as_item_name(
+    client, write_character
+):
+    write_character("legacy", treasure={"title": "Staff of Frost", "text": "5 charges"})
+    sheet = client.get("/characters/legacy").data.decode()
+    assert "<li><strong>Staff of Frost</strong>: 5 charges</li>" in sheet
+    assert "Treasure: Staff" not in sheet
+
+
+def test_empty_character_file_is_not_found(client, data_dir):
+    (data_dir / "empty.yaml").write_text("")
+    assert client.get("/characters/empty").status_code == 404

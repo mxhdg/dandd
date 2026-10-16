@@ -169,7 +169,5 @@ appearance:
 backstory: A former mercenary turned town guard, kept here as example data for the
   character sheet app.
 allies: []
-treasure:
-  title: ''
-  text: ''
+treasure: []
 additional_features: ''
