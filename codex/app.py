@@ -106,11 +106,22 @@ def _same_origin_request(req):
     return urlsplit(source).netloc == req.host
 
 
+def _rules_path(kind, edition):
+    # Defense in depth, like _character_path: the file name is assembled only
+    # from the known constants, never from the request's own text, so no value
+    # that arrives in a URL can ever steer which file is read.
+    for known_kind in RULES_KINDS:
+        for known_edition in RULES_EDITIONS:
+            if (known_kind, known_edition) == (kind, edition):
+                return RULES_DIR / f"{known_kind}-{known_edition}.json"
+    return None
+
+
 @functools.lru_cache(maxsize=None)
 def _rules_index(kind, edition):
     """Bundled SRD rules text (see scripts/build_rules.py) as {slug: entry}."""
-    path = RULES_DIR / f"{kind}-{edition}.json"
-    if not path.is_file():
+    path = _rules_path(kind, edition)
+    if path is None or not path.is_file():
         return {}
     entries = json.loads(path.read_text(encoding="utf-8"))["entries"]
     return {entry["slug"]: entry for entry in entries}
@@ -253,6 +264,9 @@ def set_security_headers(response):
         "script-src 'none'; frame-ancestors 'none'; "
         "form-action 'self'; base-uri 'none'; object-src 'none'"
     )
+    if request.path == "/" or request.path.startswith("/characters/"):
+        # Character data: keep it out of shared or back/forward caches.
+        response.headers["Cache-Control"] = "no-store"
     return response
 
 

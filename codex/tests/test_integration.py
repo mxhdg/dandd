@@ -536,3 +536,15 @@ def test_an_edited_character_still_renders_and_validates(
     assert "Thieves&#39; tools" in sheet and "Gold coin" in sheet
     assert client.get("/characters/tweak/pdf").data.startswith(b"%PDF")
     assert client.get("/").data.decode().count("needs fixing") == 0
+
+
+def test_dockerignore_keeps_real_characters_out_of_the_image():
+    rules = (ROOT / ".dockerignore").read_text().splitlines()
+    assert "data/*" in rules
+    kept = [rule[1:] for rule in rules if rule.startswith("!data/")]
+    assert sorted(kept) == [
+        "data/character_template.yaml.example",
+        "data/sample_character.yaml",
+    ]
+    for name in kept:
+        assert (ROOT / name).is_file(), name

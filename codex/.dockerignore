@@ -1,5 +1,10 @@
 state/
 .cache/
+# Real characters stay on the host (bind-mounted); only the sample and the
+# blank template belong in an image.
+data/*
+!data/sample_character.yaml
+!data/character_template.yaml.example
 .git/
 __pycache__/
 *.pyc

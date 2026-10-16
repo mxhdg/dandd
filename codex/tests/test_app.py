@@ -393,6 +393,28 @@ def test_static_assets_are_cache_busted_and_immutable(client):
     assert "immutable" in resp.headers["Cache-Control"]
 
 
+def test_character_pages_are_never_cached_but_static_assets_still_are(
+    client, write_character
+):
+    write_character("cached")
+    for url in (
+        "/",
+        "/characters/cached",
+        "/characters/cached/pdf",
+        "/characters/missing",
+    ):
+        assert client.get(url).headers["Cache-Control"] == "no-store", url
+    broken = client.get("/characters/cached")  # still fine after an error page
+    assert broken.headers["Cache-Control"] == "no-store"
+    post = client.post("/characters/cached/update", data={"hp_current": "3"})
+    assert post.headers["Cache-Control"] == "no-store"
+    guide = client.get("/guide")
+    assert "no-store" not in guide.headers.get("Cache-Control", "")
+    css = client.get("/static/css/base.css?v=1")
+    assert "immutable" in css.headers["Cache-Control"]
+    assert "no-store" not in css.headers["Cache-Control"]
+
+
 def test_unversioned_static_is_not_marked_immutable(client):
     resp = client.get("/static/css/character_sheet.css")
     assert "immutable" not in resp.headers.get("Cache-Control", "")
@@ -691,6 +713,20 @@ def test_rules_pages_show_conditions_and_spells_and_escape_the_text(client, rule
         "Cantrip &middot; Evocation &middot; Ritual"
         in client.get("/rules/2014/spells/light").data.decode()
     )
+
+
+def test_rules_paths_are_built_only_from_known_names(client, rules):
+    assert app_module._rules_path("spells", "2024") == rules / "spells-2024.json"
+    attempts = [
+        ("spells", "../../etc/passwd"),
+        ("../app", "2014"),
+        ("spells", "2014/../../x"),
+        ("spells", None),
+        ("", ""),
+    ]
+    for kind, edition in attempts:
+        assert app_module._rules_path(kind, edition) is None, (kind, edition)
+        assert app_module._rules_index(kind, edition) == {}, (kind, edition)
 
 
 def test_rules_pages_refuse_anything_that_is_not_bundled(client, rules):
