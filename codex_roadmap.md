@@ -5,7 +5,7 @@ perspective rather than a generic software backlog. It's not a commitment or
 a schedule, just a place to park ideas between sessions and pull from
 opportunistically.
 
-Grouped below into candidate minor releases (current prod version: 1.3.1),
+Grouped below into candidate minor releases (current released version: 1.4.0),
 ordered by actual-play pain within each group: how much a mistake or
 friction point it causes at the table right now, not by how easy it'd be to
 build. Group boundaries and version numbers are a rough planning aid, not a
@@ -132,7 +132,7 @@ with the project's code standards (one responsibility per function,
 - **DONE. Tests** for the newly testable pure helpers
   (`tests/test_character.py`).
 
-## 1.4.0 — Character creation tooling (complete; version set to 1.4.0, release pending)
+## 1.4.0 (shipped) — Character creation tooling
 
 Separate from actual-play pain entirely; touches `character.py`, not
 the live sheet (item 25 is the one exception, a live-sheet lookup that shares
@@ -141,7 +141,8 @@ item 24's content source). Prioritized ahead of the DM tools.
 **Suggested order:** 26 (schema validation) first, since 23 depends on it,
 then 23 (edit/level-up mode), then 24 (Open5e-guided creation), then 25.
 
-**Release candidates (items 23 to 37), then 1.4.0:** rc1 added
+**Shipped as 1.4.0 (PR #24, 2026-10-16) after nine release candidates (items 23
+to 37):** rc1 added
 the import-friendly sheet fields, rc2 folded in the Dependabot updates, rc3
 made sheet text uniform, rc4 fixed the 403 on Save/rest buttons, rc5 fit the
 sheet on phones, rc6 added multiclass support, a friendlier `character.py`
@@ -475,6 +476,19 @@ group above.
   `TheChillBeneaththeCrust/`? cross-character campaign state? something
   else?). Revisit once there's a concrete at-the-table pain point to design
   against, same as everything else on this list.
+
+- **SRD lookups beyond creation (follow-ups to 1.4.0 items 24 and 25).**
+  Level-up and edit still take spells and features by typing; they could use
+  the same SRD pickers (and the class tables in the SRD data could replace the
+  hand-typed spell slot counts). The sheet's `?` links cover conditions and
+  spells only; class and species features, and items, are not looked up.
+- **Repo housekeeping from the 1.4.0 security review.** Make `check`,
+  `docker-smoke-test`, `check-version-bump` and `CodeQL` required status
+  checks on the `main` ruleset (it already requires PRs and blocks force-push
+  and deletion); set Actions to enforce SHA pinning; delete the
+  `v1.4.0-rc4` tag and its ghcr image, which still contain a real character
+  file (`hazel_briar.yaml`); re-scan the Debian base findings (49 HIGH, none
+  with a fix) at the next base-image bump.
 
 ## Explicitly not planned right now
 
