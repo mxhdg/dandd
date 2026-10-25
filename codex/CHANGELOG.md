@@ -10,6 +10,12 @@ makes the change, and set the date when the version is released. A test fails
 if the current version has no entry here. The longer reasoning behind each
 change lives in `../codex_roadmap.md`.
 
+## [1.4.2] - unreleased
+
+### Security
+- Bump Pillow 12.3.0 to 13.0.0 and Brotli 1.2.0 to 1.2.1 (WeasyPrint's
+  dependencies), clearing 30 open Dependabot alerts.
+
 ## [1.4.1] - 2026-10-16
 
 ### Added
