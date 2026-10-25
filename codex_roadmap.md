@@ -5,7 +5,7 @@ perspective rather than a generic software backlog. It's not a commitment or
 a schedule, just a place to park ideas between sessions and pull from
 opportunistically.
 
-Grouped below into candidate minor releases (current released version: 1.4.1),
+Grouped below into candidate minor releases (current released version: 1.4.2),
 ordered by actual-play pain within each group: how much a mistake or
 friction point it causes at the table right now, not by how easy it'd be to
 build. Group boundaries and version numbers are a rough planning aid, not a
@@ -392,6 +392,16 @@ version) is waiting on upstream.
     entry, if entries are out of order, or if a section name is non-standard.
     Not done: showing the changelog inside the app (a `/changelog` page).
 
+## 1.4.2 (shipped) — Dependency security patch
+
+39. **DONE (1.4.2). Pillow 13.0.0 and Brotli 1.2.1.** Folded Dependabot PRs
+    #29 and #30 into one branch (they fail the version-bump check by design),
+    clearing 30 open alerts (28 Pillow, 1 Brotli; several critical). Both come
+    in through WeasyPrint for the PDF route; the app opens no user-uploaded
+    images, so real exposure was low. Gates re-run on Python 3.14 unchanged.
+    Process change: the changelog date is now set in the final bump PR into
+    `main` (released the same day), so no follow-up PR is needed.
+
 ## 1.5.0 — DM session tools
 
 DM-facing prep/mid-session pain that exists right now regardless of party
@@ -412,6 +422,12 @@ wait on more characters being in the app.
 12. **Initiative tracker** tied to the party overview. Juggling initiative
     order on paper is one of the most common things to fumble at the table,
     but like the party overview, the payoff scales with party size.
+40. **Level-up ability prompt reads clumsily.** Found in the 1.4.0 test plan
+    walkthrough: the prompt shows two parentheticals back to back, "(one name
+    = +2, two names = +1 each) (comma-separated, e.g. Charisma, Constitution;
+    blank for none)". `_ask_asi_abilities` builds the first half and
+    `_ask_names` appends the second. Merge them into one line, and update any
+    test that matches the prompt text.
 
 ## 1.6.0 — Multi-character & session history
 
