@@ -6,11 +6,12 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 (the single source of truth is `[project] version` in `pyproject.toml`).
 
 Add an entry under the version you are working on in the same change that
-makes the change, and set the date when the version is released. A test fails
+makes the change (headed `unreleased`), and set the date in the final bump PR
+into `main`, releasing the same day, so no follow-up PR is needed. A test fails
 if the current version has no entry here. The longer reasoning behind each
 change lives in `../codex_roadmap.md`.
 
-## [1.4.2] - unreleased
+## [1.4.2] - 2026-10-24
 
 ### Security
 - Bump Pillow 12.3.0 to 13.0.0 and Brotli 1.2.0 to 1.2.1 (WeasyPrint's
