@@ -470,7 +470,7 @@ existing workaround.
     Separate concern from the CSRF/CSP hardening done 2026-09 — this is
     about accidental cross-edits between trusted players, not a hostile
     request forgery.
-19. **Make the Trivy image scan blocking** in `codex-image.yml` for
+19. **PARTLY DONE: make the Trivy image scan blocking** (the weekly scheduled run now fails on fixable CRITICALs; release builds stay report-only) in `codex-image.yml` for
     HIGH/CRITICAL findings, instead of the current non-blocking report-only
     scan. Right now a real CVE in a future base-image bump ships silently;
     low urgency since a home-LAN app isn't a high-value target, but cheap
