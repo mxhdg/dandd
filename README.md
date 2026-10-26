@@ -4,7 +4,7 @@ A personal D&D 5e campaign notebook: hand-maintained Markdown for characters and
 
 ## Structure
 
-- `characters/` — character sheets and related reference material (hand-maintained Markdown/HTML).
+- Character sheets (hand-maintained Markdown) live in the separate private `characters` repo.
 - `guides/` — standalone homebrew rules guides (e.g. tarot-based character creation).
 - `codex_roadmap.md` — running list of future ideas for `codex/`, not a commitment or schedule.
 - `codex/` — the Flask/Docker character sheet app described below.
