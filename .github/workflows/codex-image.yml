@@ -4,6 +4,9 @@ on:
   push:
     tags:
       - "v*"
+  schedule:
+    # Tuesdays 06:00 UTC: rebuild from main with fresh base layers and OS packages
+    - cron: "0 6 * * 2"
   workflow_dispatch:
     inputs:
       version:
@@ -34,6 +37,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          fetch-depth: 0 # the weekly rebuild needs tags to name its version
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
@@ -65,6 +69,8 @@ jobs:
             app_version="$GITHUB_REF_NAME"
           elif [ -n "$INPUT_VERSION" ]; then
             app_version="$INPUT_VERSION"
+          elif [ "$GITHUB_EVENT_NAME" = schedule ]; then
+            app_version="$(git describe --tags --abbrev=0 --match 'v[0-9]*')"
           else
             app_version="dev-${GITHUB_SHA::7}"
           fi
@@ -77,6 +83,8 @@ jobs:
         with:
           context: codex
           push: true
+          pull: true
+          no-cache: ${{ github.event_name == 'schedule' }}
           platforms: linux/amd64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
