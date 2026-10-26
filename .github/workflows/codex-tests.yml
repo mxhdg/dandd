@@ -16,6 +16,11 @@ on:
 
 permissions: {}
 
+# A newer push to the same PR makes the older run's result moot.
+concurrency:
+  group: codex-tests-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
     runs-on: ubuntu-latest
