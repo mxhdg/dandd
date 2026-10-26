@@ -12,6 +12,10 @@ updates:
     groups:
       dev-tools:
         patterns: ["pytest*", "black", "flake8", "isort"]
+      # Everything else (the app's runtime pins) in one PR, since each one
+      # fails the version-bump check and gets folded into a feature branch.
+      runtime:
+        patterns: ["*"]
 
   # Base image tag + digest in codex/Dockerfile.
   - package-ecosystem: "docker"
