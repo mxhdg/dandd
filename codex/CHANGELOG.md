@@ -13,6 +13,13 @@ change lives in `../codex_roadmap.md`.
 
 ## [1.5.0] - unreleased
 
+### Added
+- Add to Home Screen support: a web manifest (`static/manifest.webmanifest`),
+  a d20 icon set in `static/icons/` and a shared `_head_links.html` partial
+  (manifest, Apple touch icon, theme color) on every page except the PDF
+  render, so the sheet can be installed on a phone like an app. No JavaScript
+  or service worker; it still needs the network.
+
 ### Fixed
 - The level-up ability prompt is one line, "Ability to raise (one name for +2,
   or two for +1 each, e.g. Charisma, Constitution)", instead of two

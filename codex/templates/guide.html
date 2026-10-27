@@ -6,6 +6,7 @@
 <title>Getting Started</title>
 <link rel="stylesheet" href="{{ static_url('css/base.css') }}">
 <link rel="stylesheet" href="{{ static_url('css/guide.css') }}">
+{% include "_head_links.html" %}
 </head>
 <body>
   <div class="guide-box">
@@ -88,6 +89,11 @@
     <p>The sheet is usable down to a phone-sized screen &mdash; no separate
     mobile app needed, just open the same page. On a narrow screen each
     attack's Notes show on their own line under the attack.</p>
+    <p>You can also put it on your home screen so it opens like an app, with
+    no address bar: on an iPhone, open the site in Safari, tap Share, then
+    <em>Add to Home Screen</em>; on Android, open the browser menu and tap
+    <em>Add to Home screen</em> (or <em>Install app</em>). It still needs the
+    network, since it opens the same live pages.</p>
 
     <h2>If a character says &ldquo;needs fixing&rdquo;</h2>
     <p>Every character file is checked when it is opened. If one has a

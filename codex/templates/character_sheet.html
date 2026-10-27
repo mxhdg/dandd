@@ -15,6 +15,7 @@
 <title>{{ c.name }}: Character Sheet</title>
 <link rel="stylesheet" href="{{ static_url('css/character_sheet.css') }}">
 {% if pdf %}<link rel="stylesheet" href="{{ static_url('css/pdf.css') }}">{% endif %}
+{% if not pdf %}{% include "_head_links.html" %}{% endif %}
 </head>
 <body>
 <a class="back-link" href="{{ url_for('index') }}">&laquo; Characters</a>

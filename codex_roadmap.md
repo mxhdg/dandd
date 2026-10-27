@@ -475,7 +475,7 @@ existing workaround.
     scan. Right now a real CVE in a future base-image bump ships silently;
     low urgency since a home-LAN app isn't a high-value target, but cheap
     to tighten once noticed.
-20. **Add to Home Screen support** (a small web manifest), so the sheet
+20. **DONE (1.5.0-rc2). Add to Home Screen support** (a small web manifest), so the sheet
     opens like an app icon on a phone instead of a bookmarked tab.
 21. **Derived stats from equipment** (encumbrance, AC changing with
     equipped armor) instead of everything being hand-typed into
