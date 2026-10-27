@@ -422,7 +422,7 @@ wait on more characters being in the app.
 12. **Initiative tracker** tied to the party overview. Juggling initiative
     order on paper is one of the most common things to fumble at the table,
     but like the party overview, the payoff scales with party size.
-40. **Level-up ability prompt reads clumsily.** Found in the 1.4.0 test plan
+40. **DONE (1.5.0-rc1). Level-up ability prompt reads clumsily.** Found in the 1.4.0 test plan
     walkthrough: the prompt shows two parentheticals back to back, "(one name
     = +2, two names = +1 each) (comma-separated, e.g. Charisma, Constitution;
     blank for none)". `_ask_asi_abilities` builds the first half and

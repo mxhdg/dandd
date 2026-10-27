@@ -206,9 +206,9 @@ def _names_hint(choices, current):
     return f"{hint}; blank for none"
 
 
-def _ask_names(prompt_text, valid_names, current=None):
+def _ask_names(prompt_text, valid_names, current=None, hint=None):
     choices = sorted(valid_names)
-    hint = _names_hint(choices, current)
+    hint = hint or _names_hint(choices, current)
     while True:
         raw = _ask(f"{prompt_text} ({hint})")
         if current is not None and raw in ("", "-"):
@@ -1069,11 +1069,12 @@ def _resolve_classes(char):
 
 
 def _ask_asi_abilities():
-    prompt = "Ability to raise (one name = +2, two names = +1 each)"
-    chosen = _ask_names(prompt, ABILITIES)
+    prompt = "Ability to raise"
+    hint = "one name for +2, or two for +1 each, e.g. Charisma, Constitution"
+    chosen = _ask_names(prompt, ABILITIES, hint=hint)
     while len(chosen) not in (1, 2):
         print("  please name one or two abilities")
-        chosen = _ask_names(prompt, ABILITIES)
+        chosen = _ask_names(prompt, ABILITIES, hint=hint)
     return chosen
 
 

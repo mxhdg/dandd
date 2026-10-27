@@ -11,6 +11,14 @@ into `main`, releasing the same day, so no follow-up PR is needed. A test fails
 if the current version has no entry here. The longer reasoning behind each
 change lives in `../codex_roadmap.md`.
 
+## [1.5.0] - unreleased
+
+### Fixed
+- The level-up ability prompt is one line, "Ability to raise (one name for +2,
+  or two for +1 each, e.g. Charisma, Constitution)", instead of two
+  parentheticals back to back, and no longer says "blank for none" (a blank
+  answer is rejected there).
+
 ## [1.4.2] - 2026-10-24
 
 ### Security

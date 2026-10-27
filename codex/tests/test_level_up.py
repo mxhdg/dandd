@@ -279,9 +279,15 @@ def test_resolve_classes_parses_or_asks_when_unreadable(cli, respond, capsys):
 
 
 def test_ask_asi_abilities_needs_one_or_two_known_names(cli, respond, capsys):
-    respond({"Ability to raise": ["", "Strength, Dexterity, Wisdom", "str, dex"]})
+    prompts = respond(
+        {"Ability to raise": ["", "Strength, Dexterity, Wisdom", "str, dex"]}
+    )
     assert cli._ask_asi_abilities() == {"Strength", "Dexterity"}
     assert "please name one or two abilities" in capsys.readouterr().out
+    # One parenthetical, and no misleading "blank for none" (blank is rejected).
+    assert prompts[0].count("(") == 1
+    assert "one name for +2, or two for +1 each" in prompts[0]
+    assert "blank for none" not in prompts[0]
 
 
 def test_ask_asi_or_feat_defaults_to_asking_only_at_asi_levels(cli, respond):

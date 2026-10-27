@@ -92,13 +92,15 @@ jobs:
         id: rev
         run: echo "short=$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
 
+      # `latest` is for prod: stable release tags and the main/weekly rebuild
+      # only, never a -rcN tag, a branch build or a run with a version typed in.
       - name: Extract image metadata
         id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=latest
+            type=raw,value=latest,enable=${{ (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.version == '' && github.ref == 'refs/heads/main')) || (github.ref_type == 'tag' && !contains(github.ref_name, '-')) }}
             type=sha,format=short,enable=${{ !(github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.version == '' && github.ref == 'refs/heads/main')) }}
             type=raw,value=sha-${{ steps.rev.outputs.short }},enable=${{ (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.version == '' && github.ref == 'refs/heads/main')) }}
             type=raw,value=${{ steps.latest.outputs.tag }},enable=${{ (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.version == '' && github.ref == 'refs/heads/main')) }}
