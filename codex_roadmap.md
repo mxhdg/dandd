@@ -510,10 +510,8 @@ group above.
 - **Repo housekeeping from the 1.4.0 security review.** Make `check`,
   `docker-smoke-test`, `check-version-bump` and `CodeQL` required status
   checks on the `main` ruleset (it already requires PRs and blocks force-push
-  and deletion); set Actions to enforce SHA pinning; delete the
-  `v1.4.0-rc4` tag and its ghcr image, which still contain a real character
-  file (`hazel_briar.yaml`); re-scan the Debian base findings (49 HIGH, none
-  with a fix) at the next base-image bump.
+  and deletion); set Actions to enforce SHA pinning; re-scan the Debian base
+  findings (49 HIGH, none with a fix) at the next base-image bump.
 
 ## Explicitly not planned right now
 
