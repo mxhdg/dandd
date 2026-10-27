@@ -334,6 +334,18 @@ def test_pdf_render_uses_pdf_stylesheet_and_omits_the_pdf_link(client):
     assert "css/pdf.css" not in web_html and 'class="pdf-link"' in web_html
 
 
+def test_pdf_leads_with_vitals_while_the_web_sheet_keeps_them_in_column_two(client):
+    data = app_module._load_character("sample_character")
+    with app_module.app.test_request_context():
+        pdf_html = app_module._render_sheet("sample_character", data, pdf=True)
+        web_html = app_module._render_sheet("sample_character", data, pdf=False)
+    for html in (pdf_html, web_html):
+        assert html.count('class="combat-grid"') == 1
+        assert html.count("Hit Point Maximum") == 1
+    assert pdf_html.index('class="combat-grid"') < pdf_html.index('class="ability-row"')
+    assert web_html.index('class="ability-row"') < web_html.index('class="combat-grid"')
+
+
 def test_static_fetcher_rejects_missing_files_and_directories():
     for url in [
         "http://codex.invalid/static/css/nope.css",

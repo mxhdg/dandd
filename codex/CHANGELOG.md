@@ -20,6 +20,12 @@ change lives in `../codex_roadmap.md`.
   render, so the sheet can be installed on a phone like an app. No JavaScript
   or service worker; it still needs the network.
 
+### Changed
+- The PDF export now puts Armor Class, Initiative, Speed and Hit Points first
+  on page 1, ahead of the ability scores, for every character. On a long sheet
+  (Marigold's) they used to start page 2. The on-screen sheet and the browser
+  print layout are unchanged (`templates/_vitals.html`, `pdf.css`).
+
 ### Fixed
 - The level-up ability prompt is one line, "Ability to raise (one name for +2,
   or two for +1 each, e.g. Charisma, Constitution)", instead of two
