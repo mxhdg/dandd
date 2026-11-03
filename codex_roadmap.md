@@ -435,6 +435,19 @@ the monster viewer does not.
 12. **Initiative tracker** tied to the party overview. Juggling initiative
     order on paper is one of the most common things to fumble at the table,
     but like the party overview, the payoff scales with party size.
+41. **Rethink the three-column layout.** The user doesn't like the three
+    columns as a whole (2026-11-03). Marigold's long personality entries wrap
+    into a tall thin strip in the third column; 1.5.1 already moved Features &
+    Traits out to a full-width box. Direction to explore: no third column;
+    abilities/skills on the left, vitals/combat/attacks/equipment on the right,
+    then full-width boxes below (the four personality boxes as a 2x2, then
+    Features & Traits). Needs a design pass with mockups before building, and
+    the user's say on where each box should go. When building, check Marigold,
+    Hazel and Elowen on screen, phone (box order; the phone column order is set
+    in the max-width 700px block), Ctrl+P and the PDF, and revisit the PDF's
+    `column-fill: balance` rule, which exists only because the personality
+    boxes were the last thing in the columns, and `_vitals.html`'s placement
+    (first in the columns for the PDF). Item 17's density work overlaps.
 13. **Character switcher** on the sheet page itself (dropdown or tab strip)
     instead of going back to the list. Useful once more than one or two
     characters are in the app.
@@ -526,6 +539,13 @@ group above.
   subclasses); `_parse_names` could use it for spell lists too, then the tip
   and the README line can say "part of a name" again. Found in the 1.5.0-rc4
   prompt audit.
+- **Literal px font sizes outside the sheet.** Running text should use
+  `--text-size` (12pt), but `static/css/guide.css` sets the guide's `.note` to
+  14px (and `h2` to 15px) and `base.css` sets the footer to 12px; the sheet's
+  buttons and chips are 11 to 13px. `--text-size` is only defined in
+  `character_sheet.css`, so the guide would need it too, and 14px to 12pt makes
+  the note text visibly bigger. Found in the 1.5.0 code-standards review;
+  undecided.
 - **Repo housekeeping from the 1.4.0 security review.** Make `check`,
   `docker-smoke-test`, `check-version-bump` and `CodeQL` required status
   checks on the `main` ruleset (it already requires PRs and blocks force-push
