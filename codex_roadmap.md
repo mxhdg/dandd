@@ -5,7 +5,7 @@ perspective rather than a generic software backlog. It's not a commitment or
 a schedule, just a place to park ideas between sessions and pull from
 opportunistically.
 
-Grouped below into candidate minor releases (current released version: 1.5.0),
+Grouped below into candidate minor releases (current released version: 1.5.1),
 ordered by actual-play pain within each group: how much a mistake or
 friction point it causes at the table right now, not by how easy it'd be to
 build. Group boundaries and version numbers are a rough planning aid, not a

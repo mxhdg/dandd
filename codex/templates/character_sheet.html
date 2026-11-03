@@ -198,7 +198,7 @@
       </div>
     </div>
 
-    <!-- COLUMN 3: Personality + Features -->
+    <!-- COLUMN 3: Personality (Features & Traits follows below, full width) -->
     <div class="col">
       <div class="boxed-section personality-box">
         <div class="section-title">Personality Traits</div>
@@ -218,15 +218,15 @@
         <div class="section-title">Flaws</div>
         <div class="box"><div class="value">{{ c.personality.flaws }}</div></div>
       </div>
+    </div>
+  </div>
 
-      <div class="boxed-section">
-        <div class="section-title">Features &amp; Traits</div>
-        <div class="box">
-          {% for f in c.features %}
-          <div class="feat-block"><span class="feat-name">{{ f.name }}</span> {{ f.text }}</div>
-          {% endfor %}
-        </div>
-      </div>
+  <div class="boxed-section features-box">
+    <div class="section-title">Features &amp; Traits</div>
+    <div class="box">
+      {% for f in c.features %}
+      <div class="feat-block"><span class="feat-name">{{ f.name }}</span> {{ f.text }}</div>
+      {% endfor %}
     </div>
   </div>
 </div>
