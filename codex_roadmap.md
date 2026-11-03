@@ -5,7 +5,7 @@ perspective rather than a generic software backlog. It's not a commitment or
 a schedule, just a place to park ideas between sessions and pull from
 opportunistically.
 
-Grouped below into candidate minor releases (current released version: 1.4.2),
+Grouped below into candidate minor releases (current released version: 1.5.0),
 ordered by actual-play pain within each group: how much a mistake or
 friction point it causes at the table right now, not by how easy it'd be to
 build. Group boundaries and version numbers are a rough planning aid, not a
@@ -402,27 +402,15 @@ version) is waiting on upstream.
     Process change: the changelog date is now set in the final bump PR into
     `main` (released the same day), so no follow-up PR is needed.
 
-## 1.5.0 — DM session tools
+## 1.5.0 (shipped) — Session notes, phone and PDF polish
 
-DM-facing prep/mid-session pain that exists right now regardless of party
-size, unlike the party-overview/initiative items below which explicitly
-wait on more characters being in the app.
+Shipped as 1.5.0-rc1 to rc5. The DM-facing tools that were planned for this
+group (monster viewer, party overview, initiative tracker) moved to 1.6.0.
 
-9. **Monster/NPC stat block viewer**, pulling from a campaign repo's
-   `monsters.md` (e.g. `TheChillBeneaththeCrust/arc-vanilla-vault/monsters.md`),
-   so the DM gets the same clean sheet treatment for monsters that players
-   get for characters.
 10. **DONE (1.5.0-rc4). Session notes field per character**: a scratchpad for things like
    "already used Lucky reroll this fight" or loot/plot reminders that don't
    belong on the permanent sheet. Shipped screen-only (hidden in the PDF and
    Ctrl+P), 2,000 characters, saved in `state/<id>.yaml`.
-11. **Party overview page**: one screen showing every character's current
-    HP/AC/conditions at a glance, so the DM isn't clicking through separate
-    sheets mid-combat. Bigger payoff once more than one character is in the
-    app; only Marigold is wired in today.
-12. **Initiative tracker** tied to the party overview. Juggling initiative
-    order on paper is one of the most common things to fumble at the table,
-    but like the party overview, the payoff scales with party size.
 40. **DONE (1.5.0-rc1). Level-up ability prompt reads clumsily.** Found in the 1.4.0 test plan
     walkthrough: the prompt shows two parentheticals back to back, "(one name
     = +2, two names = +1 each) (comma-separated, e.g. Charisma, Constitution;
@@ -430,8 +418,23 @@ wait on more characters being in the app.
     `_ask_names` appends the second. Merge them into one line, and update any
     test that matches the prompt text.
 
-## 1.6.0 — Multi-character & session history
+## 1.6.0 — DM session tools, multi-character & session history
 
+DM-facing prep/mid-session tools (moved here from 1.5.0). The party overview
+and initiative tracker explicitly wait on more characters being in the app;
+the monster viewer does not.
+
+9. **Monster/NPC stat block viewer**, pulling from a campaign repo's
+   `monsters.md` (e.g. `TheChillBeneaththeCrust/arc-vanilla-vault/monsters.md`),
+   so the DM gets the same clean sheet treatment for monsters that players
+   get for characters.
+11. **Party overview page**: one screen showing every character's current
+    HP/AC/conditions at a glance, so the DM isn't clicking through separate
+    sheets mid-combat. Bigger payoff once more than one character is in the
+    app; only Marigold is wired in today.
+12. **Initiative tracker** tied to the party overview. Juggling initiative
+    order on paper is one of the most common things to fumble at the table,
+    but like the party overview, the payoff scales with party size.
 13. **Character switcher** on the sheet page itself (dropdown or tab strip)
     instead of going back to the list. Useful once more than one or two
     characters are in the app.
@@ -466,8 +469,12 @@ existing workaround.
     widths) without reintroducing the grid-fragmentation bug it just fixed.
     Since then, in the PDF only: 1.5.0-rc3 put AC/Initiative/Speed/Hit Points
     first on page 1, and rc4 keeps every box title with its contents
-    (Features & Traits could strand its title at a column bottom). Density
-    itself is still open.
+    (Features & Traits could strand its title at a column bottom), and rc5
+    lets the details page flow straight after the front page in the PDF
+    (Marigold 6 pages to 5; the others unchanged). Tried and dropped:
+    balanced columns (`column-fill: balance`) changed other characters'
+    layouts unpredictably. Still open: Ctrl+P (Chromium) density, and the
+    half-empty page a long Features & Traits leaves in the PDF.
 18. **Lightweight per-character lock** (a PIN, not a full account system) so
     one player can't accidentally edit another's sheet mid-session. Doesn't
     need to be more than that unless there's an actual reason for real

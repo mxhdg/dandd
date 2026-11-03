@@ -33,6 +33,15 @@ Pulls the published image from `ghcr.io/mxhdg/dandd/codex` and uses standard `/o
 
 Every release's changes are listed in [codex/CHANGELOG.md](codex/CHANGELOG.md).
 
+#### Upgrading to 1.5.0
+
+Nothing to configure: no setting, Host guard or data-file change, and existing `state/` files keep working. What changes:
+
+- **Session notes**: a free-text box under Conditions (screen only, up to 2,000 characters), saved in `state/<id>.yaml`.
+- **Add to Home Screen** on a phone: the sheet has a web manifest and d20 icon.
+- **PDF layout**: Armor Class, Initiative, Speed and Hit Points come first on page 1, box titles stay with their contents, and a long sheet's details page follows the front page instead of starting a new one.
+- **`scripts/character.py`**: a one-line level-up ability prompt and corrected hints.
+
 #### Upgrading to 1.4.0
 
 Nothing to configure: `CODEX_ALLOWED_HOSTS`, the Host guard and the same-origin check are unchanged, and the new files the app needs (`srd_lookup.py`, `rules/`) are inside the image. What changes:

@@ -587,3 +587,13 @@ def test_pdf_keeps_every_box_title_with_its_contents():
     css = (Path(app_module.STATIC_DIR) / "css" / "pdf.css").read_text()
     rule = re.search(r"\.section-title\s*\{([^}]*)\}", css)
     assert rule and "break-after: avoid" in rule.group(1)
+
+
+def test_pdf_lets_the_details_page_follow_the_front_page():
+    css = (Path(app_module.STATIC_DIR) / "css" / "pdf.css").read_text()
+    rule = re.search(r"\.sheet-page-first\s*\{([^}]*)\}", css)
+    assert rule and "break-after: auto" in rule.group(1)
+    data = app_module._load_character("sample_character")
+    with app_module.app.test_request_context():
+        html = app_module._render_sheet("sample_character", data, pdf=True)
+    assert html.count("sheet-page-first") == 1

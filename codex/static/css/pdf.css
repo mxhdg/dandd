@@ -26,3 +26,9 @@ input[type="checkbox"]:checked { background: var(--ink); }
    allowed to split between entries, which used to strand its title alone at the
    bottom of a column with every entry on the next page. */
 .section-title { break-after: avoid; page-break-after: avoid; }
+
+/* The details page (backstory, allies, treasure) follows the front page
+   directly instead of starting a new sheet, so a long character's overflow
+   (Marigold's Features & Traits) no longer sits alone on a mostly empty page.
+   Spellcasting still starts its own page. */
+.sheet-page-first { break-after: auto; page-break-after: auto; }
