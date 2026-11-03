@@ -156,6 +156,13 @@
         </div>
       </div>
 
+      {% if not pdf %}
+      <div class="boxed-section notes-section">
+        <div class="section-title">Session Notes</div>
+        <div class="box"><textarea class="sheet-input notes-input" name="session_notes" rows="4" maxlength="{{ session_notes_max }}" placeholder="Lucky used this fight, loot, plot reminders">{{ c.session_notes }}</textarea></div>
+      </div>
+      {% endif %}
+
       <div class="boxed-section">
         <div class="section-title">Attacks &amp; Spellcasting</div>
         <div class="box">

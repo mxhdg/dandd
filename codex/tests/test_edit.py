@@ -13,16 +13,6 @@ def _sample():
     return yaml.safe_load(SAMPLE_TEXT)
 
 
-@pytest.fixture
-def dirs(cli, tmp_path, monkeypatch):
-    data, state = tmp_path / "data", tmp_path / "state"
-    data.mkdir()
-    state.mkdir()
-    monkeypatch.setattr(cli, "DATA_DIR", data)
-    monkeypatch.setattr(cli, "STATE_DIR", state)
-    return data, state
-
-
 # --- value prompts ----------------------------------------------------------
 
 

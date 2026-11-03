@@ -65,6 +65,17 @@ def cli():
 
 
 @pytest.fixture
+def dirs(cli, tmp_path, monkeypatch):
+    """Isolated data/ and state/ directories for the script."""
+    data, state = tmp_path / "data", tmp_path / "state"
+    data.mkdir()
+    state.mkdir()
+    monkeypatch.setattr(cli, "DATA_DIR", data)
+    monkeypatch.setattr(cli, "STATE_DIR", state)
+    return data, state
+
+
+@pytest.fixture
 def build_rules():
     """scripts/build_rules.py loaded as a module."""
     path = ROOT / "scripts" / "build_rules.py"

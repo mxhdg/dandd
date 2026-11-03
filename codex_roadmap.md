@@ -412,7 +412,7 @@ wait on more characters being in the app.
    `monsters.md` (e.g. `TheChillBeneaththeCrust/arc-vanilla-vault/monsters.md`),
    so the DM gets the same clean sheet treatment for monsters that players
    get for characters.
-10. **Session notes field per character**: a scratchpad for things like
+10. **DONE (1.5.0-rc4). Session notes field per character**: a scratchpad for things like
    "already used Lucky reroll this fight" or loot/plot reminders that don't
    belong on the permanent sheet.
 11. **Party overview page**: one screen showing every character's current

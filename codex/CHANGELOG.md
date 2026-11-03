@@ -14,6 +14,10 @@ change lives in `../codex_roadmap.md`.
 ## [1.5.0] - unreleased
 
 ### Added
+- Session notes: a free-text box under Conditions on the sheet (up to 2,000
+  characters) for "Lucky used this fight", loot and plot reminders. It saves
+  with Save Changes into `state/<id>.yaml` (`session_notes`), never touches the
+  build, and is left out of the PDF and the browser print layout.
 - Add to Home Screen support: a web manifest (`static/manifest.webmanifest`),
   a d20 icon set in `static/icons/` and a shared `_head_links.html` partial
   (manifest, Apple touch icon, theme color) on every page except the PDF

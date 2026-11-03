@@ -14,17 +14,6 @@ def _sample():
     return yaml.safe_load(SAMPLE_TEXT)
 
 
-@pytest.fixture
-def dirs(cli, tmp_path, monkeypatch):
-    """Isolated data/ and state/ directories for the script."""
-    data, state = tmp_path / "data", tmp_path / "state"
-    data.mkdir()
-    state.mkdir()
-    monkeypatch.setattr(cli, "DATA_DIR", data)
-    monkeypatch.setattr(cli, "STATE_DIR", state)
-    return data, state
-
-
 def _choices(cli, **overrides):
     classes = [{"name": "Fighter", "level": 4, "subclass": "", "die": 10}]
     base = {

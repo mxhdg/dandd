@@ -560,3 +560,24 @@ def test_dockerignore_keeps_real_characters_out_of_the_image():
     ]
     for name in kept:
         assert (ROOT / name).is_file(), name
+
+
+def test_session_notes_show_on_the_web_sheet_but_not_the_pdf_render(client, tmp_path):
+    client.post(
+        "/characters/sample_character/update",
+        data={"session_notes": "Lucky used"},
+    )
+    data = app_module._load_character("sample_character")
+    with app_module.app.test_request_context():
+        pdf_html = app_module._render_sheet("sample_character", data, pdf=True)
+        web_html = app_module._render_sheet("sample_character", data, pdf=False)
+    assert "Lucky used" in web_html and 'name="session_notes"' in web_html
+    assert "Lucky used" not in pdf_html and "Session Notes" not in pdf_html
+
+
+def test_session_notes_are_escaped_when_the_sheet_renders(client):
+    attack = "</textarea><script>alert(1)</script>"
+    client.post("/characters/sample_character/update", data={"session_notes": attack})
+    html = client.get("/characters/sample_character").get_data(as_text=True)
+    assert attack not in html
+    assert "&lt;/textarea&gt;&lt;script&gt;" in html

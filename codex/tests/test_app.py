@@ -130,6 +130,25 @@ def test_update_persists_concentration(client, tmp_path):
     assert saved["concentration"] == ""
 
 
+def test_update_persists_session_notes_with_plain_newlines_and_a_cap(client, tmp_path):
+    path = tmp_path / "sample_character.yaml"
+    client.post(
+        "/characters/sample_character/update",
+        data={"session_notes": "Lucky used\r\nLoot: key"},
+    )
+    assert yaml.safe_load(path.read_text())["session_notes"] == "Lucky used\nLoot: key"
+
+    client.post("/characters/sample_character/update", data={"hp_current": "3"})
+    assert yaml.safe_load(path.read_text())["session_notes"] == "Lucky used\nLoot: key"
+
+    client.post(
+        "/characters/sample_character/update",
+        data={"session_notes": "x" * (app_module.SESSION_NOTES_MAX + 50)},
+    )
+    saved = yaml.safe_load(path.read_text())["session_notes"]
+    assert saved == "x" * app_module.SESSION_NOTES_MAX
+
+
 def test_death_save_banner_shows_stabilized_at_three_successes(client, tmp_path):
     (tmp_path / "sample_character.yaml").write_text(
         yaml.safe_dump({"death_save_successes": 3, "death_save_failures": 0})

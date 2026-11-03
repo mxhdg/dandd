@@ -164,6 +164,7 @@ ul.plain { margin: 4px 0 4px 16px; padding: 0; font-size: var(--text-size); }
   border: none; background: transparent; padding: 0;
 }
 .sheet-input:focus { outline: 1.5px dashed var(--red); }
+.notes-input { box-sizing: border-box; resize: vertical; font: inherit; }
 input[type="number"].narrow { width: 44px; flex: 0 0 auto; }
 input[type="checkbox"] { width: 14px; height: 14px; vertical-align: middle; }
 
@@ -307,7 +308,7 @@ h1.charname.charname-sm { font-size: 20px; }
     break-inside: avoid;
     page-break-inside: avoid;
   }
-  .save-btn, .back-link, .pdf-link, .page-footer, .rest-buttons, .rest-section { display: none; }
+  .save-btn, .back-link, .pdf-link, .page-footer, .rest-buttons, .rest-section, .notes-section { display: none; }
   .section-title { background: none; color: var(--ink); border: 1.5px solid var(--ink); }
   table.attack-table th { background: none; }
   /* Two balanced text columns that fragment across pages (a CSS grid or flex
