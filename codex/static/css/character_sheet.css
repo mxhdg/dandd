@@ -145,7 +145,10 @@ table.attack-table th { background: #eadfc4; }
 
 ul.plain { margin: 4px 0 4px 16px; padding: 0; font-size: var(--text-size); }
 .feat-block { font-size: var(--text-size); margin-bottom: 6px; }
-.feat-block .feat-name { font-weight: bold; }
+.feat-block .feat-name { font-weight: bold; display: block; }
+.features-box { margin-top: 10px; }
+.features-box .box { column-count: 2; column-gap: 0.25in; }
+.feat-block { break-inside: avoid; }
 
 .personality-box .value { font-size: var(--text-size); font-weight: normal; }
 
@@ -254,6 +257,7 @@ h1.charname.charname-sm { font-size: 20px; }
   h1.charname { font-size: 19px; letter-spacing: 1px; }
   .header-fields { grid-template-columns: repeat(2, 1fr); }
   .columns-3 { grid-template-columns: minmax(0, 1fr); }
+  .features-box .box { column-count: 1; }
   /* Phone attack table: four stat columns per row, with Notes as a full-width
      line under each attack instead of a fifth, clipped column. */
   table.attack-table, table.attack-table tbody { display: block; }

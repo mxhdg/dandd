@@ -11,6 +11,17 @@ into `main`, releasing the same day, so no follow-up PR is needed. A test fails
 if the current version has no entry here. The longer reasoning behind each
 change lives in `../codex_roadmap.md`.
 
+## [1.5.1] - 2026-11-03
+
+### Changed
+- Features & Traits is now a full-width box under the three columns, with its
+  entries in two columns inside (one column on a phone). Each entry is the bold
+  name on its own line with the text below, and no entry splits across columns
+  or pages. Before, the box lived in the narrow third column and a long list
+  ran on from one column into the next with the box edges lost. Applies to the
+  sheet, Ctrl+P and the PDF; the PDF also balances its last column fragment so
+  the personality boxes sit as a 2x2 on a page of their own.
+
 ## [1.5.0] - 2026-11-03
 
 ### Added

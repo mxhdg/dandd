@@ -4,7 +4,10 @@
    multi-column content differently, so anything it needs goes here. */
 @page { size: letter; margin: 1in 0.5in; }
 .col { display: block; }
-.columns-3 { column-fill: auto; }
+/* Balance the last fragment of the columns, so a page that holds only the
+   personality boxes shows them as a 2x2 instead of one column with the right
+   half empty (Features & Traits no longer follows them in the flow). */
+.columns-3 { column-fill: balance; }
 
 /* Form controls should read as printed values, not widgets. */
 input, select { border: 0; background: transparent; appearance: none; }

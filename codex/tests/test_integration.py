@@ -597,3 +597,12 @@ def test_pdf_lets_the_details_page_follow_the_front_page():
     with app_module.app.test_request_context():
         html = app_module._render_sheet("sample_character", data, pdf=True)
     assert html.count("sheet-page-first") == 1
+
+
+def test_features_box_sits_full_width_after_the_columns_with_names_on_own_lines(client):
+    html = client.get("/characters/sample_character").get_data(as_text=True)
+    assert html.index('class="boxed-section features-box"') > html.index("Flaws")
+    assert html.count("features-box") == 1
+    css = (Path(app_module.STATIC_DIR) / "css" / "character_sheet.css").read_text()
+    rule = re.search(r"\.feat-block \.feat-name\s*\{([^}]*)\}", css)
+    assert rule and "display: block" in rule.group(1)
