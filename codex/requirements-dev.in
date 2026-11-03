@@ -5,8 +5,8 @@
 #     sh -c "pip install -q pip-tools && python -m piptools compile --generate-hashes -q requirements-dev.in"
 -r requirements.in
 -c requirements.txt
-pytest==9.1.1
+pytest==9.2.0
 pytest-cov==7.1.0
 black==26.10.1
-flake8==7.4.1
+flake8==7.5.0
 isort==9.0.2
