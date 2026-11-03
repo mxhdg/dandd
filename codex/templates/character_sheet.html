@@ -15,6 +15,7 @@
 <title>{{ c.name }}: Character Sheet</title>
 <link rel="stylesheet" href="{{ static_url('css/character_sheet.css') }}">
 {% if pdf %}<link rel="stylesheet" href="{{ static_url('css/pdf.css') }}">{% endif %}
+{% if not pdf %}{% include "_head_links.html" %}{% endif %}
 </head>
 <body>
 <a class="back-link" href="{{ url_for('index') }}">&laquo; Characters</a>
@@ -24,7 +25,7 @@
 <button type="submit" class="save-btn">Save Changes</button>
 
 <!-- ================= PAGE 1 ================= -->
-<div class="sheet-page">
+<div class="sheet-page sheet-page-first">
   <h1 class="charname">{{ c.name }}</h1>
 
   <div class="header-fields">
@@ -37,6 +38,9 @@
   </div>
 
   <div class="columns-3">
+
+    {# PDF only: AC/Initiative/Speed and Hit Points lead page 1, whatever the sheet length. #}
+    {% if pdf %}{% include "_vitals.html" %}{% endif %}
 
     <!-- COLUMN 1: Abilities, Saves, Skills -->
     <div class="col">
@@ -91,22 +95,7 @@
 
     <!-- COLUMN 2: Combat -->
     <div class="col">
-      <div class="combat-grid">
-        <div class="field"><span class="label">Armor Class</span><span class="value">{{ c.combat.ac }}</span></div>
-        <div class="field"><span class="label">Initiative</span><span class="value">{{ c.combat.initiative }}</span></div>
-        <div class="field"><span class="label">Speed</span><span class="value">{{ c.combat.speed }}</span></div>
-      </div>
-
-      <div class="boxed-section">
-        <div class="section-title">Hit Points</div>
-        <div class="box">
-          <div class="field"><span class="label">Hit Point Maximum</span><span class="value">{{ c.hp.max }}</span></div>
-          <div class="field mt-6"><span class="label">Current Hit Points</span><span class="value"><input type="number" class="sheet-input" name="hp_current" value="{{ c.hp.current }}"></span></div>
-          <div class="field mt-6"><span class="label">Temporary Hit Points</span><span class="value"><input type="number" class="sheet-input" name="hp_temp" value="{{ c.hp.temp }}"></span></div>
-          <div class="field mt-6"><span class="label">Damage Taken</span><span class="value"><input type="number" min="0" class="sheet-input" name="damage_taken" value="0"></span></div>
-          <div class="field mt-6"><span class="label">Healing Received</span><span class="value"><input type="number" min="0" class="sheet-input" name="healing_received" value="0"></span></div>
-        </div>
-      </div>
+      {% if not pdf %}{% include "_vitals.html" %}{% endif %}
 
       <div class="boxed-section">
         <div class="section-title">Hit Dice / Death Saves</div>
@@ -167,6 +156,13 @@
         </div>
       </div>
 
+      {% if not pdf %}
+      <div class="boxed-section notes-section">
+        <div class="section-title">Session Notes</div>
+        <div class="box"><textarea class="sheet-input notes-input" name="session_notes" rows="4" maxlength="{{ session_notes_max }}" placeholder="Lucky used this fight, loot, plot reminders">{{ c.session_notes }}</textarea></div>
+      </div>
+      {% endif %}
+
       <div class="boxed-section">
         <div class="section-title">Attacks &amp; Spellcasting</div>
         <div class="box">
@@ -202,7 +198,7 @@
       </div>
     </div>
 
-    <!-- COLUMN 3: Personality + Features -->
+    <!-- COLUMN 3: Personality (Features & Traits follows below, full width) -->
     <div class="col">
       <div class="boxed-section personality-box">
         <div class="section-title">Personality Traits</div>
@@ -222,15 +218,15 @@
         <div class="section-title">Flaws</div>
         <div class="box"><div class="value">{{ c.personality.flaws }}</div></div>
       </div>
+    </div>
+  </div>
 
-      <div class="boxed-section">
-        <div class="section-title">Features &amp; Traits</div>
-        <div class="box">
-          {% for f in c.features %}
-          <div class="feat-block"><span class="feat-name">{{ f.name }}</span> {{ f.text }}</div>
-          {% endfor %}
-        </div>
-      </div>
+  <div class="boxed-section features-box">
+    <div class="section-title">Features &amp; Traits</div>
+    <div class="box">
+      {% for f in c.features %}
+      <div class="feat-block"><span class="feat-name">{{ f.name }}</span> {{ f.text }}</div>
+      {% endfor %}
     </div>
   </div>
 </div>

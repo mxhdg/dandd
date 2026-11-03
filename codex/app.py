@@ -41,6 +41,7 @@ RULES_EDITIONS = ("2014", "2024")
 STATE_DIR.mkdir(exist_ok=True)
 
 CURRENCY_KEYS = ["cp", "sp", "ep", "gp", "pp"]
+SESSION_NOTES_MAX = 2000
 
 # 2014 PHB conditions, minus Exhaustion (tracked separately as a 0-6 level,
 # see EXHAUSTION_EFFECTS below).
@@ -361,6 +362,7 @@ def _default_state(char):
         "conditions": {k: False for k in CONDITION_KEYS},
         "concentration": "",
         "exhaustion": 0,
+        "session_notes": "",
     }
 
 
@@ -405,6 +407,7 @@ def _apply_state(char, state):
     char["conditions"] = state["conditions"]
     char["concentration"] = state["concentration"]
     char["exhaustion"] = state["exhaustion"]
+    char["session_notes"] = state["session_notes"]
     for slot in char.get("spellcasting", {}).get("slots", []):
         slot["used"] = state["slot_used"].get(slot["level"], 0)
     return char
@@ -450,6 +453,7 @@ def _render_sheet(character_id, data, pdf=False):
         c=_apply_state(data, state),
         condition_keys=CONDITION_KEYS,
         exhaustion_effects=EXHAUSTION_EFFECTS,
+        session_notes_max=SESSION_NOTES_MAX,
         pdf=pdf,
     )
 
@@ -549,6 +553,12 @@ def _text_field(form, key, previous):
     return value.strip() if value is not None else previous
 
 
+def _notes_field(form, previous):
+    # Browsers submit textarea line breaks as CRLF; store plain newlines.
+    value = _text_field(form, "session_notes", previous)
+    return value.replace("\r\n", "\n")[:SESSION_NOTES_MAX]
+
+
 def _as_int(value, default=0):
     # Currency starts out as whatever the data file holds ("" or "15"), so
     # coerce before doing arithmetic or comparisons on it.
@@ -625,6 +635,7 @@ def _state_from_form(form, previous, limits):
         ),
         "conditions": {k: f"condition_{k}" in form for k in CONDITION_KEYS},
         "exhaustion": _exhaustion_from_form(form, previous["exhaustion"]),
+        "session_notes": _notes_field(form, previous["session_notes"]),
     }
 
 

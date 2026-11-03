@@ -4,7 +4,10 @@
    multi-column content differently, so anything it needs goes here. */
 @page { size: letter; margin: 1in 0.5in; }
 .col { display: block; }
-.columns-3 { column-fill: auto; }
+/* Balance the last fragment of the columns, so a page that holds only the
+   personality boxes shows them as a 2x2 instead of one column with the right
+   half empty (Features & Traits no longer follows them in the flow). */
+.columns-3 { column-fill: balance; }
 
 /* Form controls should read as printed values, not widgets. */
 input, select { border: 0; background: transparent; appearance: none; }
@@ -18,3 +21,17 @@ input[type="checkbox"]:checked { background: var(--ink); }
    it across a page break, leaving the labels on one page and values on the next. */
 .combat-grid { break-inside: avoid; page-break-inside: avoid; }
 .combat-grid .field { break-inside: avoid; page-break-inside: avoid; }
+/* The PDF puts AC/Initiative/Speed and Hit Points first (see _vitals.html);
+   they sit directly in .columns-3, outside the .col > * spacing rule. */
+.columns-3 > .combat-grid, .columns-3 > .boxed-section { margin-bottom: 10px; }
+
+/* A box title must stay with the start of its contents: Features & Traits is
+   allowed to split between entries, which used to strand its title alone at the
+   bottom of a column with every entry on the next page. */
+.section-title { break-after: avoid; page-break-after: avoid; }
+
+/* The details page (backstory, allies, treasure) follows the front page
+   directly instead of starting a new sheet, so a long character's overflow
+   (Marigold's Features & Traits) no longer sits alone on a mostly empty page.
+   Spellcasting still starts its own page. */
+.sheet-page-first { break-after: auto; page-break-after: auto; }
