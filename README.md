@@ -110,7 +110,7 @@ With it on:
 - Your class is matched against the SRD (`wiz` finds Wizard). The hit die, saving-throw proficiencies and subclass names come along.
 - Species and subspecies are matched the same way.
 - Level 1 class features and species traits are offered for you to add to the sheet.
-- Spell prompts accept part of a name (`fire` finds Fire Bolt), limited to your class's spell list.
+- Spell prompts accept the start of a name (`fire` finds Fire Bolt), limited to your class's spell list.
 
 Only the two System Reference Documents are used (`srd-2014` for 2014 rules, `srd-2024` for 2024), through the free [Open5e](https://open5e.com) API. Answers are cached for 30 days in `codex/.cache/srd/` (git-ignored).
 

@@ -218,7 +218,7 @@ def _ask_names(prompt_text, valid_names, current=None, hint=None):
             return chosen
         print(f"  not recognized: {', '.join(unknown)}")
         if len(choices) > 40:
-            print("  (type part of a name, e.g. 'fire' for Fire Bolt)")
+            print("  (type the start of a name, e.g. 'fire' for Fire Bolt)")
         else:
             print(f"  choices: {', '.join(choices)}")
 
@@ -1222,7 +1222,7 @@ PROFICIENCY_LABELS = {
     "tools": "Tool proficiencies",
 }
 APPEARANCE_LABELS = {key: text for key, text in APPEARANCE_PROMPTS.items()}
-EDIT_HINT = "Enter keeps the value shown in [brackets]; type - to clear it."
+EDIT_HINT = "Enter keeps the value shown in [brackets]; type - to clear a text field."
 
 
 def _ask_value(label, current):

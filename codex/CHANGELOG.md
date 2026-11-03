@@ -31,6 +31,10 @@ change lives in `../codex_roadmap.md`.
   or two for +1 each, e.g. Charisma, Constitution)", instead of two
   parentheticals back to back, and no longer says "blank for none" (a blank
   answer is rejected there).
+- Two more `scripts/character.py` hints that said more than the code does:
+  the spell-name tip now says "the start of a name" (matching is by unique
+  prefix, so `bolt` never found Fire Bolt), and the edit-menu hint says `-`
+  clears a text field (on number prompts such as Armor Class it is refused).
 
 ## [1.4.2] - 2026-10-24
 
