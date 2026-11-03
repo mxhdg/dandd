@@ -11,6 +11,8 @@ into `main`, releasing the same day, so no follow-up PR is needed. A test fails
 if the current version has no entry here. The longer reasoning behind each
 change lives in `../codex_roadmap.md`.
 
+## [1.6.0] - unreleased
+
 ## [1.5.0] - 2026-11-03
 
 ### Added
