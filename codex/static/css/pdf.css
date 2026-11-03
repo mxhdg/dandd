@@ -18,3 +18,17 @@ input[type="checkbox"]:checked { background: var(--ink); }
    it across a page break, leaving the labels on one page and values on the next. */
 .combat-grid { break-inside: avoid; page-break-inside: avoid; }
 .combat-grid .field { break-inside: avoid; page-break-inside: avoid; }
+/* The PDF puts AC/Initiative/Speed and Hit Points first (see _vitals.html);
+   they sit directly in .columns-3, outside the .col > * spacing rule. */
+.columns-3 > .combat-grid, .columns-3 > .boxed-section { margin-bottom: 10px; }
+
+/* A box title must stay with the start of its contents: Features & Traits is
+   allowed to split between entries, which used to strand its title alone at the
+   bottom of a column with every entry on the next page. */
+.section-title { break-after: avoid; page-break-after: avoid; }
+
+/* The details page (backstory, allies, treasure) follows the front page
+   directly instead of starting a new sheet, so a long character's overflow
+   (Marigold's Features & Traits) no longer sits alone on a mostly empty page.
+   Spellcasting still starts its own page. */
+.sheet-page-first { break-after: auto; page-break-after: auto; }

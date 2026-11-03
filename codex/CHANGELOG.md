@@ -11,6 +11,46 @@ into `main`, releasing the same day, so no follow-up PR is needed. A test fails
 if the current version has no entry here. The longer reasoning behind each
 change lives in `../codex_roadmap.md`.
 
+## [1.5.0] - 2026-11-03
+
+### Added
+- Session notes: a free-text box under Conditions on the sheet (up to 2,000
+  characters) for "Lucky used this fight", loot and plot reminders. It saves
+  with Save Changes into `state/<id>.yaml` (`session_notes`), never touches the
+  build, and is left out of the PDF and the browser print layout.
+- Add to Home Screen support: a web manifest (`static/manifest.webmanifest`),
+  a d20 icon set in `static/icons/` and a shared `_head_links.html` partial
+  (manifest, Apple touch icon, theme color) on every page except the PDF
+  render, so the sheet can be installed on a phone like an app. No JavaScript
+  or service worker; it still needs the network.
+
+### Changed
+- The PDF no longer forces a page break between the front page and the details
+  page (backstory, allies, treasure), so a long sheet's overflow (Marigold's
+  Features & Traits) is followed by the details instead of sitting alone on a
+  mostly empty page: Marigold's PDF goes from 6 pages to 5. Spellcasting still
+  starts its own page, and the other sample characters render unchanged
+  (`pdf.css`, `.sheet-page-first`). The on-screen sheet and browser print are
+  unchanged.
+- The PDF export now puts Armor Class, Initiative, Speed and Hit Points first
+  on page 1, ahead of the ability scores, for every character. On a long sheet
+  (Marigold's) they used to start page 2. The on-screen sheet and the browser
+  print layout are unchanged (`templates/_vitals.html`, `pdf.css`).
+
+### Fixed
+- The level-up ability prompt is one line, "Ability to raise (one name for +2,
+  or two for +1 each, e.g. Charisma, Constitution)", instead of two
+  parentheticals back to back, and no longer says "blank for none" (a blank
+  answer is rejected there).
+- In the PDF, a box title no longer gets stranded at the bottom of a column
+  with its contents on the next page: Features & Traits (which may split
+  between entries) used to leave its title alone on Marigold's page 2. Titles
+  now keep with the first entry (`pdf.css`).
+- Two more `scripts/character.py` hints that said more than the code does:
+  the spell-name tip now says "the start of a name" (matching is by unique
+  prefix, so `bolt` never found Fire Bolt), and the edit-menu hint says `-`
+  clears a text field (on number prompts such as Armor Class it is refused).
+
 ## [1.4.2] - 2026-10-24
 
 ### Security

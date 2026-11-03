@@ -6,6 +6,7 @@
 <title>Getting Started</title>
 <link rel="stylesheet" href="{{ static_url('css/base.css') }}">
 <link rel="stylesheet" href="{{ static_url('css/guide.css') }}">
+{% include "_head_links.html" %}
 </head>
 <body>
   <div class="guide-box">
@@ -48,6 +49,12 @@
     <p>A plain text field for whatever spell you're concentrating on, so a
     Constitution save prompt doesn't send you digging through notes.</p>
 
+    <h2>Session Notes</h2>
+    <p>A free-text box under Conditions for things that don't belong on the
+    permanent sheet: "Lucky used this fight", loot, plot reminders. It saves
+    with Save Changes and holds up to 2,000 characters. Notes stay on screen;
+    they are not printed and are left out of the PDF.</p>
+
     <h2>Death Saves</h2>
     <p>Check off successes and failures as they happen. Once either count
     hits 3 and you save, a <strong>STABILIZED</strong> or <strong>DEAD</strong>
@@ -82,12 +89,20 @@
     The sheet opens as a PDF in a new tab, with the same page margins in
     every browser. Save or print it from there. It shows your last
     <em>saved</em> values, so save first. Your browser's own Print dialog
-    (Ctrl/Cmd+P) still works, but its margins depend on the browser.</p>
+    (Ctrl/Cmd+P) still works, but its margins depend on the browser. In the
+    PDF, Armor Class, Initiative, Speed and Hit Points come first on page 1,
+    so they are in easy view however long the sheet is; the Print dialog keeps
+    the on-screen order.</p>
 
     <h2>On your phone</h2>
     <p>The sheet is usable down to a phone-sized screen &mdash; no separate
     mobile app needed, just open the same page. On a narrow screen each
     attack's Notes show on their own line under the attack.</p>
+    <p>You can also put it on your home screen so it opens like an app, with
+    no address bar: on an iPhone, open the site in Safari, tap Share, then
+    <em>Add to Home Screen</em>; on Android, open the browser menu and tap
+    <em>Add to Home screen</em> (or <em>Install app</em>). It still needs the
+    network, since it opens the same live pages.</p>
 
     <h2>If a character says &ldquo;needs fixing&rdquo;</h2>
     <p>Every character file is checked when it is opened. If one has a

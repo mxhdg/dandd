@@ -11,7 +11,7 @@ A personal D&D 5e campaign notebook: hand-maintained Markdown for characters and
 
 ## `codex/`
 
-Reads per-character YAML files and renders an HTML character sheet styled after the original hand-built reference sheet, with a "Save Changes" button that persists in-session state (HP, spell slots, currency, etc.) separately from the character's static build data. HP updates by delta ("Damage Taken" / "Healing Received" fields that adjust current HP, accounting for temp HP absorption and capping at max) rather than by typing a new total. Short Rest and Long Rest buttons apply the 2014 rest rules (HP, hit dice, spell slots, death saves), and an exhaustion tracker (0-6) lists the effects at the current level. A "PDF" button on each sheet opens a server-rendered PDF (WeasyPrint) with consistent page margins in any browser.
+Reads per-character YAML files and renders an HTML character sheet styled after the original hand-built reference sheet, with a "Save Changes" button that persists in-session state (HP, spell slots, currency, etc.) separately from the character's static build data. HP updates by delta ("Damage Taken" / "Healing Received" fields that adjust current HP, accounting for temp HP absorption and capping at max) rather than by typing a new total. Short Rest and Long Rest buttons apply the 2014 rest rules (HP, hit dice, spell slots, death saves), an exhaustion tracker (0-6) lists the effects at the current level, and a Session Notes box holds table scratch notes (screen only, not in the PDF). A "PDF" button on each sheet opens a server-rendered PDF (WeasyPrint) with consistent page margins in any browser.
 
 ### Local development
 
@@ -32,6 +32,15 @@ docker compose -f docker-compose.prod.yml up -d
 Pulls the published image from `ghcr.io/mxhdg/dandd/codex` and uses standard `/opt/codex/...` bind-mount paths. Set `CODEX_TAG` to pin a specific version instead of `latest`.
 
 Every release's changes are listed in [codex/CHANGELOG.md](codex/CHANGELOG.md).
+
+#### Upgrading to 1.5.0
+
+Nothing to configure: no setting, Host guard or data-file change, and existing `state/` files keep working. What changes:
+
+- **Session notes**: a free-text box under Conditions (screen only, up to 2,000 characters), saved in `state/<id>.yaml`.
+- **Add to Home Screen** on a phone: the sheet has a web manifest and d20 icon.
+- **PDF layout**: Armor Class, Initiative, Speed and Hit Points come first on page 1, box titles stay with their contents, and a long sheet's details page follows the front page instead of starting a new one.
+- **`scripts/character.py`**: a one-line level-up ability prompt and corrected hints.
 
 #### Upgrading to 1.4.0
 
@@ -110,7 +119,7 @@ With it on:
 - Your class is matched against the SRD (`wiz` finds Wizard). The hit die, saving-throw proficiencies and subclass names come along.
 - Species and subspecies are matched the same way.
 - Level 1 class features and species traits are offered for you to add to the sheet.
-- Spell prompts accept part of a name (`fire` finds Fire Bolt), limited to your class's spell list.
+- Spell prompts accept the start of a name (`fire` finds Fire Bolt), limited to your class's spell list.
 
 Only the two System Reference Documents are used (`srd-2014` for 2014 rules, `srd-2024` for 2024), through the free [Open5e](https://open5e.com) API. Answers are cached for 30 days in `codex/.cache/srd/` (git-ignored).
 

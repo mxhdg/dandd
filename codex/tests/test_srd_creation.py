@@ -162,7 +162,7 @@ def test_many_spell_choices_are_not_all_printed_on_a_typo(cli, respond, capsys):
     respond({"Pick": ["nope", "spell 7"]})
     assert cli._ask_names("Pick", names) == {"Spell 7"}
     out = capsys.readouterr().out
-    assert "type part of a name" in out and "choices:" not in out
+    assert "type the start of a name" in out and "choices:" not in out
 
 
 # --- skeleton saves ---------------------------------------------------------

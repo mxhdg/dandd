@@ -334,6 +334,18 @@ def test_pdf_render_uses_pdf_stylesheet_and_omits_the_pdf_link(client):
     assert "css/pdf.css" not in web_html and 'class="pdf-link"' in web_html
 
 
+def test_pdf_leads_with_vitals_while_the_web_sheet_keeps_them_in_column_two(client):
+    data = app_module._load_character("sample_character")
+    with app_module.app.test_request_context():
+        pdf_html = app_module._render_sheet("sample_character", data, pdf=True)
+        web_html = app_module._render_sheet("sample_character", data, pdf=False)
+    for html in (pdf_html, web_html):
+        assert html.count('class="combat-grid"') == 1
+        assert html.count("Hit Point Maximum") == 1
+    assert pdf_html.index('class="combat-grid"') < pdf_html.index('class="ability-row"')
+    assert web_html.index('class="ability-row"') < web_html.index('class="combat-grid"')
+
+
 def test_static_fetcher_rejects_missing_files_and_directories():
     for url in [
         "http://codex.invalid/static/css/nope.css",
@@ -548,3 +560,40 @@ def test_dockerignore_keeps_real_characters_out_of_the_image():
     ]
     for name in kept:
         assert (ROOT / name).is_file(), name
+
+
+def test_session_notes_show_on_the_web_sheet_but_not_the_pdf_render(client, tmp_path):
+    client.post(
+        "/characters/sample_character/update",
+        data={"session_notes": "Lucky used"},
+    )
+    data = app_module._load_character("sample_character")
+    with app_module.app.test_request_context():
+        pdf_html = app_module._render_sheet("sample_character", data, pdf=True)
+        web_html = app_module._render_sheet("sample_character", data, pdf=False)
+    assert "Lucky used" in web_html and 'name="session_notes"' in web_html
+    assert "Lucky used" not in pdf_html and "Session Notes" not in pdf_html
+
+
+def test_session_notes_are_escaped_when_the_sheet_renders(client):
+    attack = "</textarea><script>alert(1)</script>"
+    client.post("/characters/sample_character/update", data={"session_notes": attack})
+    html = client.get("/characters/sample_character").get_data(as_text=True)
+    assert attack not in html
+    assert "&lt;/textarea&gt;&lt;script&gt;" in html
+
+
+def test_pdf_keeps_every_box_title_with_its_contents():
+    css = (Path(app_module.STATIC_DIR) / "css" / "pdf.css").read_text()
+    rule = re.search(r"\.section-title\s*\{([^}]*)\}", css)
+    assert rule and "break-after: avoid" in rule.group(1)
+
+
+def test_pdf_lets_the_details_page_follow_the_front_page():
+    css = (Path(app_module.STATIC_DIR) / "css" / "pdf.css").read_text()
+    rule = re.search(r"\.sheet-page-first\s*\{([^}]*)\}", css)
+    assert rule and "break-after: auto" in rule.group(1)
+    data = app_module._load_character("sample_character")
+    with app_module.app.test_request_context():
+        html = app_module._render_sheet("sample_character", data, pdf=True)
+    assert html.count("sheet-page-first") == 1

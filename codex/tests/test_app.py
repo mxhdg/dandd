@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 import yaml
+from PIL import Image
 
 import app as app_module
 
@@ -127,6 +128,25 @@ def test_update_persists_concentration(client, tmp_path):
     assert resp.status_code == 302
     saved = yaml.safe_load((tmp_path / "sample_character.yaml").read_text())
     assert saved["concentration"] == ""
+
+
+def test_update_persists_session_notes_with_plain_newlines_and_a_cap(client, tmp_path):
+    path = tmp_path / "sample_character.yaml"
+    client.post(
+        "/characters/sample_character/update",
+        data={"session_notes": "Lucky used\r\nLoot: key"},
+    )
+    assert yaml.safe_load(path.read_text())["session_notes"] == "Lucky used\nLoot: key"
+
+    client.post("/characters/sample_character/update", data={"hp_current": "3"})
+    assert yaml.safe_load(path.read_text())["session_notes"] == "Lucky used\nLoot: key"
+
+    client.post(
+        "/characters/sample_character/update",
+        data={"session_notes": "x" * (app_module.SESSION_NOTES_MAX + 50)},
+    )
+    saved = yaml.safe_load(path.read_text())["session_notes"]
+    assert saved == "x" * app_module.SESSION_NOTES_MAX
 
 
 def test_death_save_banner_shows_stabilized_at_three_successes(client, tmp_path):
@@ -383,6 +403,39 @@ def test_csp_forbids_inline_styles_and_pages_use_none(client):
         body = client.get(url).data
         assert b' style="' not in body
         assert b"<style" not in body
+
+
+def test_pages_link_the_home_screen_manifest_and_icon(client):
+    for url in ("/", "/guide", "/rules/2014/conditions/poisoned"):
+        body = client.get(url).data.decode()
+        assert re.search(
+            r'rel="manifest" href="/static/manifest\.webmanifest\?v=\d+"', body
+        )
+        assert 'rel="apple-touch-icon"' in body
+        assert 'name="theme-color"' in body
+
+
+def test_the_pdf_render_omits_the_home_screen_links(client):
+    data = app_module._load_character("sample_character")
+    with app_module.app.test_request_context():
+        pdf_html = app_module._render_sheet("sample_character", data, pdf=True)
+        web_html = app_module._render_sheet("sample_character", data, pdf=False)
+    assert 'rel="manifest"' in web_html
+    assert 'rel="manifest"' not in pdf_html
+
+
+def test_the_manifest_is_served_and_every_icon_in_it_exists(client):
+    resp = client.get("/static/manifest.webmanifest")
+    assert resp.mimetype == "application/manifest+json"
+    manifest = json.loads(resp.data)
+    assert manifest["start_url"] == "/" and manifest["display"] == "standalone"
+    static = Path(app_module.__file__).parent / "static"
+    for icon in manifest["icons"] + [
+        {"src": "icons/apple-touch-icon.png", "sizes": "180x180"}
+    ]:
+        width, height = (int(n) for n in icon["sizes"].split("x"))
+        with Image.open(static / icon["src"]) as image:
+            assert image.size == (width, height)
 
 
 def test_static_assets_are_cache_busted_and_immutable(client):

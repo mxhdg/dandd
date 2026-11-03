@@ -206,9 +206,9 @@ def _names_hint(choices, current):
     return f"{hint}; blank for none"
 
 
-def _ask_names(prompt_text, valid_names, current=None):
+def _ask_names(prompt_text, valid_names, current=None, hint=None):
     choices = sorted(valid_names)
-    hint = _names_hint(choices, current)
+    hint = hint or _names_hint(choices, current)
     while True:
         raw = _ask(f"{prompt_text} ({hint})")
         if current is not None and raw in ("", "-"):
@@ -218,7 +218,7 @@ def _ask_names(prompt_text, valid_names, current=None):
             return chosen
         print(f"  not recognized: {', '.join(unknown)}")
         if len(choices) > 40:
-            print("  (type part of a name, e.g. 'fire' for Fire Bolt)")
+            print("  (type the start of a name, e.g. 'fire' for Fire Bolt)")
         else:
             print(f"  choices: {', '.join(choices)}")
 
@@ -1069,11 +1069,12 @@ def _resolve_classes(char):
 
 
 def _ask_asi_abilities():
-    prompt = "Ability to raise (one name = +2, two names = +1 each)"
-    chosen = _ask_names(prompt, ABILITIES)
+    prompt = "Ability to raise"
+    hint = "one name for +2, or two for +1 each, e.g. Charisma, Constitution"
+    chosen = _ask_names(prompt, ABILITIES, hint=hint)
     while len(chosen) not in (1, 2):
         print("  please name one or two abilities")
-        chosen = _ask_names(prompt, ABILITIES)
+        chosen = _ask_names(prompt, ABILITIES, hint=hint)
     return chosen
 
 
@@ -1221,7 +1222,7 @@ PROFICIENCY_LABELS = {
     "tools": "Tool proficiencies",
 }
 APPEARANCE_LABELS = {key: text for key, text in APPEARANCE_PROMPTS.items()}
-EDIT_HINT = "Enter keeps the value shown in [brackets]; type - to clear it."
+EDIT_HINT = "Enter keeps the value shown in [brackets]; type - to clear a text field."
 
 
 def _ask_value(label, current):
