@@ -581,3 +581,9 @@ def test_session_notes_are_escaped_when_the_sheet_renders(client):
     html = client.get("/characters/sample_character").get_data(as_text=True)
     assert attack not in html
     assert "&lt;/textarea&gt;&lt;script&gt;" in html
+
+
+def test_pdf_keeps_every_box_title_with_its_contents():
+    css = (Path(app_module.STATIC_DIR) / "css" / "pdf.css").read_text()
+    rule = re.search(r"\.section-title\s*\{([^}]*)\}", css)
+    assert rule and "break-after: avoid" in rule.group(1)

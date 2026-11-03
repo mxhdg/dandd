@@ -414,7 +414,8 @@ wait on more characters being in the app.
    get for characters.
 10. **DONE (1.5.0-rc4). Session notes field per character**: a scratchpad for things like
    "already used Lucky reroll this fight" or loot/plot reminders that don't
-   belong on the permanent sheet.
+   belong on the permanent sheet. Shipped screen-only (hidden in the PDF and
+   Ctrl+P), 2,000 characters, saved in `state/<id>.yaml`.
 11. **Party overview page**: one screen showing every character's current
     HP/AC/conditions at a glance, so the DM isn't clicking through separate
     sheets mid-combat. Bigger payoff once more than one character is in the
@@ -463,6 +464,10 @@ existing workaround.
     whitespace per page. Revisit with more time to explore a denser
     print-only layout (e.g. CSS multi-column, or hand-tuned per-section
     widths) without reintroducing the grid-fragmentation bug it just fixed.
+    Since then, in the PDF only: 1.5.0-rc3 put AC/Initiative/Speed/Hit Points
+    first on page 1, and rc4 keeps every box title with its contents
+    (Features & Traits could strand its title at a column bottom). Density
+    itself is still open.
 18. **Lightweight per-character lock** (a PIN, not a full account system) so
     one player can't accidentally edit another's sheet mid-session. Doesn't
     need to be more than that unless there's an actual reason for real
