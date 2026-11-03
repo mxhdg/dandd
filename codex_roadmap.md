@@ -512,6 +512,13 @@ group above.
   the same SRD pickers (and the class tables in the SRD data could replace the
   hand-typed spell slot counts). The sheet's `?` links cover conditions and
   spells only; class and species features, and items, are not looked up.
+- **Spell prompts: match any part of a name.** `scripts/character.py` matches
+  typed spell names by unique prefix only (`fire` finds Fire Bolt, `bolt` does
+  not), and the tip says "the start of a name" since 1.5.0-rc4. `_match_name`
+  already has a `loose=True` mode (a unique part of a longer name, used for
+  subclasses); `_parse_names` could use it for spell lists too, then the tip
+  and the README line can say "part of a name" again. Found in the 1.5.0-rc4
+  prompt audit.
 - **Repo housekeeping from the 1.4.0 security review.** Make `check`,
   `docker-smoke-test`, `check-version-bump` and `CodeQL` required status
   checks on the `main` ruleset (it already requires PRs and blocks force-push
