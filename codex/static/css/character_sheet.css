@@ -150,7 +150,12 @@ ul.plain { margin: 4px 0 4px 16px; padding: 0; font-size: var(--text-size); }
 .features-box .box { column-count: 2; column-gap: 0.25in; }
 .feat-block { break-inside: avoid; }
 
-.personality-box .value { font-size: var(--text-size); font-weight: normal; }
+.personality-notice { max-width: 8.5in; margin: 8px auto; padding: 6px 10px; border: 1.5px solid var(--red); background: #fff; font-size: var(--text-size); }
+.personality-box .box { height: calc(var(--text-size) * 12.5); overflow: hidden; }
+/* 12.5 lines of --text-size: measured at 7 lines (178px) for 250 characters of
+   ordinary prose in the 235px-wide right column, plus about one spare line.
+   Below 800px the column is narrower (165px at 701px), so boxes grow instead. */
+.personality-box .value { font-size: var(--text-size); font-weight: normal; overflow-wrap: anywhere; }
 
 .small-note { font-size: var(--text-size); color: #555; font-style: italic; }
 
@@ -245,6 +250,10 @@ h1.charname.charname-sm { font-size: 20px; }
 }
 .rules-link:hover { background: var(--ink); color: var(--paper); text-decoration: none; }
 
+@media (max-width: 799px) {
+  .personality-box .box { height: auto; overflow: visible; }
+}
+
 @media (max-width: 700px) {
   .rules-link { min-width: 22px; margin-left: 6px; font-size: 12px; line-height: 20px; border-radius: 11px; }
   .save-btn, .back-link, .pdf-link { top: 6px; font-size: 11px; padding: 6px 10px; }
@@ -289,11 +298,16 @@ h1.charname.charname-sm { font-size: 20px; }
    overrides loses the cascade regardless of the @media condition. */
 @media print {
   .rules-link { display: none; }
+  /* Print/PDF personality column is about 2.3in wide: 250 characters take 6 lines, so 7 whole lines fit them. */
+  .personality-box .box { line-height: 1.2; height: calc(var(--text-size) * 1.2 * 7 + 22px); overflow: hidden; }
+  .currency-row { gap: 4px; }
+  input[type="number"].narrow { width: 34px; }
   @page {
     size: letter;
-    margin: 1in 0.5in;
+    margin: 0.5in;
   }
   :root {
+    --text-size: 9pt;
     --red: #000;
     --parchment: #fff;
     --paper: #fff;
@@ -312,20 +326,21 @@ h1.charname.charname-sm { font-size: 20px; }
     break-inside: avoid;
     page-break-inside: avoid;
   }
-  .save-btn, .back-link, .pdf-link, .page-footer, .rest-buttons, .rest-section, .notes-section { display: none; }
+  .save-btn, .back-link, .pdf-link, .page-footer, .rest-buttons, .rest-section, .notes-section, .personality-notice { display: none; }
   .section-title { background: none; color: var(--ink); border: 1.5px solid var(--ink); }
   table.attack-table th { background: none; }
-  /* Two balanced text columns that fragment across pages (a CSS grid or flex
-     column can't), with each .col flattened so its boxed sections flow in
-     source order: abilities/skills, then combat, then personality/features. */
-  .columns-3 { display: block; column-count: 2; column-gap: 0.25in; }
-  .col { display: contents; }
-  .col > * { margin-bottom: 10px; }
+  /* Print and PDF follow the official sheet: page 1 is the same three columns
+     as on screen at a smaller type size, with abilities in a strip beside
+     the saves and skills. Features & Traits sits below and flows onward. */
+  .columns-3 { grid-template-columns: 1.45fr 1fr 1.1fr; gap: 8px; }
+  .col:first-child { display: grid; grid-template-columns: 0.75in 1fr; column-gap: 6px; row-gap: 8px; align-items: start; }
+  .col:first-child > * { grid-column: 2; }
+  .col:first-child > .ability-row { grid-column: 1; grid-row: 1 / span 6; }
+  .conditions-section, .screen-only { display: none; }
+  h1.charname { font-size: 20px; margin-bottom: 6px; padding: 4px; }
+  .ability-row { gap: 5px; }
+  .ability-box { padding: 4px 2px 5px; }
+  .ability-box .ab-name { font-size: 7px; letter-spacing: 0; }
+  .save-row, .skill-row { padding: 1px 0; }
   .boxed-section:has(.feat-block) { break-inside: auto; page-break-inside: auto; }
-  .ability-row {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  .ability-box { flex: 0 0 30%; }
 }

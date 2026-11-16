@@ -24,6 +24,14 @@
 <form method="POST" action="{{ url_for('update_character', character_id=c.id) }}">
 <button type="submit" class="save-btn">Save Changes</button>
 
+{% if personality_over and not pdf %}
+<div class="personality-notice">
+  {% for label, size in personality_over %}
+  <div>{{ label }} is {{ size }} characters; its box shows about {{ personality_max }}. Shorten it in your character file.</div>
+  {% endfor %}
+</div>
+{% endif %}
+
 <!-- ================= PAGE 1 ================= -->
 <div class="sheet-page sheet-page-first">
   <h1 class="charname">{{ c.name }}</h1>
@@ -38,9 +46,6 @@
   </div>
 
   <div class="columns-3">
-
-    {# PDF only: AC/Initiative/Speed and Hit Points lead page 1, whatever the sheet length. #}
-    {% if pdf %}{% include "_vitals.html" %}{% endif %}
 
     <!-- COLUMN 1: Abilities, Saves, Skills -->
     <div class="col">
@@ -95,7 +100,7 @@
 
     <!-- COLUMN 2: Combat -->
     <div class="col">
-      {% if not pdf %}{% include "_vitals.html" %}{% endif %}
+      {% include "_vitals.html" %}
 
       <div class="boxed-section">
         <div class="section-title">Hit Dice / Death Saves</div>
@@ -125,7 +130,7 @@
         </div>
       </div>
 
-      <div class="boxed-section">
+      <div class="boxed-section conditions-section">
         <div class="section-title">Conditions</div>
         <div class="box">
           <div class="condition-chips">

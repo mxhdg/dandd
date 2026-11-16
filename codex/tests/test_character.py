@@ -580,3 +580,28 @@ def test_main_shows_the_guide_for_the_chosen_edition(
     assert cli.GUIDE_URLS["2024"] in out and cli.GUIDE_URLS["2014"] not in out
     saved = yaml.safe_load((tmp_path / "tess.yaml").read_text(encoding="utf-8"))
     assert saved["edition"] == "2024"
+
+
+def test_personality_prompt_asks_again_when_over_the_limit(cli, respond, capsys):
+    limit = cli.PERSONALITY_MAX
+    respond({"Personality traits": ["x" * (limit + 1), "Short"]})
+    assert cli._ask_personality_field("Personality traits") == "Short"
+    out = capsys.readouterr().out
+    assert str(limit + 1) in out and str(limit) in out
+
+
+def test_personality_prompt_accepts_exactly_the_limit(cli, respond):
+    respond({"Ideals": "y" * cli.PERSONALITY_MAX})
+    assert cli._ask_personality_field("Ideals") == "y" * cli.PERSONALITY_MAX
+
+
+def test_personality_too_long_only_flags_new_text_over_the_limit(cli):
+    limit = cli.PERSONALITY_MAX
+    cases = [
+        ("x" * limit, "", False),
+        ("x" * (limit + 1), "", True),
+        ("x" * (limit + 1), "x" * (limit + 1), False),
+        ("", "x" * (limit + 1), False),
+    ]
+    for value, current, expected in cases:
+        assert cli._personality_too_long(value, current) is expected

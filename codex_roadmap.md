@@ -435,7 +435,15 @@ the monster viewer does not.
 12. **Initiative tracker** tied to the party overview. Juggling initiative
     order on paper is one of the most common things to fumble at the table,
     but like the party overview, the payoff scales with party size.
-41. **Rethink the three-column layout.** The user doesn't like the three
+41. **DONE (1.6.0). Rethink the three-column layout.** Shipped differently: the
+    official-style three columns stay and the four personality boxes became a
+    fixed size (250 characters, `PERSONALITY_MAX` in `character_schema.py`) with a
+    screen-only over-limit notice and a limit in `scripts/character.py`; the user
+    trims their own character files. The PDF and Ctrl+P output also moved from a
+    two-column flow to the official sheet's three-column page 1 (9pt, half-inch
+    margins, no Conditions box). Still to do: Features & Traits sits below the
+    columns, not in column 3 as on the official sheet, because a grid cell can't
+    split across pages for long lists. The original idea follows for reference. The user doesn't like the three
     columns as a whole (2026-11-03). Marigold's long personality entries wrap
     into a tall thin strip in the third column; 1.5.1 already moved Features &
     Traits out to a full-width box. Direction to explore: no third column;

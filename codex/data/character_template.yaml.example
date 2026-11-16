@@ -145,6 +145,7 @@ currency:
   ep: ''
   gp: ''
   pp: ''
+# Each box on the sheet holds about 250 characters; longer text is clipped.
 personality:
   traits: ''
   ideals: ''

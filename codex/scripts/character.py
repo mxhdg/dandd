@@ -40,7 +40,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).parent.parent))  # character_schema.py
-from character_schema import validate_character  # noqa: E402
+from character_schema import PERSONALITY_MAX, validate_character  # noqa: E402
 from srd_lookup import (  # noqa: E402
     ATTRIBUTION,
     SrdUnavailable,
@@ -578,13 +578,34 @@ def _ask_combat(dex_mod):
     }
 
 
+def _personality_too_long(value, current):
+    """True for newly typed text over the box limit; an unchanged value is kept."""
+    return value != current and len(str(value)) > PERSONALITY_MAX
+
+
+def _ask_personality_field(label, current=""):
+    """Like _ask_value, but newly typed text must fit the sheet's box."""
+    while True:
+        value = _ask_value(label, current)
+        if not _personality_too_long(value, current):
+            return value
+        print(
+            f"  that is {len(str(value))} characters; "
+            f"the box holds {PERSONALITY_MAX}. Shorten it."
+        )
+
+
 def _ask_personality():
-    _section("Personality", "One line each; blank to skip.")
+    _section(
+        "Personality",
+        f"One line each, up to {PERSONALITY_MAX} characters (the size of the "
+        "box on the sheet); blank to skip.",
+    )
     return {
-        "traits": _ask("Personality traits"),
-        "ideals": _ask("Ideals"),
-        "bonds": _ask("Bonds"),
-        "flaws": _ask("Flaws"),
+        "traits": _ask_personality_field("Personality traits"),
+        "ideals": _ask_personality_field("Ideals"),
+        "bonds": _ask_personality_field("Bonds"),
+        "flaws": _ask_personality_field("Flaws"),
     }
 
 
@@ -1236,11 +1257,11 @@ def _ask_value(label, current):
     return int(raw) if isinstance(current, int) and numeric else raw
 
 
-def _ask_fields(section, labels):
+def _ask_fields(section, labels, ask=_ask_value):
     """A copy of section with each labelled field asked; unset blanks stay unset."""
     updated = dict(section)
     for key, label in labels.items():
-        value = _ask_value(label, section.get(key, ""))
+        value = ask(label, section.get(key, ""))
         if key in section or value != "":
             updated[key] = value
     return updated
@@ -1373,7 +1394,9 @@ def _edit_spellcasting(char):
 
 
 def _edit_story(char):
-    char["personality"] = _ask_fields(char["personality"], PERSONALITY_LABELS)
+    char["personality"] = _ask_fields(
+        char["personality"], PERSONALITY_LABELS, ask=_ask_personality_field
+    )
     char["appearance"] = _ask_fields(char["appearance"], APPEARANCE_LABELS)
     for key, label in (("backstory", "Backstory"), ("additional_features", "Notes")):
         char[key] = _ask_value(label, char.get(key, ""))

@@ -13,6 +13,32 @@ change lives in `../codex_roadmap.md`.
 
 ## [1.6.0] - unreleased
 
+### Changed
+- The four personality boxes (Traits, Ideals, Bonds, Flaws) are a fixed size
+  like the official sheet, holding about 250 characters each, so long text no
+  longer stretches the right column. On screen from 800px wide, in Ctrl+P and
+  in the PDF the text is clipped to the box; on narrower screens the boxes
+  grow. The sheet keeps the official three-column layout.
+- Long unbroken text (such as a web address) in a personality box now wraps
+  inside the box instead of running past its border.
+- The PDF and Ctrl+P output now follow the official 5e sheet on page 1: the
+  same three columns as on screen (abilities beside saves and skills, combat in
+  the middle, personality on the right) in 9pt print, with half-inch margins.
+  This replaces the two-column flow, and Armor Class, Initiative, Speed and
+  Hit Points no longer lead the PDF; they sit in the middle column as on screen.
+  The Conditions box and the Damage Taken and Healing Received fields are not
+  printed (the official sheet has none). Features & Traits still sits below the
+  columns so a long list runs onto page 2, and an extremely long Equipment list
+  moves to page 2 as a whole box.
+
+### Added
+- A screen-only notice names any personality box over 250 characters (hidden
+  in print and the PDF). It is not a validation error: sheets with longer text
+  still open.
+- `scripts/character.py` asks again when personality text typed in create or
+  edit is over 250 characters; keeping an existing longer value with Enter is
+  still allowed.
+
 ## [1.5.1] - 2026-11-03
 
 ### Changed

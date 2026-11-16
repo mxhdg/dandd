@@ -8,6 +8,7 @@ import yaml
 from PIL import Image
 
 import app as app_module
+from character_schema import PERSONALITY_MAX
 
 
 def test_index_lists_sample_character(client):
@@ -525,6 +526,72 @@ def test_personality_boxes_share_one_markup(client):
     personality = yaml.safe_load(sample.read_text(encoding="utf-8"))["personality"]
     for field in ("traits", "ideals", "bonds", "flaws"):
         assert f'<div class="value">{personality[field]}</div>' in page
+
+
+def test_personality_boxes_are_fixed_size_except_on_phone():
+    css = (
+        Path(app_module.__file__).parent / "static/css/character_sheet.css"
+    ).read_text()
+    base = css[: css.index("@media (max-width: 799px)")]
+    phone = css[css.index("@media (max-width: 799px)") : css.index("@media print")]
+    print_block = css[css.index("@media print") :]
+    rule = ".personality-box .box {"
+    fixed = base[base.index(rule) :].split("}")[0]
+    assert "height:" in fixed and "overflow: hidden" in fixed
+    assert "height: auto" in phone[phone.index(rule) :].split("}")[0]
+    printed = print_block[print_block.index(rule) :].split("}")[0]
+    assert "height:" in printed and "height: auto" not in printed
+
+
+def test_print_layout_follows_the_official_sheet():
+    root = Path(app_module.__file__).parent / "static/css"
+    css = (root / "character_sheet.css").read_text()
+    print_block = css[css.index("@media print") :]
+    for expected in (
+        "--text-size: 9pt",
+        "margin: 0.5in",
+        ".conditions-section, .screen-only { display: none; }",
+        "grid-template-columns: 1.45fr 1fr 1.1fr",
+    ):
+        assert expected in print_block
+    assert "column-count" not in print_block
+    assert "margin: 0.5in" in (root / "pdf.css").read_text()
+
+
+def test_personality_overflow_counts_characters_over_the_limit():
+    limit = PERSONALITY_MAX
+    cases = [
+        ({"ideals": "x" * limit}, []),
+        ({"ideals": "x" * (limit + 1)}, [("Ideals", limit + 1)]),
+        ({"traits": 12345, "bonds": None}, []),
+        ({}, []),
+        ({"flaws": ("\u00e9\n" * (limit + 1))[: limit + 1]}, [("Flaws", limit + 1)]),
+    ]
+    for personality, expected in cases:
+        data = {"personality": personality}
+        assert app_module._personality_overflow(data) == expected
+    assert app_module._personality_overflow({}) == []
+
+
+def test_sheet_shows_overflow_notice_but_still_opens(client, write_character):
+    personality = {"traits": "a", "ideals": "b", "bonds": "c", "flaws": "f" * 306}
+    write_character("longwinded", personality=personality)
+    response = client.get("/characters/longwinded")
+    page = unescape(response.get_data(as_text=True))
+    assert response.status_code == 200
+    notice = page.split('class="personality-notice"')[1].split("</div>")[0]
+    assert "Flaws" in notice and "306" in notice
+    sample = client.get("/characters/sample_character").get_data(as_text=True)
+    assert "personality-notice" not in sample
+
+
+def test_pdf_has_no_overflow_notice(client, write_character):
+    personality = {"traits": "a", "ideals": "b", "bonds": "c", "flaws": "f" * 306}
+    path = write_character("longwinded", personality=personality)
+    data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    with app_module.app.test_request_context():
+        pdf_html = app_module._render_sheet("longwinded", data, pdf=True)
+    assert "personality-notice" not in pdf_html
 
 
 def test_treasure_items_accepts_every_supported_shape():

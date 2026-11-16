@@ -21,7 +21,7 @@ from flask import (
 from weasyprint import HTML, URLFetcher
 from weasyprint.urls import URLFetcherResponse
 
-from character_schema import validate_character
+from character_schema import PERSONALITY_MAX, validate_character
 from srd_lookup import ATTRIBUTION, slugify
 
 app = Flask(__name__)
@@ -446,11 +446,31 @@ def _enforce_same_origin():
         abort(403)
 
 
+PERSONALITY_BOXES = (
+    ("traits", "Personality Traits"),
+    ("ideals", "Ideals"),
+    ("bonds", "Bonds"),
+    ("flaws", "Flaws"),
+)
+
+
+def _personality_overflow(data):
+    """(box label, length) for each personality box holding too much text."""
+    personality = data.get("personality") or {}
+    lengths = [
+        (label, len(str(personality.get(key) or "")))
+        for key, label in PERSONALITY_BOXES
+    ]
+    return [(label, size) for label, size in lengths if size > PERSONALITY_MAX]
+
+
 def _render_sheet(character_id, data, pdf=False):
     state = _load_state(character_id, data)
     return render_template(
         "character_sheet.html",
         c=_apply_state(data, state),
+        personality_over=_personality_overflow(data),
+        personality_max=PERSONALITY_MAX,
         condition_keys=CONDITION_KEYS,
         exhaustion_effects=EXHAUSTION_EFFECTS,
         session_notes_max=SESSION_NOTES_MAX,

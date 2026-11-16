@@ -319,3 +319,17 @@ def test_edit_flag_and_menu_choice_select_the_edit_action(cli, argv, respond):
     argv("--edit", "--new")
     with pytest.raises(SystemExit):
         cli._parse_args()
+
+
+def test_edit_story_keeps_an_over_limit_value_on_enter(cli, respond):
+    char = _sample()
+    long_text = "z" * (cli.PERSONALITY_MAX + 56)
+    char["personality"]["flaws"] = long_text
+    respond({})
+    assert cli._edit_story(char)["personality"]["flaws"] == long_text
+
+
+def test_edit_story_asks_again_for_new_over_limit_text(cli, respond):
+    limit = cli.PERSONALITY_MAX
+    respond({"Flaws": ["z" * (limit + 1), "Stubborn"]})
+    assert cli._edit_story(_sample())["personality"]["flaws"] == "Stubborn"

@@ -46,6 +46,10 @@ SKILL_NAMES = [
     "Survival",
 ]
 
+# Characters each of the four personality boxes holds (the official sheet's
+# boxes are a fixed size). Not a validation rule: longer text still opens.
+PERSONALITY_MAX = 250
+
 _REQ = True
 _OPT = False
 _TEXT_FIELDS = ("str", _OPT)

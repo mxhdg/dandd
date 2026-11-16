@@ -39,7 +39,7 @@ Nothing to configure: no setting, Host guard or data-file change, and existing `
 
 - **Session notes**: a free-text box under Conditions (screen only, up to 2,000 characters), saved in `state/<id>.yaml`.
 - **Add to Home Screen** on a phone: the sheet has a web manifest and d20 icon.
-- **PDF layout**: Armor Class, Initiative, Speed and Hit Points come first on page 1, box titles stay with their contents, and a long sheet's details page follows the front page instead of starting a new one.
+- **PDF layout**: page 1 follows the official 5e sheet (three columns, smaller print, half-inch margins, no Conditions box), box titles stay with their contents, and a long sheet's details page follows the front page instead of starting a new one.
 - **`scripts/character.py`**: a one-line level-up ability prompt and corrected hints.
 
 #### Upgrading to 1.4.0
@@ -150,7 +150,7 @@ Ability modifiers, saves, skills, passive Perception and initiative move by the 
 5. Equipment, treasure and money
 6. Features and allies
 7. Spellcasting
-8. Personality, appearance and backstory
+8. Personality, appearance and backstory (personality boxes hold 250 characters each; the script asks again if you type more)
 9. Languages and other proficiencies
 
 Pick a section, answer its prompts, and repeat until you press Enter at the menu. The current value shows in brackets: Enter keeps it and `-` clears it. Lists show numbered items so you can remove some and add others. A section whose result would make the file invalid is discarded with the reasons, so one slip never costs you your other edits. Changing ability scores or proficiencies shifts the derived values by the change, the same as level-up. To gain a level, use `--level-up`, which also handles hit points and features.
