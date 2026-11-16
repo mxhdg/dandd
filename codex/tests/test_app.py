@@ -517,6 +517,7 @@ def test_attack_notes_column_only_appears_when_an_attack_has_notes(
     noted = client.get("/characters/noted").get_data(as_text=True)
     assert "<th>Notes</th>" not in plain
     assert "<th>Notes</th>" in noted and "Finesse, Thrown" in noted
+    assert '<tr class="atk-notes">' in noted and '<tr class="atk-notes">' not in plain
 
 
 def test_personality_boxes_share_one_markup(client):
@@ -551,7 +552,9 @@ def test_print_layout_follows_the_official_sheet():
         "--text-size: 9pt",
         "margin: 0.5in",
         ".conditions-section, .screen-only { display: none; }",
-        "grid-template-columns: 1.45fr 1fr 1.1fr",
+        "minmax(0, 1.45fr) minmax(0, 1fr) minmax(0, 1.1fr)",
+        "table.attack-table th:nth-child(5)",
+        "tr.atk-notes { display: table-row; }",
     ):
         assert expected in print_block
     assert "column-count" not in print_block

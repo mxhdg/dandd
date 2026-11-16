@@ -177,6 +177,7 @@
               <tr><th>Name</th><th>Atk Bonus</th><th>Damage/<wbr>Type</th><th>Range</th>{% if has_notes %}<th>Notes</th>{% endif %}</tr>
               {% for atk in c.attacks %}
               <tr><td>{{ atk.name }}</td><td>{{ atk.bonus }}</td><td>{{ atk.damage }}</td><td>{{ atk.range }}</td>{% if has_notes %}<td>{{ atk.notes }}</td>{% endif %}</tr>
+              {% if atk.notes %}<tr class="atk-notes"><td colspan="4"><strong>Notes:</strong> {{ atk.notes }}</td></tr>{% endif %}
               {% endfor %}
             </table>
           </div>

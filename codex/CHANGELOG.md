@@ -30,6 +30,9 @@ change lives in `../codex_roadmap.md`.
   printed (the official sheet has none). Features & Traits still sits below the
   columns so a long list runs onto page 2, and an extremely long Equipment list
   moves to page 2 as a whole box.
+- In print and the PDF, an attack's Notes appear on their own line under the
+  attack, and the attack table, coin row and death-save boxes stay inside their
+  column, so long attack lists and sheets like Hazel's keep page 1 intact.
 
 ### Added
 - A screen-only notice names any personality box over 250 characters (hidden

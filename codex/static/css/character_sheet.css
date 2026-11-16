@@ -136,6 +136,7 @@ table.attack-table th, table.attack-table td {
   border: 1px solid var(--ink); padding: 2px 5px; text-align: left;
 }
 table.attack-table th { background: #eadfc4; }
+table.attack-table tr.atk-notes { display: none; }
 
 .combat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; text-align: center; }
 .combat-grid .field .value { font-size: 18px; }
@@ -300,8 +301,18 @@ h1.charname.charname-sm { font-size: 20px; }
   .rules-link { display: none; }
   /* Print/PDF personality column is about 2.3in wide: 250 characters take 6 lines, so 7 whole lines fit them. */
   .personality-box .box { line-height: 1.2; height: calc(var(--text-size) * 1.2 * 7 + 22px); overflow: hidden; }
-  .currency-row { gap: 4px; }
-  input[type="number"].narrow { width: 34px; }
+  .currency-row { gap: 2px; flex-wrap: nowrap; justify-content: space-between; }
+  .currency-row .nowrap { display: flex; flex-direction: column; align-items: center; }
+  input[type="number"].narrow { width: 30px; }
+  /* The columns are too narrow for a fifth attack column: print hides the
+     Notes column and shows each attack's notes as a full-width row under it. */
+  table.attack-table th:nth-child(5), table.attack-table td:nth-child(5) { display: none; }
+  table.attack-table tr.atk-notes { display: table-row; }
+  table.attack-table { font-size: 8pt; }
+  table.attack-table th, table.attack-table td { padding: 2px 3px; }
+  table.attack-table td { overflow-wrap: anywhere; }
+  .table-wrap { overflow: hidden; }
+  .col ul.plain { font-size: 8pt; margin: 2px 0 2px 14px; }
   @page {
     size: letter;
     margin: 0.5in;
@@ -332,7 +343,9 @@ h1.charname.charname-sm { font-size: 20px; }
   /* Print and PDF follow the official sheet: page 1 is the same three columns
      as on screen at a smaller type size, with abilities in a strip beside
      the saves and skills. Features & Traits sits below and flows onward. */
-  .columns-3 { grid-template-columns: 1.45fr 1fr 1.1fr; gap: 8px; }
+  .columns-3 { grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr) minmax(0, 1.1fr); gap: 8px; }
+  .death-saves { gap: 8px; }
+  .death-saves span { white-space: nowrap; }
   .col:first-child { display: grid; grid-template-columns: 0.75in 1fr; column-gap: 6px; row-gap: 8px; align-items: start; }
   .col:first-child > * { grid-column: 2; }
   .col:first-child > .ability-row { grid-column: 1; grid-row: 1 / span 6; }

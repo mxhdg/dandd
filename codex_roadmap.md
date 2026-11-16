@@ -441,7 +441,8 @@ the monster viewer does not.
     screen-only over-limit notice and a limit in `scripts/character.py`; the user
     trims their own character files. The PDF and Ctrl+P output also moved from a
     two-column flow to the official sheet's three-column page 1 (9pt, half-inch
-    margins, no Conditions box). Still to do: Features & Traits sits below the
+    margins, no Conditions box). rc2 follow-ups, not started: check Ctrl+P in Chromium on long sheets, and
+    print Conditions only when one is active (print omits the box today). Still to do: Features & Traits sits below the
     columns, not in column 3 as on the official sheet, because a grid cell can't
     split across pages for long lists. The original idea follows for reference. The user doesn't like the three
     columns as a whole (2026-11-03). Marigold's long personality entries wrap
